@@ -1,0 +1,1 @@
+"""Structural commuting model utilities."""

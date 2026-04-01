@@ -1,0 +1,1172 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry} % narrower margins
+\usepackage[UTF8,fontset=fandol]{ctex}  
+\renewcommand{\figurename}{Figure}
+\renewcommand{\tablename}{Table}
+\usepackage{amsmath, amssymb, graphicx, setspace, natbib}
+\usepackage{booktabs,tabularx}
+\usepackage{multirow}
+\usepackage{comment}
+\usepackage{enumitem}
+\usepackage{array}
+
+\title{Tidal Lanes}
+\author{Xiaoruo Feng}
+\date{February 2026}
+
+
+\begin{document}
+	\maketitle
+	
+	\section{Introduction}
+	\begin{itemize}
+		\item Motivation: asymmetric traffic flows (tidal lanes) versus symmetric assumptions in standard spatial models.
+		\item Contribution: extend Allen \& Arkolakis (2022) to incorporate directional, grid-level road networks.
+		\item Data advantage: high-frequency road segment speed data (10-minute interval) combined with commuting-flow matrices (Beijing and Shenzhen).
+	\end{itemize}
+	
+	\section{Data}
+	\subsection{Commuting-Flow Data}
+	
+	\begin{itemize}
+		\item \textbf{Beijing:} 2022 100-meter gird OD data
+		\begin{itemize}
+			\item File path: \par  \texttt{/Users/fxr/Dropbox/1Data/Baidu/CommutingBeijing/Data\_2021\_2022\_FromBICP}.
+			\item Observations: 6,909,608 (O-D pairs). Among them, there are 355,190 unique origin grid IDs, 394,500 unique destination grid IDs, and a total of 453,391 unique grids.
+			\item Size: 100-meter grids (WGS84 coordinates; in practice the resolution is approximately 75 meters per grid cell).
+			\item Infor: Commuters are disaggregated by demographic and socioeconomic characteristics, including gender, age, education, income, consumption patterns, and occupation categories.
+		\end{itemize}
+
+		\item \textbf{Shenzhen:} 2024 100-meter grid OD data
+		\begin{itemize}
+			\item File path:  \texttt{/Users/fxr/Dropbox/1Data/Baidu/CommutingShenzhen/Data}
+			\item Observations: 3,970,569 (O-D pairs). Among them, there are 94,670 unique origin grid IDs, 105,322 unique destination grid IDs, and a total of 110,339 unique grids.
+			\item Size: 100-meter grids
+			\item Infor: Commuters are disaggregated by demographic and socioeconomic characteristics, including gender, age, education, income, consumption patterns, and occupation categories.
+		\end{itemize}
+				
+		\item \textbf{Limitation:} Both commuting matrices do not distinguish between different transport modes.
+	\end{itemize}
+
+	\begin{figure}[h!]
+		\centering
+		\begin{minipage}[t]{0.49\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figs/grids_work_pop_beijing_fixed.pdf}
+		\end{minipage}
+		\hfill
+		\begin{minipage}[t]{0.49\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{figs/grids_resi_pop_beijing_fixed.pdf}
+		\end{minipage}
+		\caption{Working and Residential Distribution in Beijing}
+		\label{fig:Beijing_commuting}
+	\end{figure}
+		
+	\subsection{Road Segment Speed Data}
+	\begin{itemize}
+		\item Beijing: segment-level speed, 10-minute frequency, with attributes \texttt{cityname}, \texttt{roadseg\_id}, \texttt{roadname}, \texttt{roadtype}, \texttt{semantic}, \texttt{location}, \texttt{geometry}.
+		\item Shenzhen: same structure.
+	\end{itemize}
+	
+
+	\begin{table}[h!]
+		\centering
+		\caption{Example record from the raw road-segment dataset}
+		\label{tab:raw_example}
+		\small
+		\setlength{\tabcolsep}{6pt}
+		\begin{tabularx}{\textwidth}{@{}l X l >{\raggedright\arraybackslash}p{0.55\textwidth}@{}}
+			\toprule
+			\textbf{Variable} & \textbf{Value} & \textbf{Variable} & \textbf{Value} \\
+			\midrule
+			cityname &
+			北京市 &
+			roadseg\_id &
+			\texttt{RS\_NB1520263513\_NB1530878951\_1} \\
+			roadname &
+			\texttt{X017} &
+			semantic &
+			自 S320 出入口到 X017 路口，东向西 \\
+			roadtype &
+			4 &
+			geometry &
+			\texttt{LINESTRING(115.70157 39.57762, 115.70108 39.5\ldots)} \\
+			location &
+			0.043 &
+			& \\			
+			\bottomrule
+		\end{tabularx}
+	\end{table}
+
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.9\textwidth]{figs/speed_eg.png}
+		\label{fig:speed_eg}
+	\end{figure}
+
+	\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+
+	\section{Road Network Construction and Centerline Matching}
+	
+	This section documents the construction of a directed road network suitable for direction-specific traffic analysis. Starting from raw polyline road data, we extract a geometrically stable centerline epresentation, impose a symmetric directed network structure, and construct an explicit crosswalk between original road segments and directed centerline segments. The final output is a directed network with well-defined geometry, orientation, and segment-level correspondence to the raw data, which serves as the basis for aggregating directional traffic attributes such as speed.
+	
+	\subsection{Raw Road Network and Direction Information}
+	
+	\paragraph{Input data.}
+	The raw input consists of polyline road segments obtained from a digital road map
+	of Beijing, stored as a shapefile at
+	\begin{quote}
+		\texttt{../00archive/raw\_data/gis/roads\_baidu/beijing\_roads.shp}.
+	\end{quote}
+	Each observation corresponds to a road segment (\texttt{raw\_edge\_id}) and contains a geometry (\texttt{LineString}) together with several attributes, including city name (\texttt{cityname}), road identifier (\texttt{roadseg\_id}), road name (\texttt{roadname}), road type (\texttt{roadtype}), optional semantic direction descriptions (\texttt{semantic}), and a location measure (\texttt{location}).
+	
+	All geometries are projected to a planar coordinate system (EPSG:3857) to ensure
+	that distances and lengths are measured in meters. The \textbf{raw network} is shown in figure \ref{fig:raw_roads_15km}.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.6\textwidth]{../00archive/exhibit/map_raw_roads_15km.png}
+		\caption{Raw road polylines (with nodes), within 15 km of Tiananmen Square.}
+		\label{fig:raw_roads_15km}
+	\end{figure}
+	
+	\paragraph{Direction inference.}
+	Each raw road segment is assigned a directional bearing based on semantic
+	direction information provided in the original road data. The textual attribute
+	\texttt{semantic} typically contains explicit descriptions of travel direction,
+	such as ``西北向东南'' (from northwest to southeast). We parse these descriptions and map them
+	to angular bearings in degrees.
+	
+	\subsection{Centerline Extraction via Skeletonization}
+	
+	\paragraph{Road surface construction.}
+	To obtain a geometrically stable network representation that abstracts from lane-level irregularities, we first construct a continuous road surface. Each raw road polyline is expanded into a polygon by buffering the geometry with radius \textbf{50 meters}. This buffer width is chosen to be sufficiently large to cover typical urban road widths while allowing nearby parallel lanes to merge into a single road
+	surface.
+	
+	All buffered polygons are merged into a single (possibly multipart) polygon representing the overall road surface. See figure \ref{fig:buffer_surface_15km}.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.6\textwidth]{../00archive/exhibit/map_buffer_surface_15km.png}
+		\caption{Buffered road surface (buffer = 50 m), within 15 km of Tiananmen Square.}
+		\label{fig:buffer_surface_15km}
+	\end{figure}
+	
+	\paragraph{Rasterization and skeletonization.}
+	The road surface polygon is rasterized onto a regular grid with spatial resolution \textbf{5 meters} per pixel. We then apply a morphological skeletonization algorithm to the rasterized surface, extracting a medial-axis representation of the road network. This step yields a thin, one-pixel-wide skeleton capturing the topological structure of the road system.
+	
+	Skeleton pixels are converted back into line segments by connecting adjacent pixels, and these segments are merged into polylines. The result is a set of centerline geometries forming an undirected backbone of the road network.
+	
+	\paragraph{Pruning short fragments.}
+	Skeletonization may generate spurious short branches, particularly near complex	intersections. To remove these artifacts, we drop all centerline segments shorter than \textbf{50 meters}. This threshold removes visually implausible ``dangling'' segments while retaining meaningful road elements. The undirected  \textbf{centerline network} is uniquely identified by 	\texttt{cline\_id}, total number of segments in the undircted centerline network is 6115.  The pruned \textbf{centerline network} is stored at
+	\begin{quote}
+		\texttt{../00archive/interim\_data/gis/step5\_centerline\_edges.shp}.
+	\end{quote}
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.6\textwidth]{../00archive/exhibit/map_centerline_15km.png}
+		\caption{Extracted centerline network (with nodes), within 15 km of Tiananmen Square.}
+		\label{fig:centerline_15km}
+	\end{figure}
+	
+	\subsection{Directed Centerline Network Construction}
+	
+	The extracted centerline network is inherently undirected. To accommodate
+	direction-specific traffic flows, we convert it into a directed network.
+	
+	Each undirected centerline segment is duplicated into two directed segments, denoted as AB and BA. To assign a consistent orientation, we define a reference point at Tiananmen Square (the historical city center of Beijing). For each centerline, the AB direction is defined as pointing outward from this reference point, and BA is its reverse.
+	
+	Each directed centerline segment is assigned a unique identifier (\texttt{skel\_dir}) and a directional bearing (\texttt{dir}, \texttt{bear}). The resulting \textbf{directed network} is symmetric by construction and stored at
+	
+	\begin{quote}
+		\texttt{../00archive/interim\_data/gis/step5\_centerline\_edges\_dir.shp}.
+	\end{quote}
+	
+	\subsection{Selective Segmentation of Raw Road Segments}
+	
+	Raw road segments may span multiple centerline segments, particularly near junctions or complex intersections. 
+	
+	For each raw road segment, we identify the nearest centerline (within 60 meters) to each of its two endpoints. If the two endpoints are mapped to different centerline segments, the raw segment is flagged for splitting. Only flagged segments are processed further.
+	
+	In practice, this criterion is highly selective. Out of 24,763 raw road segments, only 54 segments (0.22\%) are flagged for splitting. In terms of total road length, flagged segments account for approximately 2.1\% of the total raw network length. The vast majority of raw segments therefore map cleanly to a single centerline and do not require further processing.
+	
+	For each flagged segment, candidate split points are identified using a combination of (i) proximity to centerline endpoints (within 20 meters) and (ii) geometric intersections with the centerline network. To avoid excessive fragmentation, we enforce a minimum gap of 10 meters between adjacent split points along the raw segment.
+	
+	This procedure yields a set of raw sub-segments that align locally with the centerline network while preserving the original road attributes, ensuring topological consistency without unnecessary increases in network complexity.
+	
+	\subsection{Matching Raw Sub-Segments to Directed Centerlines}
+	
+	Each raw sub-segment is matched to a unique directed centerline segment using a hierarchical matching procedure that prioritizes strong geometric consistency. The matching algorithm proceeds in multiple stages, with increasingly relaxed criteria, though the vast majority of segments are matched at the first stage.
+	
+	\paragraph{First-stage matching (endpoint-consistent assignment).}
+	For each raw sub-segment, we identify candidate directed centerline segments within a 60-meter search radius. A sub-segment is assigned at the first stage if \emph{both} of its endpoints are mapped to the same directed centerline segment, ensuring endpoint consistency. This criterion enforces that the entire sub-segment lies within a single centerline corridor and does not span multiple junctions or intersections.
+	
+	Among centerlines satisfying endpoint consistency, the best match is selected by minimizing a composite score:
+	\[\text{score} = d_{\text{mean}} + 0.1 \times \Delta \theta,\]
+	where $d_{\text{mean}}$ denotes the mean perpendicular distance between the raw sub-segment and the candidate centerline, evaluated at multiple points along the segment, and $\Delta \theta$ is the absolute angular difference between their bearings
+	\footnote{
+		For each raw sub-segment, the mean perpendicular distance $d_{\text{mean}}$ is computed by uniformly sampling points along the sub-segment geometry at fixed arc-length intervals. Specifically, let $r(s)$ denote the raw sub-segment parameterized by arc length $s \in [0, L]$, where $L$ is the total segment length. We evaluate the perpendicular distance at a discrete set of points $\{ r(s_k) \}_{k=1}^{K}$, with $s_k = k \cdot \Delta s$ and $\Delta s = 30$ meters, and include the terminal point if not already sampled. At each sampled point $p = r(s_k)$, the perpendicular distance to a candidate centerline $c$ is defined as
+		\[d_\perp(p, c) = \min_{q \in c} \| p - q \|,\]
+		that is, the minimum Euclidean distance from $p$ to any point on the centerline geometry.
+		The mean perpendicular distance is then given by
+		\[d_{\text{mean}} = \frac{1}{K} \sum_{k=1}^{K} d_\perp(r(s_k), c).\]
+		Angular differences $\Delta \theta$ are computed as the absolute difference between the bearing of the raw sub-segment and that of the candidate directed centerline, normalized to lie in $[0,180]$ degrees.
+		The composite score weights spatial alignment and directional consistency, with the angular term scaled by a factor of $0.1$ to ensure that distance remains the dominant criterion.
+	}.
+
+	
+	Empirically, this matching criterion is overwhelmingly driven by spatial proximity rather than directional penalties. In over 95\% of successfully matched sub-segments, the distance component $d_{\text{mean}}$ accounts for the majority of the composite score, while the angular term primarily serves as a tie-breaker in ambiguous cases such as intersections, ramps, or closely parallel roads. This pattern confirms that first-stage assignments are determined by geometric alignment with the centerline corridor, with direction consistency playing a secondary but stabilizing role.
+	
+	\paragraph{Fallback matching stages.}
+	If no candidate satisfies the endpoint-consistency criterion, the search radius is progressively expanded and weaker geometric conditions are applied, allowing for matching based on partial overlap or nearest-distance criteria. These fallback stages are rarely invoked in practice.
+	
+	\paragraph{Implementation and outputs.}
+	For each matched sub-segment, we record the centerline identifier (\texttt{cline\_id}), travel direction (\texttt{dir}), and the projected start and end positions along the centerline (\texttt{s\_from}, \texttt{s\_to}), which define the sub-segment’s coverage on the directed centerline.
+	
+	Empirically, over 99.9\% of raw sub-segments are successfully matched at the first stage, indicating that most road segments exhibit clear local alignment with a single directed centerline.
+	
+
+	\subsection{Outputs and Descriptive Statistics}
+	
+	Together, the directed centerline network and the associated crosswalks define a consistent, direction-aware network representation that allows raw traffic attributes to be aggregated onto a common geometric basis. This subsection summarizes the basic properties of the constructed networks and reports diagnostic statistics from two complementary perspectives: (i) matching success from the raw road system to the centerline network, and (ii) coverage of the centerline network by raw observations.
+	
+	\paragraph{Network summary.}
+	Table~\ref{tab:network-summary} reports basic descriptive statistics for the four network representations used in our pipeline: (i) the raw road polylines, (ii) the split raw sub-segments, (iii) the undirected centerline skeleton, and (iv) the directed centerline network (two directions per centerline segment). 	Figure~\ref{fig:length-cdf-4networks} compares the length distributions across the four
+	network versions. 
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Network summary statistics (length in meters).}
+		\label{tab:network-summary}
+		\begin{tabular}{l l r r r}
+			\toprule
+			Network & Unique ID & $N$ & Mean length (m) & Median length (m) \\
+			\midrule
+			raw & \texttt{raw\_edge\_id} & 24,763 & 762 & 411 \\
+			raw\_split & \texttt{split\_id} & 24,817 & 761 & 410 \\
+			undirected\_centerline & \texttt{cline\_id} & 6,406 & 1,474 & 686 \\
+			directed\_centerline & \texttt{skel\_dir} & 12,812 & 1,474 & 686 \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.6\textwidth]{../00archive/exhibit/fig_length_cdf_4networks.png}
+		\caption{Length CDF for raw, raw\_split, undirected centerline, and directed centerline networks.}
+		\label{fig:length-cdf-4networks}
+	\end{figure}
+
+
+	\paragraph{Matching from raw sub-segments to centerlines.}
+	We first evaluate matching performance from the perspective of the raw road system.
+	Each raw sub-segment in \texttt{raw\_split} is either successfully assigned to a unique
+	directed centerline or left unmatched. Table~\ref{tab:match-rate} reports the overall
+	match rate from raw sub-segments to directed centerlines.
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Match rate from raw\_split to directed centerlines.}
+		\label{tab:match-rate}
+		\begin{tabular}{l r r r r}
+			\toprule
+			Group & $N$ & Matched & Unmatched & Match rate \\
+			\midrule
+			ALL & 24,817 & 24,428 & 389 & 0.9843 \\
+			AB  & 12,299 & 12,299 & 0   & 1.0000 \\
+			BA  & 12,129 & 12,129 & 0   & 1.0000 \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	
+	Overall, 98.4\% of raw sub-segments are successfully matched to a directed centerline.
+	Unmatched segments are rare (389 out of 24,817) and typically arise near complex
+	intersections, network boundaries, or locations with ambiguous geometry.
+	
+	It is important to clarify the interpretation of the direction-specific rows in
+	Table~\ref{tab:match-rate}. Directional labels (AB or BA) are only defined conditional
+	on successful matching. That is, each matched raw sub-segment is assigned to exactly one
+	directional representation of its corresponding centerline, while unmatched segments
+	have no associated direction.
+	
+	Conditional on successful matching, raw sub-segments are almost evenly split between the
+	two directions: 12,299 are assigned to the outward (AB) representation and 12,129 to the
+	inward (BA) representation. The difference between the two directions accounts for less
+	than 1\% of all raw sub-segments, indicating that the matching procedure does not induce
+	systematic directional bias. Figure~\ref{fig:matched-unmatched-map} maps matched versus unmatched
+	raw sub-segments for visual inspection.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.7\textwidth]{../00archive/exhibit/map_raw_split_matched_vs_unmatched.png}
+		\caption{Matched vs.\ unmatched raw sub-segments (for diagnostic inspection).}
+		\label{fig:matched-unmatched-map}
+	\end{figure}
+	
+	\paragraph{Coverage of the centerline network.}
+	We next assess coverage from the opposite perspective, asking whether each centerline segment is supported by at least one raw sub-segment. This notion of coverage is conceptually distinct from raw-to-centerline matching success.
+	
+	Although the centerline network is derived from the raw road system, it is not a one-to-one transformation. Centerlines are obtained through skeletonization of buffered road surfaces, which regularizes geometry and enforces topological continuity within the road surface. As a result, the centerline representation is a more abstract and topologically normalized network, rather than a denser or more finely segmented version of the raw polylines. Consequently, some centerline segments may not correspond to any individual raw sub-segment under a strict matching rule. These uncovered centerlines therefore reflect differences in geometric representation, rather than failures of the matching procedure.
+	
+	Table~\ref{tab:directed-coverage} reports coverage statistics for the directed centerline
+	network. A directed centerline is defined as \emph{covered} if it is matched by at least
+	one raw sub-segment. Overall, approximately \textbf{65\%} of directed centerlines are covered,
+	with similar coverage rates for the outward (AB) and inward (BA) directions.
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Coverage of directed centerlines by raw sub-segments.}
+		\label{tab:directed-coverage}
+		\begin{tabular}{l r r r r}
+			\toprule
+			Direction & $N$ & Covered & Uncovered & Coverage rate \\
+			\midrule
+			ALL & 12,812 & 8,356 & 4,456 & 0.6522 \\
+			AB  & 6,406  & 4,202 & 2,204 & 0.6559 \\
+			BA  & 6,406  & 4,154 & 2,252 & 0.6485 \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	
+	Because each undirected centerline admits two directed representations, we further
+	classify undirected centerlines according to whether they are covered by both
+	directions, only one direction, or neither. Table~\ref{tab:undirected-coverage} reports
+	the resulting distribution.
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Coverage status of undirected centerlines.}
+		\label{tab:undirected-coverage}
+		\begin{tabular}{l r r}
+			\toprule
+			Status & $N$ & Share \\
+			\midrule
+			Both AB and BA & 3,741 & 0.5840 \\
+			AB only        & 461   & 0.0720 \\
+			BA only        & 413   & 0.0645 \\
+			None           & 1,791 & 0.2796 \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	
+	Figures~\ref{fig:undirected-coverage-map} visualize centerline coverage patterns. Covered directed centerlines concentrate along major corridors and dense urban grids, whereas uncovered segments are more prevalent in peripheral areas or fine-grained skeleton branches. The presence of uncovered centerline segments reflects the intentionally over-complete nature of the skeleton representation and does not indicate a failure of the matching algorithm.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.7\textwidth]{../00archive/exhibit/map_undirected_centerline_coverage_4classes.png}
+		\caption{Coverage status of centerlines: both directions, single direction,
+			or uncovered.}
+		\label{fig:undirected-coverage-map}
+	\end{figure}
+
+	\subsection{Match Assessment: Length Coverage and Matching Statistics}
+
+	Beyond the binary coverage indicator, we assess the \emph{quality} of the matching procedure by comparing the geometric relationship between centerline segments and their matched raw sub-segments. This assessment serves two purposes: (i) to validate that the matching algorithm produces geometrically consistent alignments, and (ii) to	identify potential outliers or systematic mismatches that may require further
+	scrutiny or exclusion from downstream analysis.
+
+	\paragraph{Definition of coverage ratio.}
+	For each directed centerline segment $c$ that is matched by at least one raw
+	sub-segment, we define the \emph{coverage ratio} as
+	\begin{equation}
+		\rho_c = \frac{\sum_{r \in \mathcal{R}(c)} \ell_r}{\ell_c},
+	\end{equation}
+	where $\ell_c$ denotes the geometric length of the centerline segment $c$ (measured in meters), and $\sum_{r \in \mathcal{R}(c)} \ell_r$ is the total length of all raw sub-segments matched to $c$.  $\rho_c > 1.0$ suggests that the matched segments collectively exceed the centerline length, which may arise from overlapping raw segments, multiple lanes, or geometric	discrepancies between the raw and centerline representations.
+
+	\paragraph{Distribution of coverage ratios.}
+	Table~\ref{tab:coverage-ratio-distribution} reports the distribution of coverage ratios across all matched directed centerlines. Only a small share lie below 0.8, specifically 3.46\% with $\rho_c < 0.5$ and 5.82\% with $0.5 \le \rho_c < 0.8$ (together 9.28\%). By contrast, the majority are close to or above 1: 38.4\% fall in 0.95--1.05, another 15.6\% in 0.9--0.95, and 29.19\% exceed 1.1. These patterns indicate that most segments exhibit consistent or surplus length coverage, while very low-coverage cases are relatively rare.
+
+	\begin{table}[h!]
+		\centering
+		\caption{Distribution of coverage ratios for matched directed centerlines.}
+		\label{tab:coverage-ratio-distribution}
+		\begin{tabular}{l r r r r}
+			\toprule
+			Coverage ratio & $N$ & Share (\%) & Mean centerline & Mean matched \\
+			& & & length (m) & length (m) \\
+			\midrule
+			$< 0.5$ & 289 & 3.46 & 2,154 & 555 \\
+			$0.5$--$0.8$ & 486 & 5.82 & 1,713 & 1,151 \\
+			$0.8$--$0.9$ & 372 & 4.45 & 1,645 & 1,415 \\
+			$0.9$--$0.95$ & 1,305 & 15.62 & 2,595 & 2,428 \\
+			$0.95$--$1.0$ & 2,628 & 31.45 & 2,577 & 2,500 \\
+			$1.0$--$1.05$ & 581 & 6.95 & 1,816 & 1,849 \\
+			$1.05$--$1.1$ & 256 & 3.06 & 1,531 & 1,642 \\
+			$> 1.1$ & 2,439 & 29.19 & 904 & 1,577 \\
+			\midrule
+			Total & 8,356 & 100.00 & 1,900 & 1,954 \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+
+	\paragraph{Low-coverage segments and potential exclusions.}
+	Segments with coverage ratios below 0.5 account for \textbf{3.46\%} (289 out of
+	8,356) of matched centerlines. These low-coverage cases typically arise from one of
+	two scenarios: (i) the centerline segment is substantially longer than the matched
+	raw segments, indicating incomplete matching or partial road coverage in the raw
+	data, or (ii) geometric misalignment between the raw and centerline representations,
+	particularly near complex intersections or network boundaries. On average,
+	low-coverage segments ($\rho_c < 0.5$) have longer centerline lengths (mean 2,154 m)
+	but shorter matched lengths (mean 555 m), suggesting that these cases represent
+	centerline segments that are only partially covered by raw observations.
+
+	For downstream speed aggregation and asymmetry analysis, segments with very low
+	coverage ratios may introduce measurement error or bias, as the aggregated speed
+	measure is computed over only a fraction of the centerline geometry. We therefore
+	recommend excluding segments with $\rho_c < 0.5$ from the primary analysis, while
+	retaining them for robustness checks or sensitivity analysis. This exclusion
+	reduces the effective sample from 8,356 to 8,067 matched centerlines (a reduction of
+	3.46\%), while preserving the vast majority of high-quality matches.
+
+	\paragraph{Number of matched raw segments per centerline.}
+	Table~\ref{tab:n-splits-summary} reports summary statistics for the number of raw
+	sub-segments matched to each directed centerline. On average, each matched
+	centerline is associated with 2.92 raw sub-segments (median 2.0). Approximately
+	\textbf{36.2\%} of matched centerlines correspond to a single raw sub-segment
+	($n_{\text{splits}} = 1$), indicating one-to-one matching. The remaining
+	\textbf{63.8\%} involve multiple raw sub-segments, with the 75th percentile at 4
+	segments and the 95th percentile at 8 segments. The maximum number of matched
+	segments is 27, occurring for a small number of long or complex centerline
+	segments.
+
+	\begin{table}[h!]
+		\centering
+		\caption{Summary statistics for the number of raw sub-segments matched per directed centerline ($n_{\text{splits}}$).}
+		\label{tab:n-splits-summary}
+		\begin{tabular}{l r r r r r r r r r r}
+			\toprule
+			& Mean & Median & Std. & Min & P10 & P25 & P50 & P75 & P90 & Max \\
+			\midrule
+			$n_{\text{splits}}$ 
+			& 2.92 & 2.0 & 2.58 & 1 & 1.0 & 1.0 & 2.0 & 4.0 & 6.0 & 27 \\
+			Share with $n_{\text{splits}}=1$ 
+			& \multicolumn{10}{r}{36.2\%} \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+
+	The distribution of $n_{\text{splits}}$ reflects the geometric relationship between
+	the raw road network and the centerline representation. One-to-one matches are most
+	common for straightforward road segments that align cleanly with a single
+	centerline corridor. Multi-segment matches arise when (i) a single raw road
+	segment is split into multiple sub-segments during the matching procedure, (ii)
+	multiple parallel or adjacent raw segments map to the same centerline, or (iii) the
+	centerline spans multiple raw road segments that are topologically connected.
+
+	\begin{comment}
+	\paragraph{Visual diagnostics.}
+	Figure~\ref{fig:match-quality-visual} provides visual diagnostics of the matching
+	quality, including distributions of coverage ratios, length differences, and
+	scatter plots comparing centerline lengths to matched segment lengths. These
+	diagnostics confirm that the majority of matches exhibit reasonable geometric
+	consistency, with coverage ratios clustered near 1.0 and length relationships
+	following an approximately linear pattern.
+
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.95\textwidth]{../00archive/interim_data/reports/match_quality_centerline.png}
+		\caption{Visual diagnostics of matching quality: (top left) distribution of
+			coverage ratios, (top right) distribution of length differences, (bottom left)
+			scatter plot of centerline length vs.\ matched length, (bottom right) coverage
+			ratio vs.\ centerline length.}
+		\label{fig:match-quality-visual}
+	\end{figure}
+	\end{comment}
+
+	\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	\section{Aggregating Raw-Segment Speeds to Directed Centerlines}
+	
+	\paragraph{Implementation details.}
+	
+	\begin{enumerate}
+		\item Parse time stamps to a datetime variable ($dt$) and construct indicators for hour of day, weekday/weekend, and peak windows (AM: 7--9, PM: 17--19).
+		
+		\item Merge raw speeds to the raw-to-split crosswalk with geometry; compute split lengths $\ell_r$ in meters; keep only valid, matched records with $\ell_r>0$ and $v_r>0$.
+		
+		\item Aggregate to each directed centerline $(\texttt{skel\_dir}, \texttt{cline\_id}, \texttt{dir})$ using a time-weighted average grounded in the identity $v=s/t$.
+	\end{enumerate}
+	
+	\paragraph{Time-weighted aggregation.}
+	
+	We compute the average speed on each directed centerline using a time-weighted scheme that treats the total distance as $\sum_{r \in \mathcal{R}(c)} \ell_r$ and the total travel time as $\sum_{r \in \mathcal{R}(c)} \ell_r / v_r$, where $\mathcal{R}(c)$ denotes the set of matched raw segments for centerline $c$. The average speed is then:
+	
+	\begin{align}
+		\bar{v}_c^{\,\text{time}}
+		&= \frac{\sum_{r \in \mathcal{R}(c)} \ell_r}{\sum_{r \in \mathcal{R}(c)} \ell_r / v_r}.
+		\label{eq:centerline_speed}
+	\end{align}
+	
+	This method divides total distance by total time to obtain the average speed, which is the natural aggregation when considering travel time along a centerline. The computation is performed on the matched and quality-filtered set $\mathcal{R}(c)$.
+	
+	\paragraph{Distributional and diurnal profiles.}
+	
+	At the aggregate level, the distribution of centerline speeds aligns closely with the raw-segment distribution (Figure~\ref{fig:raw-vs-centerline-dist}), indicating that the matching and aggregation preserve overall speed levels.
+	
+	Diurnal profiles (weekday vs.\ weekend) computed as centerline-length-weighted hourly means confirm pronounced weekday AM/PM peaks in both raw and centerline series, and a flatter weekend pattern (Figure~\ref{fig:diurnal-raw-centerline}).
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.7\textwidth]{../00archive/interim_data/asym/hist_speed_raw_vs_centerline_all.png}
+		\caption{Speed distribution: raw road segments vs.\ aggregated centerline (all times).}
+		\label{fig:raw-vs-centerline-dist}
+	\end{figure}
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.95\textwidth]{../00archive/interim_data/asym/diurnal_raw_centerline_combined.png}
+		\caption{Diurnal profiles (centerline-length-weighted hourly means): raw vs.\ centerline, weekday vs.\ weekend. Shaded bands mark AM (7--9) and PM (17--19) peaks.}
+		\label{fig:diurnal-raw-centerline}
+	\end{figure}
+	
+	\subsection{Summary Statistics of Speed}
+	
+	We summarize speeds on the raw-segment network and on the directed centerline network along three dimensions: (i) overall distributions, (ii) weekday vs.\ weekend differences, and (iii) within-day (diurnal) profiles. For centerline speeds, we use the time-weighted aggregation method described above, and when computing aggregate statistics across centerlines, we weight by centerline length.
+	
+	\paragraph{Tabular summaries.}
+	
+	Tables~\ref{tab:raw-speed-stats} and~\ref{tab:centerline-speed-stats} report summary statistics for raw segments and centerlines, respectively. For both, we compute statistics (count $N$, mean, length-weighted mean, median, and standard deviation) for the full sample and separately for weekdays and weekends. 
+	
+	For raw segments, the length-weighted mean uses segment length as weights. For centerlines, each centerline's speed is computed using the time-weighted method, and when aggregating across centerlines, we weight by centerline length.
+	
+	The tables confirm that weekday and weekend means are very similar, that length-weighted means exceed simple means (longer segments/centerlines tend to be faster), and that aggregation to centerlines preserves overall speed levels while reducing dispersion (the standard deviation is lower for centerlines, reflecting the aggregation of multiple segments).
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Summary statistics of raw road segment speeds (km/h)}
+		\label{tab:raw-speed-stats}
+		\begin{tabular}{lccccc}
+			\toprule
+			Group & $N$ & Mean & Weighted Mean & Median & Std. Dev. \\
+			\midrule
+			All & 24,333,631 & 35.85 & 42.77 & 30.75 & 13.93 \\
+			Weekday & 17,432,962 & 35.79 & 42.86 & 30.73 & 13.96 \\
+			Weekend & 6,900,669 & 36.01 & 42.52 & 30.79 & 13.86 \\
+			\bottomrule
+		\end{tabular} \\
+	\vspace{0.3em}
+	{\footnotesize\raggedright Note: Weighted mean uses segment length as weights
+	}
+	\end{table}
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Summary statistics of centerline speeds (km/h)}
+		\label{tab:centerline-speed-stats}
+		\begin{tabular}{lccccc}
+			\toprule
+			Group & $N$ & Mean & Weighted Mean & Median & Std. Dev. \\
+			\midrule
+			All      & 392{,}260 & 36.08 & 39.38 & 33.17 & 12.36 \\
+			Weekday & 197{,}218 & 35.91 & 39.47 & 33.08 & 12.49 \\
+			Weekend & 195{,}042 & 36.24 & 39.29 & 33.25 & 12.23 \\
+			\bottomrule
+		\end{tabular} \\
+		\vspace{0.3em}
+		{\footnotesize\raggedright
+			Note: Weighted mean across centerlines uses centerline length as weights.
+		}
+	\end{table}
+	
+	\paragraph{Speed Within a Day}
+	
+	Centerline-length-weighted hourly means by day type reveal clear morning (7--9) and evening (17--19) peaks on weekdays and flatter profiles on weekends. Figure~\ref{fig:diurnal-raw-centerline} (inserted earlier in this section) combines all four series (raw weekday, raw weekend, centerline weekday, centerline weekend) for direct comparison.
+	
+	\clearpage
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	
+	\section{Identifying Asymmetric Segments and Tidal Lanes in Road Network}
+	\label{sec:asym_sec}
+	This section documents the construction of peak-period directional speed measures on the centerline network and the identification of directional asymmetries and tidal lane candidates. The focus is on transparent data processing and classification rules rather than behavioral interpretation.
+	
+	\subsection{Time Aggregation and Peak-Period Speed Computation}
+	
+	Speed observations vary systematically over time. We aggregate raw speed observations by centerline segment, direction, weekday status, and hour of day using a time-weighted harmonic mean (Equation~\eqref{eq:centerline_speed}). The analysis focuses on weekday peak hours only:
+	\begin{itemize}
+		\item Morning peak (AM): 7:00--9:00
+		\item Evening peak (PM): 17:00--19:00
+	\end{itemize}
+	Within each peak window, observations are aggregated across the two constituent hours to obtain a single peak-period speed for each directed centerline segment, yielding peak-period speeds $\bar{v}_{c,d,p}$ for centerline $c$, direction $d \in \{AB, BA\}$, and peak period $p \in \{AM, PM\}$.
+	
+	The study area is defined as all directed centerline segments within a 150km radius of Tiananmen Square in Beijing. After aggregation, valid peak-period speed observations are available for 4,573 undirected centerlines in the AM peak and 4,575 in the PM peak. Among these, 3,711 undirected centerlines have valid speed observations in both directions in both peak periods and form the baseline sample for asymmetry analysis.
+	
+	\subsection{Pairing Directions for Asymmetry Detection}
+	
+	Directional asymmetry is evaluated by comparing speeds in opposite directions along the same physical road segment. Although speeds are observed at the directed centerline level ($skel\_dir$), pairing is performed at the undirected centerline level ($cline\_id$):
+	\begin{itemize}
+		\item For each $cline\_id$, speeds are pivoted to form paired observations $(speed_{AB}, speed_{BA})$.
+		\item Only centerlines with valid speed observations in both directions are retained for asymmetry analysis.
+	\end{itemize}
+	This procedure ensures that directional comparisons reflect conditions along the same physical infrastructure.
+	
+	\subsection{Asymmetry Measures and Classification Thresholds}
+	
+	For each paired centerline, two measures of directional imbalance are computed:
+	\begin{itemize}
+		\item Speed ratio: $ratio = \min(speed_{AB}/speed_{BA},\, speed_{BA}/speed_{AB}) \in (0,1]$, which captures relative asymmetry in a symmetric manner.
+		\item Relative difference: $ratio2 = |speed_{AB} - speed_{BA}| / (speed_{AB} + speed_{BA}) \in [0,1)$, used as a complementary diagnostic.
+	\end{itemize}
+	
+	Directional asymmetry is classified using the following thresholds:
+	\begin{itemize}
+		\item \textbf{unsym1 (baseline)}: $ratio < 0.5$, corresponding to one direction being at least twice as fast as the other.
+		\item \textbf{unsym2 (severe)}: $ratio < 1/3$, corresponding to a speed ratio of at least three-to-one.
+		\item \textbf{unsym3 (robustness)}: $ratio2 > 0.6$.
+	\end{itemize}
+	The baseline analysis uses the unsym1 criterion; the remaining thresholds are used to characterize severity and robustness.
+	
+	\subsection{Asymmetry Detection Results}
+	
+	Applying the baseline criterion to the 3,711 eligible undirected centerlines yields the following results:
+	\begin{itemize}
+		\item AM peak: 410 centerlines (11.0\%) classified as asymmetric; 179 (4.8\%) satisfy the severe asymmetry criterion.
+		\item PM peak: 368 centerlines (9.9\%) classified as asymmetric; 142 (3.8\%) satisfy the severe asymmetry criterion.
+	\end{itemize}
+	
+	Figure~\ref{fig:speed_ratio_dist} shows the distribution of speed ratios for AM and PM peaks. Most centerlines have ratios above 0.5, while a lower tail captures segments with pronounced directional imbalance; this tail is thicker in the AM peak than in the PM peak.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.95\textwidth]{../00archive/interim_data/asym/hist_speed_ratio_am_pm.png}
+		\caption{Distribution of speed ratios (min(AB/BA, BA/AB)) for AM and PM peak periods. Vertical dashed lines indicate the asymmetry thresholds: $ratio = 0.5$ (unsym1) and $ratio = 1/3$ (unsym2).}
+		\label{fig:speed_ratio_dist}
+	\end{figure}
+	
+	\subsection{Temporal Overlap of Asymmetric Segments}
+	
+	Using the baseline threshold, 654 unique undirected centerlines are classified as asymmetric in at least one peak period:
+	\begin{itemize}
+		\item Asymmetric in AM only: 286 centerlines (43.7\%).
+		\item Asymmetric in PM only: 244 centerlines (37.3\%).
+		\item Asymmetric in both AM and PM: 124 centerlines (19.0\%).
+	\end{itemize}
+	Thus, over 80\% of asymmetric segments appear in only one peak period, indicating strong temporal specificity in directional imbalance.
+	
+	\subsection{Tidal Lane Candidate Identification}
+	
+	Tidal lane candidates are defined using two criteria:
+	\begin{itemize}
+		\item The faster direction reverses between AM and PM peaks.
+		\item Both peak periods satisfy the baseline asymmetry criterion ($ratio_{AM} < 0.5$ and $ratio_{PM} < 0.5$).
+	\end{itemize}
+	Among the 3,711 centerlines with valid bidirectional data, 907 (31.2\%) exhibit a reversal in the faster direction between peaks, and 13 centerlines (0.4\%) satisfy both conditions and are classified as tidal lane candidates.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.85\textwidth]{../00archive/interim_data/asym/figs_asym/map_tidal_candidates_150km.png}
+		\caption{Spatial distribution of tidal lane candidates within 150km of Tiananmen Square.}
+		\label{fig:tidal_candidates}
+	\end{figure}
+	
+	\subsection{Spatial Distribution of Asymmetric Segments}
+	
+	Figures~\ref{fig:asym_am} and~\ref{fig:asym_pm} visualize asymmetric segments during the AM and PM peaks using the baseline threshold. Red segments indicate the AB direction is faster, while blue segments indicate the BA direction is faster.
+	
+	\begin{figure}[h!]
+		\centering
+		\begin{minipage}[t]{0.49\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{../00archive/interim_data/asym/figs_asym/map_asym_AM_unsym1_150km.png}
+			\caption{Asymmetric segments in the AM peak ($ratio < 0.5$).}
+			\label{fig:asym_am}
+		\end{minipage}
+		\hfill
+		\begin{minipage}[t]{0.49\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{../00archive/interim_data/asym/figs_asym/map_asym_PM_unsym1_150km.png}
+			\caption{Asymmetric segments in the PM peak ($ratio < 0.5$).}
+			\label{fig:asym_pm}
+		\end{minipage}
+	\end{figure}
+
+	\clearpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+
+	
+	
+	
+	
+	
+	
+	\section{Grid Construction}
+	
+	To discretize the urban road network for subsequent aggregation and analysis, we construct three alternative spatial grid systems: square grids, hexagonal grids, and Voronoi (Thiessen) polygons. Each system partitions space using a distinct geometric principle, allowing us to assess the sensitivity of our results to the choice of spatial aggregation units while holding the underlying road network fixed.
+	
+	\subsection{Square Grid System}
+	
+	We first construct a regular square grid covering the study area. The resulting system contains 3,357 grid cells with an average area of 8.38~km$^2$.Under this discretization, 64.3\% of directed centerline segments (8,234 out of 12,812) are completely contained within a single grid cell. These segments account for 24.0\% of the total centerline length (4,530.43~km out of 18,884.37~km). 
+	
+	\subsection{Hexagonal Grid System}
+	
+	We next construct a hexagonal grid network by Uber's H3 geospatial indexing system, yielding hexagons with an average area of approximately 6.1 km², comparable in scale to our square grid system. This choice ensures that differences across grid systems are not driven by spatial resolution. Moreover, the H3 grid can be straightforwardly replaced by a fixed-edge-length grid if required.
+	
+	This procedure yields 4,604 hexagonal cells, the highest cell count among the three systems. However, due to the irregular shape of hexagons near boundaries, only 58.9\% of centerline segments (7,544) are completely contained within a single cell, representing 19.6\% of total length (3,705.48 km).
+	
+	\subsection{Voronoi Grid System}
+	
+	The Voronoi grid system provides a spatially adaptive tessellation anchored directly to the structure of the road network. Unlike uniform square or hexagonal grids, Voronoi cells adjust endogenously to local network density, generating smaller cells in dense urban cores and larger cells in sparsely connected peripheral areas.
+	
+	\paragraph{Construction.}
+	Seed points are drawn from the directed centerline network, using network nodes with degree at least two to prioritize road intersections and major junctions. To prevent excessive clustering of generators in dense regions, we impose a minimum inter-seed distance of 1.5~km through a greedy Poisson-like sampling procedure, yielding approximately 1,200 initial seeds.
+	
+	To control cell size in sparsely connected regions, we apply an iterative densification procedure. After constructing an initial Voronoi network, cells with area exceeding $A_{\max}=200$~km$^2$ are identified. Within each such cell, an additional seed is placed at the location maximally distant from existing generators, prioritizing network nodes when available. The Voronoi diagram is then recomputed. This process is repeated until all cells satisfy the area constraint, convergence is reached, or a maximum of eight iterations is completed. To limit computational cost, each iteration adds at most 300 new seeds.
+	
+	This refinement procedure reduces the maximum cell area from over 500~km$^2$ to approximately 195~km$^2$. The final Voronoi grid consists of 1,244 cells with an average area of 22.62~km$^2$, the largest among the three systems. 60.7\% of centerline segments (7,774) are fully contained within a single Voronoi cell, but accounting for only 17.4\% of the total network length (3,284.26~km).
+	
+	To handle boundary effects, we add auxiliary generators outside the study area and clip the Voronoi tessellation to the analysis boundary, ensuring finite cells.
+
+	\subsection{Grid Comparison}
+	
+	Table~\ref{tab:grid_comparison} summarizes the key characteristics of the three grid systems. 
+	
+	Figure~\ref{fig:grid_comparison} provides a visual comparison of the three grid systems overlaid on the directed centerline network, illustrating their differing spatial structures and boundary interactions.
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Comparison of three spatial grid systems}
+		\label{tab:grid_comparison}
+		\begin{tabular}{lcccc}
+			\toprule
+			Grid Type & Cell Count & Avg. Area (km²) & Segments Within & Length Within \\
+			\midrule
+			Square & 3,357 & 8.38 & 8,234 (64.3\%) & 4,530.43 km (24.0\%) \\
+			Hexagonal & 4,604 & 6.10 & 7,544 (58.9\%) & 3,705.48 km (19.6\%) \\
+			Voronoi & 1,244 & 22.62 & 7,774 (60.7\%) & 3,284.26 km (17.4\%) \\
+			\bottomrule
+		\end{tabular}
+		\vspace{0.1cm}
+		\footnotesize
+		Note: ``Segments Within'' refers to the count and percentage of centerline segments that are completely contained within a single grid cell. ``Length Within'' refers to the total length and percentage of centerline segments that are completely contained within a single grid cell.
+	\end{table}
+	
+	\begin{figure}[h!]
+		\centering
+		\IfFileExists{../00archive/raw_data/gis/map/grid_comparison.png}{
+			\includegraphics[width=\textwidth]{../00archive/raw_data/gis/map/grid_comparison.png}
+		}{
+			\fbox{\parbox{0.95\textwidth}{\centering Missing figure file: \texttt{../00archive/raw\_data/gis/map/grid\_comparison.png}}}
+		}
+		\caption{Comparison of square, hexagonal, and Voronoi grid systems}
+		\label{fig:grid_comparison}
+	\end{figure}
+
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	%  Model =========================================================
+
+	\clearpage
+	\section{Model}
+	
+	\subsection{Setup}
+	This model is a urban commuting model with directed travel time. The city consists of a finite set of locations (grid cells) $\mathcal N=\{1,\dots,N\}$ connected by a directed graph $\mathcal E\subseteq\mathcal N\times\mathcal N$. For each directed link $(k,l)\in\mathcal E$, let $\ell_{kl}>0$ denote its physical length, $v^0_{kl}>0$ its free-flow (non-congested) speed, and $t_{kl}>0$ the realized equilibrium travel time. Directionality allows $\ell_{kl}\neq\ell_{lk}$, $v^0_{kl}\neq v^0_{lk}$, and $t_{kl}\neq t_{lk}$ in general.
+	
+	An aggregate labor endowment $\bar L$ is allocated across residential locations $\{L_i^R\}_{i\in\mathcal N}$ and workplace locations $\{L_i^F\}_{i\in\mathcal N}$, with $\sum_i L_i^R=\sum_i L_i^F=\bar L$. The model is parameterized by $\theta>0$, governing heterogeneity in route choice; spillover elasticities $\alpha$ and $\beta$; and a traffic congestion elasticity $\lambda\geq 0$.
+	
+	Each location $i$ is endowed with baseline productivity $\bar A_i>0$ and baseline amenity $\bar u_i>0$. Local productivity and amenities depend on endogenous activity according to
+	\begin{equation}
+		A_i=\bar A_i (L_i^F)^{\alpha}, \qquad u_i=\bar u_i (L_i^R)^{\beta}.
+		\label{eq:fundamentals}
+	\end{equation}
+	
+	\subsection{Individuals: residence, workplace, and route choice}
+	An individual chooses a residence $i\in\mathcal N$, a workplace $j\in\mathcal N$, and a commuting route $r\in\mathcal R_{ij}$, where a route is a finite ordered sequence of nodes $r=(r_0=i,r_1,\dots,r_K=j)$. The payoff associated with choice $(i,j,r)$ is
+	\begin{equation}
+		V_{ij,r}=\left(\frac{u_i w_j}{\prod_{m=1}^{K} t_{r_{m-1},r_m}}\right)\varepsilon_{ij,r},
+		\label{eq:utility}
+	\end{equation}
+	where $w_j$ is the wage at workplace $j$ and $\varepsilon_{ij,r}$ is i.i.d.\ Fr\'echet with shape parameter $\theta$.
+	
+	\paragraph{Choice probabilities.}
+	Given Fr\'echet heterogeneity, the probability that an individual chooses $(i,j,r)$ is
+	\begin{equation}
+		\pi_{ij,r}
+		=
+		\frac{\left(u_i w_j \prod_{m=1}^{K} t_{r_{m-1},r_m}^{-1}\right)^{\theta}}
+		{\sum_{i',j'}\sum_{r'\in\mathcal R_{i'j'}}
+			\left(u_{i'} w_{j'} \prod_{m=1}^{K'} t_{r'_{m-1},r'_m}^{-1}\right)^{\theta}}.
+		\label{eq:routeprob}
+	\end{equation}
+	
+	\subsection{Aggregation over routes and commuting costs}
+	Let $\mathcal R_{ij}$ denote the (countably infinite) set of feasible routes connecting residence $i$ to workplace $j$. Aggregating \eqref{eq:routeprob} over all routes and multiplying by aggregate population $\bar L$ yields the commuting flow
+	\begin{equation}
+		L_{ij}=\bar L \sum_{r\in\mathcal R_{ij}} \pi_{ij,r}.
+		\label{eq:flowdef}
+	\end{equation}
+	Since $u_i^\theta w_j^\theta$ does not vary across routes, define the bilateral commuting cost index
+	\begin{equation}
+		\tau_{ij}^{-\theta}
+		\equiv
+		\sum_{r\in\mathcal R_{ij}}
+		\prod_{m=1}^{K} t_{r_{m-1},r_m}^{-\theta},
+		\label{eq:tau_def}
+	\end{equation}
+	which summarizes all feasible routes between $i$ and $j$.
+	
+	\subsection{Network representation of commuting costs}
+	Define the weighted adjacency matrix $A=[a_{kl}]$ with $a_{kl}=t_{kl}^{-\theta}$. For any $K\ge0$, $(A^K)_{ij}$ collects the total weight of all routes of length $K$ from $i$ to $j$. If the spectral radius of $A$ is less than one,
+	\begin{equation}
+		\tau_{ij}^{-\theta}=\sum_{K=0}^{\infty}(A^K)_{ij}=[(I-A)^{-1}]_{ij}\equiv b_{ij},
+		\label{eq:tau}
+	\end{equation}
+	so that $\tau_{ij}=b_{ij}^{-1/\theta}$. Directionality of the network implies $\tau_{ij}\neq\tau_{ji}$ in general.
+	
+	\subsection{Firms}
+	Firms operate under perfect competition at each location $j$ and use labor as the sole input. Wages equal local productivity,
+	\begin{equation}
+		w_j=A_j=\bar A_j (L_j^F)^{\alpha}.
+		\label{eq:wage}
+	\end{equation}
+	
+	\subsection{Commuting flows and market clearing}
+	Using \eqref{eq:tau}, commuting flows take the gravity form
+	\begin{equation}
+		L_{ij}
+		=
+		\tau_{ij}^{-\theta} u_i^\theta w_j^\theta
+		\frac{\bar L}{\bar W^\theta},
+		\label{eq:gravity}
+	\end{equation}
+	where
+	\begin{equation}
+		\bar W
+		=
+		\left(
+		\sum_{i,j}\tau_{ij}^{-\theta}u_i^\theta w_j^\theta
+		\right)^{1/\theta}
+		\label{eq:welfare}
+	\end{equation}
+	is expected equilibrium welfare. Residential and employment populations satisfy
+	\begin{equation}
+		L_i^R=\sum_j L_{ij}, \qquad L_j^F=\sum_i L_{ij}.
+		\label{eq:marketclearing}
+	\end{equation}
+	
+	\subsection{Transportation Network, Lane Capacity, and Congestion}
+
+	\paragraph{Free-flow travel time.}
+	For each directed link $(k,l)\in\mathcal E$, the non-congested travel time is fully determined by its physical characteristics:
+	\begin{equation}
+		\bar{t}_{kl} = \frac{\ell_{kl}}{v^0_{kl}}.
+		\label{eq:tbar}
+	\end{equation}
+	Both $\ell_{kl}$ and $v^0_{kl}$ may differ by direction, so in general $\bar{t}_{kl}\neq\bar{t}_{lk}$.
+
+	\paragraph{Traffic on a directed link.}
+	Let $\pi^{kl}_{ij}$ denote the share of commuters from $i$ to $j$ whose optimal route passes through directed link $(k,l)$. Directed traffic on link $(k,l)$ is
+	\begin{equation}
+		\phi_{kl}
+		=
+		\sum_{i\in\mathcal N}\sum_{j\in\mathcal N}
+		L_{ij}\,\pi^{kl}_{ij}.
+		\label{eq:traffic_kl}
+	\end{equation}
+
+	\paragraph{Congestion technology.}
+	Following the spirit of Allen \& Arkolakis (2022), realized travel time is increasing in equilibrium traffic per lane:
+	\begin{equation}
+		t_{kl}
+		=
+		\bar{t}_{kl}
+		\left(
+		\frac{\phi_{kl}}{n_{kl}}
+		\right)^{\!\lambda},
+		\qquad \lambda \geq 0,
+		\label{eq:tkl_cong}
+	\end{equation}
+	where $n_{kl}$ is the directed lane count in direction $(k\to l)$. Substituting \eqref{eq:tbar}, this expands to
+	\begin{equation}
+		t_{kl}
+		=
+		\frac{\ell_{kl}}{v^0_{kl}}
+		\left(
+		\frac{\phi_{kl}}{n_{kl}}
+		\right)^{\!\lambda}.
+		\label{eq:tkl_expand}
+	\end{equation}
+	When $\lambda=0$, $t_{kl}=\bar{t}_{kl}$ and the model reduces to the frictionless case. When $\lambda>0$, higher traffic per lane raises travel times, creating a feedback between commuting decisions and congestion that is resolved jointly in equilibrium.
+
+	\paragraph{Directed lanes and tidal asymmetry.}
+	We define $n_{kl}$ as the directed lane count in direction $(k\to l)$, which may differ from $n_{lk}$. Under a standard symmetric allocation $n_{kl}\approx n_{lk}$. A tidal lane configuration redistributes capacity across directions so that $n_{kl}\neq n_{lk}$. This induces asymmetric congestion through \eqref{eq:tkl_cong} and hence asymmetric bilateral commuting costs $\tau_{ij}\neq\tau_{ji}$ through \eqref{eq:tau}.
+	
+	\subsection{Equilibrium}
+
+	An equilibrium is a collection
+	$\bigl(\{L_i^R,L_i^F\}_{i\in\mathcal N},\,\{L_{ij}\}_{i,j\in\mathcal N},\,\{\tau_{ij}\}_{i,j\in\mathcal N},\,\{t_{kl}\}_{(k,l)\in\mathcal E},\,\{\phi_{kl}\}_{(k,l)\in\mathcal E}\bigr)$
+	such that:
+	\begin{enumerate}[label=(\roman*)]
+		\item given directed travel times $\{t_{kl}\}$, bilateral commuting costs $\{\tau_{ij}\}$ are generated by optimal routing on the directed network as in \eqref{eq:tau};
+		\item given $\{\tau_{ij}\}$, commuting flows $\{L_{ij}\}$ satisfy the gravity equation \eqref{eq:gravity};
+		\item residential and employment populations clear markets as in \eqref{eq:marketclearing};
+		\item directed traffic $\{\phi_{kl}\}$ is induced by equilibrium commuting flows and route choice as in \eqref{eq:traffic_kl}; and
+		\item realized travel times $\{t_{kl}\}$ satisfy the congestion technology \eqref{eq:tkl_cong}.
+	\end{enumerate}
+	Conditions (i)--(iii) are standard to quantitative spatial commuting models; conditions (iv)--(v) follow Allen \& Arkolakis (2022). Crucially, $\tau_{ij}$ is \emph{endogenous}: it depends on the full network of link costs $\{t_{kl}\}$, which are shaped by the distribution of commuting activity through congestion. When $\lambda=0$, conditions (iv)--(v) are vacuous and the model reduces to the standard no-congestion case.
+
+	Let $l_i^R=L_i^R/\bar L$ and $l_i^F=L_i^F/\bar L$ denote population shares. Given equilibrium transportation costs $\{\tau_{ij}\}$, the market-clearing conditions yield the equilibrium allocation $(l^R,l^F)$:
+	\begin{align}
+		(l_i^R)^{1-\theta\beta} &= \chi \sum_j \tau_{ij}^{-\theta}\,\bar u_i^\theta \bar A_j^\theta (l_j^F)^{\alpha\theta}, \label{eq:eq_R}\\
+		(l_i^F)^{1-\theta\alpha} &= \chi \sum_j \tau_{ji}^{-\theta}\,\bar u_j^\theta \bar A_i^\theta (l_j^R)^{\beta\theta}, \label{eq:eq_F}
+	\end{align}
+	where $\chi\equiv \bar L^{\theta(\alpha+\beta)}/\bar W^{\theta}$. Together with conditions (i)--(v), equations \eqref{eq:eq_R}--\eqref{eq:eq_F} characterize the full equilibrium. Route choice, congestion, and commuting flows are jointly determined: commuting patterns determine traffic $\phi_{kl}$, traffic determines travel times $t_{kl}$ through \eqref{eq:tkl_cong}, and travel times determine bilateral commuting costs $\tau_{ij}$ through \eqref{eq:tau}.
+
+
+
+
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	
+	\clearpage
+	\section{Model Estimation}
+	
+	\subsection{Data}
+	\paragraph{Spatial units and network nodes.} The set of locations is a finite collection of nodes $\mathcal N=\{1,\dots,N\}$, where each node corresponds to a spatial cell. We implement the model on three alternative grid systems (square, hexagon, and Voronoi-type partitions). For each grid system, a node $i\in\mathcal N$ is identified by a unique \texttt{grid\_id}. The empirical procedures below are identical across grid systems; the choice of grid mainly changes the discretization of the city and the induced network topology.
+	
+	\paragraph{Directed edges, link costs, and lane counts.}
+	For each grid system, we construct a directed adjacency set $\mathcal E\subseteq\mathcal N\times\mathcal N$. A directed edge $(k,l)\in\mathcal E$ represents an admissible move from node $k$ to node $l$ along the observed road infrastructure. For each directed grid link $(k,l)$ we construct three objects from the aggregated centerline data:\footnote{When a directed road segment is entirely contained within a single grid cell, it contributes only to within-grid stocks (e.g., lane-km and average speed). If a segment intersects multiple grid cells, it is first split at grid boundaries into sub-segments, each uniquely assigned to one grid. These sub-segments are then ordered along the original geometry to recover the sequence of traversed grids. Directed links are constructed between consecutive grids (e.g., $A \to B$, $B \to C$), with link attributes computed from the corresponding sub-segments, including length, lane-km, and average speed. Aggregating across all segments yields a grid-level directed network characterized by bilateral travel costs, speeds, and lane counts.}
+	\begin{itemize}
+		\item \textbf{Link length} $\text{dist}_{kl}$: length-weighted average over matched centerline segments.
+		\item \textbf{Observed (congestion-inclusive) speed} $v_{kl}^{\text{obs}}$: time-weighted harmonic mean peak-period speed from matched centerline observations.
+		\item \textbf{Directed lane count} $\text{lanes}_{kl}$: length-weighted average of approximate lane counts derived from the road type attribute (\texttt{roadtype}) of matched centerline segments, using a standard road-type-to-lane lookup table.
+	\end{itemize}
+	The \emph{observed} (congestion-inclusive) link travel time is then
+	\begin{equation}\label{eq:data_tkl}
+		t_{kl}\;\equiv\; \frac{\text{dist}_{kl}}{v_{kl}^{\text{obs}}},
+	\end{equation}
+	measured in minutes and reflecting equilibrium congestion. The free-flow travel time $\bar{t}_{kl}=\ell_{kl}/v^0_{kl}$ (equation \eqref{eq:tbar}) is not directly observed; the free-flow speed $v^0_{kl}$ is treated as a link-direction fixed effect and recovered jointly with the congestion elasticity $\lambda$ in the regression \eqref{eq:est_lambda}. Directionality is preserved throughout: $t_{kl}$, $t_{lk}$, $n_{kl}$, $n_{lk}$ all potentially differ, directly capturing the tidal asymmetry in road infrastructure.
+	
+	Figure \ref{fig:gridlink_example} illustrates the resulting grid-level representation for the 3km square grid in the morning peak (AM): the left panel shows observed centerline speeds, and the right panel maps them into directed grid-to-grid link travel times. We construct analogous link measures for both AM and PM periods and for all grid systems.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.95\textwidth]{../00archive/interim_data/figs/grid_links_square3km_AM_two_panels.png}
+		\caption{Example of grid-level directed link construction and implied travel times: 3km square grid, AM peak.}
+		\label{fig:gridlink_example}
+	\end{figure}
+
+
+	
+	\paragraph{Commuting flows and marginal populations.} Using the commuting matrix from Baidu Map, we assign each home coordinate and work coordinate to a grid cell via point-in-polygon matching. We then aggregate to obtain grid-to-grid commuting flows $L_{ij}$:
+	\begin{equation}\label{eq:data_Lij}
+		L_{ij}\equiv \sum_{\text{commuters }(i\to j)} \text{pop},
+	\end{equation}
+	where \text{pop} is the number of commuters associated with each home--work pair. Residential and workplace marginal totals are computed as
+	\begin{equation}\label{eq:data_margins}
+		L_i^R=\sum_{j\in\mathcal N}L_{ij},\qquad L_j^F=\sum_{i\in\mathcal N}L_{ij},\qquad \bar L=\sum_{i\in\mathcal N}L_i^R=\sum_{j\in\mathcal N}L_j^F.
+	\end{equation}
+	When available, we also retain commute-mode counts (walk, bike, subway, bus, car) to describe coverage and heterogeneity in observed mode choice, noting that the sum of identified modes may be below total \text{pop}.
+	
+	\paragraph{Readability Filter} Because not all node pairs $(i,j)$ with commuting flow data are mutually reachable. Prior to computing commuting costs, we restrict attention to the largest weakly connected component (i.e., drop OD pairs with home and work nodes that are not connected in the centerline road network\footnote{ In the square 3km grid system, the raw commuting data contain 443,207 distinct grid--grid origin--destination pairs, covering a total commuting population of 7.96 million individuals. After restricting attention to grid pairs whose home and work locations lie in the same weakly connected component of the directed road network, 355,649 OD pairs remain (80.2\% of all pairs), accounting for 7.54 million commuters (94.6\% of the total population). This indicates that this step primarily removes low-volume and peripheral commuting pairs, while preserving the vast majority of economically relevant commuting flows. }). This step ensures that the route aggregator and the implied bilateral commuting costs are well-defined on the analysis sample and avoids numerical artifacts driven by disconnected nodes.
+
+	\subsection{Parameters}
+	
+	\paragraph{Calibrated parameters.}
+	The baseline implementation uses external calibration for $(\theta,\alpha,\beta)$.
+	The parameter $\theta>0$ governs Fr\'echet heterogeneity in route choice, while
+	$\alpha$ and $\beta$ capture productivity and amenity spillovers across locations,
+	respectively.
+
+	As these parameters are standard in the quantitative urban and commuting literature, we adopt benchmark values from existing studies. In particular, we follow the estimates in Ahlfeldt et al.\ (2015), which are obtained in an urban spatial equilibrium model with endogenous commuting and land markets.
+	Specifically, we set $\theta = 6.83$, $\alpha = -0.12$, and $\beta = -0.10$.
+
+	These values lie within the range commonly used in the urban economics literature and imply economically meaningful but moderate agglomeration and amenity externalities. This choice of parameter values guarantees the existence and uniqueness of the spatial equilibrium.
+
+	\paragraph{Congestion elasticity $\lambda$.}
+	The congestion elasticity $\lambda\geq 0$ governs how strongly realized travel time responds to traffic per lane, and thus determines the magnitude of the travel-time improvement from adding a lane. From the congestion technology \eqref{eq:tkl_expand}, combined with $t_{kl}=\ell_{kl}/v^{\text{obs}}_{kl}$, the observed speed satisfies
+	\begin{equation}
+		v^{\text{obs}}_{kl}
+		=
+		v^0_{kl}
+		\left(
+		\frac{\phi_{kl}}{n_{kl}}
+		\right)^{-\lambda}.
+	\end{equation}
+	Taking logs yields the estimating equation:
+	\begin{equation}\label{eq:est_lambda}
+		\ln v^{\text{obs}}_{kl}
+		\;=\;
+		\underbrace{\ln v^0_{kl}}_{\mu_{kl}}
+		\;-\;
+		\lambda\,\ln\!\left(\frac{\phi_{kl}}{n_{kl}}\right)
+		\;+\; \varepsilon_{kl},
+	\end{equation}
+	that is, observed speed decreases with traffic density (traffic per lane) with elasticity $\lambda$. The link-specific free-flow speed $v^0_{kl}$ is absorbed as a link fixed effect $\mu_{kl}$.
+
+	Ordinary least squares is inconsistent because links with high free-flow speed attract more traffic, inducing a positive correlation between $\phi_{kl}/n_{kl}$ and the residual. We therefore instrument for $\phi_{kl}/n_{kl}$ using observables that shift traffic demand but are orthogonal to link-specific free-flow conditions, following the identification strategy of Allen \& Arkolakis (2022, Section~5.3).
+
+	\paragraph{Robustness.} To assess sensitivity, we consider alternative calibrations within plausible ranges: (i) varying $\theta$ (e.g.\ low/medium/high elasticities) to evaluate how strongly results depend on route-choice dispersion; (ii) varying $\alpha$ and $\beta$ within literature-reported bounds to gauge the role of agglomeration and residential spillovers; (iii) varying $\lambda$ around the estimated baseline to assess the sensitivity of counterfactual welfare gains to the strength of traffic congestion.
+	
+	\paragraph{Theoretically, we can estimate $\theta$ via a gravity equation with OD fixed effects}
+	Although we externally calibrate $\theta$ in the baseline, one can estimate $\theta$ from commuting flows using a gravity regression with origin and destination fixed effects. The gravity equation implied by the model is
+	\begin{equation}\label{eq:est_gravity}
+		L_{ij}=\tau_{ij}^{-\theta}u_i^\theta w_j^\theta\frac{\bar L}{\bar W^\theta},
+	\end{equation}
+	where $\tau_{ij}$ is the bilateral commuting cost index, and $\bar W$ is expected welfare. Taking logs and absorbing all origin and destination terms into fixed effects yields
+	\begin{equation}\label{eq:est_gravity_fe}
+		\log L_{ij}=-\theta \log \tau_{ij}+\mu_i+\nu_j+\varepsilon_{ij},
+	\end{equation}
+	where $\mu_i$ and $\nu_j$ capture the composite effects of amenities, productivity, and endogenous scale terms. Because $\tau_{ij}$ depends on $\theta$ through the network aggregator (see equation \eqref{eq:tau}), a practical implementation uses an outer grid search: for each candidate $\theta$, compute $\tau_{ij}(\theta)$ on the OD sample and estimate \eqref{eq:est_gravity_fe}, selecting $\theta$ that optimizes fit.
+	
+	\subsection{Inversion}
+	
+	\paragraph{Inverting fundamentals $(\bar u_i,\bar A_i)$ given calibrated parameters}
+	Given $(\theta,\alpha,\beta)$, observed $(L^R,L^F)$ from \eqref{eq:data_margins}, and network-implied $\{\tau_{ij}\}$, we invert for baseline fundamentals $(\bar u_i,\bar A_i)$ consistent with equilibrium. The equilibrium system can be written as two sets of node-level conditions (in population shares $l_i^R=L_i^R/\bar L$ and $l_i^F=L_i^F/\bar L$):
+	\begin{align}
+		(l_i^R)^{1-\theta\beta} &= \chi \sum_{j\in\mathcal N}\tau_{ij}^{-\theta}\bar u_i^\theta \bar A_j^\theta (l_j^F)^{\alpha\theta},\label{eq:invert_R}\\
+		(l_i^F)^{1-\theta\alpha} &= \chi \sum_{j\in\mathcal N}\tau_{ji}^{-\theta}\bar u_j^\theta \bar A_i^\theta (l_j^R)^{\beta\theta},\label{eq:invert_F}
+	\end{align}
+	where $\chi>0$ is a common scalar proportional to equilibrium welfare (and pinned down by a normalization). 
+	
+	\begin{comment}
+		Equations \eqref{eq:invert_R}--\eqref{eq:invert_F} define a fixed point in the vectors $\{\bar u_i^\theta\}_{i\in\mathcal N}$ and $\{\bar A_i^\theta\}_{i\in\mathcal N}$, which we solve numerically under a normalization (e.g.\ $\frac{1}{N}\sum_i\log\bar u_i=0$ and $\frac{1}{N}\sum_i\log\bar A_i=0$, or an equivalent level normalization). The resulting inverted fundamentals summarize residual amenity and productivity components after accounting for endogenous spillovers and commuting costs.
+	\end{comment}
+
+	\subsection{Counterfactual: Tidal-Lane Policies as Directed Lane Reallocations}
+
+	We model a tidal lane policy as a reallocation of directed lane capacity on a targeted set of links $\mathcal{E}^\star\subseteq\mathcal{E}$, identified from the reduced-form evidence in Section~\ref{sec:asym_sec}. The policy assigns $\Delta_{kl}\geq 0$ lanes from the off-peak direction $(l\to k)$ to the peak-demand direction $(k\to l)$:
+	\begin{equation}\label{eq:cf_lanes}
+		n_{kl}^{\mathrm{cf}} = n_{kl} + \Delta_{kl},
+		\qquad
+		n_{lk}^{\mathrm{cf}} = n_{lk} - \Delta_{kl},
+		\qquad (k,l)\in\mathcal{E}^\star,
+	\end{equation}
+	with all other links unchanged. This is a lane-neutral reallocation: total road capacity $n_{kl}+n_{lk}$ is preserved, but the directional distribution shifts in favor of the peak-demand direction.
+
+	The policy enters the model directly through the congestion technology \eqref{eq:tkl_cong}: adding lanes to direction $(k\to l)$ reduces traffic per lane $\phi_{kl}/n_{kl}$, lowering travel time $t_{kl}$; simultaneously, removing lanes from the reverse direction $(l\to k)$ raises $\phi_{lk}/n_{lk}$, increasing $t_{lk}$. The magnitude of both effects is governed by $\lambda$. Because $\phi_{kl}$ is itself endogenous --- commuters re-route in response to the changed travel times --- the two effects interact throughout the full network.
+
+	Given the counterfactual lane counts $\{n_{kl}^{\mathrm{cf}}\}$, we solve the counterfactual equilibrium (conditions (i)--(v) with $n_{kl}^{\mathrm{cf}}$ in place of $n_{kl}$), obtain $\tau_{ij}^{\mathrm{cf}}$ from \eqref{eq:tau}, and solve the equilibrium system \eqref{eq:eq_R}--\eqref{eq:eq_F} holding calibrated parameters $(\theta,\alpha,\beta,\lambda)$ and inverted fundamentals $(\bar{u}_i,\bar{A}_i)$ fixed. Comparing baseline and counterfactual outcomes delivers changes in directional commuting costs, spatial allocations $(L^{R,\mathrm{cf}},L^{F,\mathrm{cf}})$, and aggregate welfare $\hat{\bar{W}}$.
+
+	The targeted set $\mathcal{E}^\star$ is constructed by mapping road centerlines with detected tidal patterns (Section~\ref{sec:asym_sec}) to their corresponding directed links in the grid-level network.
+	
+	\subsection{Data and variables}
+	Table~\ref{tab:data_mapping} summarizes the correspondence between model variables
+	and the underlying data constructed in the grid-level preprocessing pipeline.
+	All grid-based objects are constructed for three alternative spatial systems
+	(square grid, hexagonal grid, and administrative grid), using the same procedures.
+	
+	\begin{table}[htbp]\centering
+		\caption{Model variables and data construction}
+		\label{tab:data_mapping}
+		\begin{tabular}{lll}
+			\hline
+			Variables & Symbol & Data construction \\
+			\hline
+			Locations (nodes) 
+			& $i\in\mathcal N$ 
+			& Grid centroids (square / hex / Voronoi) \\
+			
+			Directed links 
+			& $(k,l)\in\mathcal E$ 
+			& Adjacency of neighboring grid cells \\
+			
+			Directed travel time 
+			& $t_{kl}$ 
+			& Segment speeds aggregated to grid links \\
+			
+			Network weights 
+			& $A_{kl}=t_{kl}^{-\theta}$ 
+			& Constructed from $t_{kl}$ given $\theta$ \\
+			
+			OD commuting cost 
+			& $\tau_{ij}$ 
+			& Optimal routing (log-sum over paths) \\
+			
+			Residential population 
+			& $L_i^{R}$ 
+			&  population counts by grid \\
+			
+			Employment population 
+			& $L_i^{F}$ 
+			&  workers counts by grid \\
+			
+			Baseline fundamentals 
+			& $(\bar u_i,\bar A_i)$ 
+			& Inverted from equilibrium conditions \\
+			
+			Counterfactual objects 
+			& $(t_{kl}^{\mathrm{cf}},\tau_{ij}^{\mathrm{cf}})$ 
+			& Directional shocks to selected links \\
+			\hline
+		\end{tabular}
+	\end{table}
+	
+	Figure~\ref{fig:grid_link_example} illustrates how observed directional road-level speeds are aggregated into grid-to-grid link travel costs in the square 3km grid during the morning peak. The left panel plots observed centerline speeds, while the right panel shows the resulting grid-level directed network, where link travel times are computed from the average of speeds between adjacent grids. The red outline highlights the outer boundary of the largest weakly connected component of the grid-level road network, which defines the set of grids retained for subsequent commuting-cost computations and excludes peripheral grids that are not mutually reachable through the observed road infrastructure.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=1\textwidth]{../00archive/interim_data/figs/aa_style_square3km_AM_2panel.png}
+		\caption{From road segments to grid-level link costs: square 3km grid, AM peak.
+			Left panel plots observed centerline speeds. Right panel shows the corresponding
+			grid-to-grid network, with directed link travel times constructed from aggregated
+			segment-level information.}
+		\label{fig:grid_link_example}
+	\end{figure}
+	
+	Figure~\ref{fig:grid_speed_ratio} documents the extent of directional speed asymmetry
+	within the grid system. The figure plots the distribution of the speed ratio
+	$\min(v_{ab}/v_{ba},\, v_{ba}/v_{ab})$ across grid pairs during the AM and PM peak periods.
+	The resulting distributions closely mirror those obtained at the centerline level
+	(Figure~\ref{fig:speed_ratio_dist}), indicating that the grid aggregation preserves
+	the key patterns of directional congestion observed in the underlying road network.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=1\textwidth]{../00archive/interim_data/figs/asym_ratio_hist_2panel_square3km.png}
+		\caption{Distribution of directional speed asymmetry at the grid level.
+			The figure reports the distribution of speed ratios
+			$\min(v_{ab}/v_{ba},\, v_{ba}/v_{ab})$ for grid-to-grid links during AM and PM peaks.
+			Vertical dashed lines indicate asymmetry thresholds used in the analysis.}
+		\label{fig:grid_speed_ratio}
+	\end{figure}
+
+	\clearpage 
+	\section{Conclusion}
+	\begin{itemize}
+		\item Contribution: incorporate directional, grid-level networks into a quantitative spatial framework.
+		\item Policy relevance: welfare analysis of tidal lanes in Chinese megacities.
+	\end{itemize}
+
+\end{document}
+
+
+
+\begin{comment}
+
+	
+\bibliographystyle{apalike}
+\bibliography{tidal_lanes_refs}
+
+
+
+
+\section{Incorporate asymmetric links to grid-level model}
+\subsection{Method 1: Speed-Based Inference}
+\begin{enumerate}
+	\item Step 0: Grid coverage test. If a segment lies entirely within one grid $\Rightarrow$ only contributes to per-grid stock (lane-km, speed). If it crosses multiple grids $\Rightarrow$ continue.
+	\item Step 1: Split by grid boundaries $\Rightarrow$ sub-segments, each assigned to one grid.
+	\item Step 2: Order sub-segments along the original segment $\Rightarrow$ grid sequence $A \to B \to C \to \dots$.
+	\item Step 3: Create directed links from consecutive grids, e.g., $A \to B, B \to C$. Attributes: length, lane-km, speed (averaged), flow (via BPR or speed–flow function).
+	\item Step 4: Aggregate across all segments $\Rightarrow$ grid-level directed network $(C_{ij}, v_{ij}, q_{ij})$.
+\end{enumerate}
+
+\subsection{Method 2: Commuting Flow-Based Inference}
+\begin{enumerate}
+	\item Assume AM peak (e.g. 7–9am). Distribute commuting flows into 10-minute intervals using departure time distributions.
+	\item Use travel survey information to infer mode shares; extract road-related flows.
+	\item Construct grid-to-grid flows for each time interval.
+	\item Assign OD flows to road network links using shortest paths (Dijkstra or Fast Marching).
+\end{enumerate}
+
+\subsection{Comparison and Validation}
+\begin{itemize}
+	\item Cross-validate speed-based and commuting-based measures.
+	\item Identify robust asymmetric patterns (AM vs. PM flows).
+	\item Problems relating to the flow infer.
+\end{itemize}
+	
+\end{comment}

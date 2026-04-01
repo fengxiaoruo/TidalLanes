@@ -1,0 +1,261 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+
+\title{Current Implemented Model: Equation Note}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section*{Purpose}
+
+This note documents the model that is \emph{currently implemented in code} in
+\href{/Users/fxr/Desktop/TidalLanes/data_work/src/model/spatial_equilibrium.py}{\texttt{spatial\_equilibrium.py}},
+using notation aligned with the paper draft.
+
+\section{Objects and Notation}
+
+Let the city be partitioned into grid cells indexed by $i,j,k,l = 1,\dots,N$.
+
+\begin{align*}
+L_i &:= \text{residents living in grid } i, \\
+H_j &:= \text{jobs located in grid } j, \\
+M_{ij} &:= \text{commuting flow from residence } i \text{ to workplace } j, \\
+t_{kl} &:= \text{direct travel time on directed edge } (k,l), \\
+\tau_{ij} &:= \text{bilateral commuting cost from } i \text{ to } j, \\
+n_{kl} &:= \text{lane capacity on directed edge } (k,l), \\
+\phi_{kl} &:= \text{flow assigned to edge } (k,l).
+\end{align*}
+
+Total population is
+\[
+\bar L = \sum_i L_i.
+\]
+
+Observed objects in the current implementation are
+\[
+L_i^{obs}, \qquad H_j^{obs}, \qquad M_{ij}^{obs}, \qquad t_{kl}^{obs}, \qquad t_{kl}^{ff}, \qquad n_{kl}^{obs}.
+\]
+
+\section{Bilateral Commuting Costs}
+
+The current code approximates bilateral commuting costs by shortest-path travel time:
+\[
+\tau_{ij} = \min_{p \in \mathcal P_{ij}} \sum_{(k,l)\in p} t_{kl},
+\]
+where $\mathcal P_{ij}$ is the set of feasible directed paths from $i$ to $j$.
+
+For intrazonal commuting, the code assigns
+\[
+\tau_{ii}
+=
+\frac{1}{2}\operatorname{median}\{ t_{kl} : (k,l)\in \mathcal E,\; t_{kl}>0 \}.
+\]
+
+\section{Diagnostic Calibration}
+
+\subsection{Diagnostic `\theta`}
+
+The code estimates a gravity-style diagnostic elasticity from
+\[
+\log M_{ij}^{obs} = \mu_i + \nu_j - \theta \log \tau_{ij} + \varepsilon_{ij}.
+\]
+
+This estimate is saved as a diagnostic, but the equilibrium solver typically uses an externally supplied $\theta$.
+
+\subsection{Diagnostic `\lambda`}
+
+Observed OD flows are assigned to shortest paths, producing observed edge flows $\phi_{kl}^{obs}$.
+Observed per-lane density is
+\[
+\rho_{kl}^{obs} = \frac{\phi_{kl}^{obs}}{n_{kl}^{obs}}.
+\]
+
+The diagnostic congestion regression is
+\[
+\log \left(\frac{t_{kl}^{obs}}{t_{kl}^{ff}}\right)
+=
+\eta_{\text{lane-bin}(kl)} + \lambda \log \rho_{kl}^{obs} + u_{kl}.
+\]
+
+Again, this serves as a diagnostic rather than the default structural value used in solution.
+
+\section{Population Shares and Fundamentals}
+
+Define resident and employment shares:
+\[
+\ell_i^L = \frac{L_i}{\bar L},
+\qquad
+\ell_j^H = \frac{H_j}{\bar L}.
+\]
+
+The code works with two fundamentals:
+\[
+\bar u_i^\theta
+\qquad\text{and}\qquad
+\bar a_j^\theta.
+\]
+
+These correspond to residential amenity and employment productivity terms in $\theta$-power form.
+
+\section{Commuting Mass and Flows}
+
+Given current commuting costs and current distributions, define
+\[
+U_i^\theta = \bar u_i^\theta (\ell_i^L)^{\beta\theta},
+\qquad
+A_j^\theta = \bar a_j^\theta (\ell_j^H)^{\alpha\theta}.
+\]
+
+Then commuting mass is
+\[
+m_{ij} = \tau_{ij}^{-\theta} U_i^\theta A_j^\theta.
+\]
+
+The corresponding OD flow is
+\[
+M_{ij}
+=
+\bar L \cdot \frac{m_{ij}}{\sum_{r,s} m_{rs}}.
+\]
+
+Hence equilibrium residents and jobs satisfy
+\[
+L_i = \sum_j M_{ij},
+\qquad
+H_j = \sum_i M_{ij}.
+\]
+
+\section{Inversion of Baseline Fundamentals}
+
+Using observed distributions,
+\[
+\ell_i^{L,obs} = \frac{L_i^{obs}}{\bar L},
+\qquad
+\ell_j^{H,obs} = \frac{H_j^{obs}}{\bar L},
+\]
+the code iteratively solves
+\[
+\bar u_i^\theta
+=
+\frac{(\ell_i^{L,obs})^{1-\beta\theta}}
+{\sum_j \tau_{ij}^{-\theta}\bar a_j^\theta(\ell_j^{H,obs})^{\alpha\theta}},
+\]
+
+\[
+\bar a_j^\theta
+=
+\frac{(\ell_j^{H,obs})^{1-\alpha\theta}}
+{\sum_i \tau_{ij}^{-\theta}\bar u_i^\theta(\ell_i^{L,obs})^{\beta\theta}}.
+\]
+
+\section{Route Assignment}
+
+The current implementation uses all-or-nothing shortest-path assignment.
+If $p_{ij}^*$ denotes one shortest path from $i$ to $j$, then edge flow is
+\[
+\phi_{kl}
+=
+\sum_{i,j} M_{ij}\mathbf 1\{(k,l)\in p_{ij}^*\}.
+\]
+
+\section{Congestion Equation}
+
+This is the place where lane capacity enters the structural equilibrium.
+
+Define observed and counterfactual per-lane density:
+\[
+\rho_{kl}^{obs} = \frac{\phi_{kl}^{obs}}{n_{kl}^{obs}},
+\qquad
+\rho_{kl}^{cf} = \frac{\phi_{kl}^{cf}}{n_{kl}^{cf}}.
+\]
+
+The code now uses free-flow edge time as the congestion primitive:
+\[
+t_{kl}^{cf}
+=
+t_{kl}^{ff}
+\left(
+\frac{\phi_{kl}^{cf}}{n_{kl}^{cf}}
+\right)^{\lambda}.
+\]
+
+Therefore lane capacity affects equilibrium and counterfactual travel times through congestion, while $t_{kl}^{ff}$ is the infrastructure-side primitive.
+
+\section{Nested Fixed Point}
+
+The solver uses an outer congestion loop and an inner population--employment loop:
+
+\begin{enumerate}
+\item start from edge times $t_{kl}$,
+\item compute shortest-path costs $\tau_{ij}$,
+\item solve for $(L_i,H_j)$ via the commuting-flow fixed point,
+\item assign edge flows $\phi_{kl}$,
+\item update edge times through congestion,
+\item damp the update:
+\[
+t_{kl}^{new,damped}
+=
+\delta t_{kl}^{new} + (1-\delta)t_{kl}^{old},
+\]
+\item iterate until convergence.
+\end{enumerate}
+
+\section{Welfare}
+
+The scalar welfare object reported in the current code is
+\[
+W = \left( \sum_{i,j} m_{ij} \right)^{1/\theta}.
+\]
+
+\section{Tidal-Lane Counterfactual}
+
+For treated directed edges, the code reallocates lane capacity as
+\[
+n_{kl}^{cf} = n_{kl}^{obs} + \Delta n,
+\]
+and, if the reverse edge exists,
+\[
+n_{lk}^{cf} = \max\{0.25,\; n_{lk}^{obs} - \Delta n\}.
+\]
+
+The new lane vector $n^{cf}$ is then fed back into the congestion equation and the equilibrium is resolved.
+
+\section{Compact Summary}
+
+The current implemented model can be summarized as
+\[
+\tau_{ij} = \min_{p \in \mathcal P_{ij}} \sum_{(k,l)\in p} t_{kl},
+\]
+
+\[
+M_{ij} \propto \tau_{ij}^{-\theta}\bar u_i^\theta(\ell_i^L)^{\beta\theta}\bar a_j^\theta(\ell_j^H)^{\alpha\theta},
+\]
+
+\[
+L_i = \sum_j M_{ij},
+\qquad
+H_j = \sum_i M_{ij},
+\]
+
+\[
+\phi_{kl}
+=
+\sum_{i,j} M_{ij}\mathbf 1\{(k,l)\in p_{ij}^*\},
+\]
+
+\[
+t_{kl}^{cf}
+=
+t_{kl}^{ff}
+\left(
+\frac{\phi_{kl}^{cf}}{n_{kl}^{cf}}
+\right)^{\lambda}.
+\]
+
+This is the exact logic currently implemented in code.
+
+\end{document}

@@ -1,0 +1,55 @@
+section,scope,metric,value,unit,note
+raw_centerline_match,all,split_segments_total,24817.0,count,
+raw_centerline_match,all,split_segments_matched,24428.0,count,
+raw_centerline_match,all,split_segment_match_rate,0.9843252609098602,share,
+raw_centerline_match,all,raw_edges_total,24763.0,count,
+raw_centerline_match,all,raw_edge_match_rate_any_split,0.9846141420667932,share,Raw edge counted as matched if any split maps to a centerline.
+centerline_coverage,all,centerlines_total,12812.0,count,
+centerline_coverage,all,centerlines_with_match,8322.0,count,
+centerline_coverage,all,total_centerline_length_m,18884370.473877512,m,
+centerline_coverage,all,matched_length_share,0.78909207924514,share,"Computed from summed matched projected spans, capped by centerline length."
+speed_distribution,all,n_speed_records,392260.0,count,
+speed_distribution,all,mean_speed_kmh,36.0754849817151,km/h,
+speed_distribution,all,median_speed_kmh,33.169972536471974,km/h,
+speed_distribution,all,p10_speed_kmh,23.827920009674525,km/h,
+speed_distribution,all,p90_speed_kmh,53.206236408382885,km/h,
+speed_distribution_histogram,all,bin_00_count,3854.0,count,"[1.094, 11.531) km/h"
+speed_distribution_histogram,all,bin_01_count,16013.0,count,"[11.531, 21.968) km/h"
+speed_distribution_histogram,all,bin_02_count,165429.0,count,"[21.968, 32.405) km/h"
+speed_distribution_histogram,all,bin_03_count,108105.0,count,"[32.405, 42.842) km/h"
+speed_distribution_histogram,all,bin_04_count,59949.0,count,"[42.842, 53.279) km/h"
+speed_distribution_histogram,all,bin_05_count,27371.0,count,"[53.279, 63.716) km/h"
+speed_distribution_histogram,all,bin_06_count,7900.0,count,"[63.716, 74.153) km/h"
+speed_distribution_histogram,all,bin_07_count,2502.0,count,"[74.153, 84.590) km/h"
+speed_distribution_histogram,all,bin_08_count,882.0,count,"[84.590, 95.027) km/h"
+speed_distribution_histogram,all,bin_09_count,255.0,count,"[95.027, 105.464) km/h"
+travel_time,hex3km,n_grid_links,11682.0,count,
+travel_time,hex3km,mean_travel_time_min,2.6980139651327177,min,
+travel_time,hex3km,median_travel_time_min,2.3994176506834073,min,
+travel_time,hex3km,p10_travel_time_min,0.4742688617973588,min,
+travel_time,hex3km,p90_travel_time_min,4.932515618355906,min,
+travel_time,hex3km,max_travel_time_min,69.93611063928361,min,
+travel_time,square3km,n_grid_links,8293.0,count,
+travel_time,square3km,mean_travel_time_min,3.4519790633346905,min,
+travel_time,square3km,median_travel_time_min,3.0195781691778474,min,
+travel_time,square3km,p10_travel_time_min,0.6348276238579904,min,
+travel_time,square3km,p90_travel_time_min,6.308417880498882,min,
+travel_time,square3km,max_travel_time_min,74.9165781276456,min,
+travel_time,voronoi3km,n_grid_links,7584.0,count,
+travel_time,voronoi3km,mean_travel_time_min,3.5967097746488443,min,
+travel_time,voronoi3km,median_travel_time_min,2.9448796049015655,min,
+travel_time,voronoi3km,p10_travel_time_min,0.9260304528547879,min,
+travel_time,voronoi3km,p90_travel_time_min,6.753662821540361,min,
+travel_time,voronoi3km,max_travel_time_min,67.54271837110191,min,
+grid_connectivity,hex3km_AM,grid_nodes,2057.0,count,
+grid_connectivity,hex3km_AM,grid_edges,5841.0,count,
+grid_connectivity,hex3km_AM,mean_degree_undirected,2.9071463296062228,degree,
+grid_connectivity,square3km_AM,grid_nodes,1591.0,count,
+grid_connectivity,square3km_AM,grid_edges,4146.0,count,
+grid_connectivity,square3km_AM,mean_degree_undirected,2.666247642991829,degree,
+grid_connectivity,voronoi3km_AM,grid_nodes,1167.0,count,
+grid_connectivity,voronoi3km_AM,grid_edges,3792.0,count,
+grid_connectivity,voronoi3km_AM,mean_degree_undirected,3.295629820051414,degree,
+grid_connectivity,hex3km_PM,status,,,Missing edge file: t_edges_hex3km_PM.csv
+grid_connectivity,square3km_PM,status,,,Missing edge file: t_edges_square3km_PM.csv
+grid_connectivity,voronoi3km_PM,status,,,Missing edge file: t_edges_voronoi3km_PM.csv
