@@ -24,12 +24,13 @@ from src.model.spatial_equilibrium import (
     save_calibration_bundle,
     solve_congested_equilibrium,
     summarise_equilibrium,
+    transform_minutes_to_iceberg,
 )
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run structural spatial equilibrium prototype.")
-    parser.add_argument("--version-id", default="raw_rebuild_validation")
+    parser.add_argument("--version-id", default="manual_centerline_rules_v11")
     parser.add_argument("--output-dir", default="data_work/outputs")
     parser.add_argument("--grid-type", default="square", choices=["square", "hex", "voronoi"])
     parser.add_argument("--theta", type=float, default=6.83)
@@ -42,6 +43,7 @@ def parse_args():
     parser.add_argument("--model-output-subdir", default="model_square_baseline")
     parser.add_argument("--max-iter", type=int, default=100)
     parser.add_argument("--damping", type=float, default=0.35)
+    parser.add_argument("--iceberg-delta0", type=float, default=None)
     return parser.parse_args()
 
 
@@ -51,9 +53,10 @@ def main():
     model_root = version_root / args.model_output_subdir
     model_root.mkdir(parents=True, exist_ok=True)
 
-    model = load_model_inputs(version_root, grid_type=args.grid_type)
+    iceberg_delta0 = float(args.iceberg_delta0) if args.iceberg_delta0 is not None else (1.0 / args.theta)
+    model = load_model_inputs(version_root, grid_type=args.grid_type, iceberg_delta0=iceberg_delta0)
 
-    baseline_tau = model.edge_t_obs_min.copy()
+    baseline_tau = model.edge_tau_obs_min.copy()
     tau_support_obs, tau_invtheta_obs, edge_flow_obs = compute_soft_shortest_path_assignment(
         model.n_nodes,
         model.edge_i,
@@ -85,8 +88,8 @@ def main():
     if edge_flow_obs is None:
         edge_flow_obs = np.zeros(model.n_edges, dtype=float)
     lambda_fit = estimate_lambda_cross_section(
-        model.edge_t_obs_min,
-        model.edge_t_ff_min,
+        model.edge_tau_obs_min,
+        model.edge_tau_ff_min,
         model.edge_lane_obs,
         edge_flow_obs,
     )
@@ -163,10 +166,16 @@ def main():
             "j": model.edge_j,
             "lane_obs": model.edge_lane_obs,
             "lane_cf": edge_lane_cf,
-            "t_obs_min": model.edge_t_obs_min,
-            "t_ff_min": model.edge_t_ff_min,
+            "tau_obs_min": model.edge_tau_obs_min,
+            "tau_ff_min": model.edge_tau_ff_min,
+            "t_obs_iceberg": model.edge_t_obs_iceberg,
+            "t_ff_iceberg": model.edge_t_ff_iceberg,
             "t_baseline_eq_min": baseline_eq.travel_time_min,
             "t_cf_eq_min": counterfactual_eq.travel_time_min,
+            "t_baseline_eq_iceberg": transform_minutes_to_iceberg(baseline_eq.travel_time_min, model.iceberg_delta0),
+            "t_cf_eq_iceberg": transform_minutes_to_iceberg(counterfactual_eq.travel_time_min, model.iceberg_delta0),
+            "tau_ff_imputed_flag": model.edge_tau_ff_imputed_flag,
+            "lane_quality_flag": model.edge_lane_quality_flag,
             "flow_obs_proxy": edge_flow_obs,
             "flow_baseline_eq": baseline_eq.edge_flow,
             "flow_cf_eq": counterfactual_eq.edge_flow,

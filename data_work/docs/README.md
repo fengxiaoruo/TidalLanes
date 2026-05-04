@@ -4,6 +4,8 @@ This directory stores project-level reference documents for the current refactor
 
 Current documents:
 
+- `WORK_LOG.md`
+  Running log of completed work, locked parameters, and retained decisions. The live plan stays in `nextstep.md`.
 - `CODEX_HANDOFF_NOTE.md`
   Compact handoff memo for a new Codex session on another machine.
 - `DATASET_SCHEMA_SNAPSHOT.md`

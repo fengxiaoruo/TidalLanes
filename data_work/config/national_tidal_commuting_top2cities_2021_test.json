@@ -1,0 +1,14 @@
+{
+  "version_id": "national_tidal_commuting_top2cities_2021_test",
+  "source": "town_2021",
+  "output_dir": "data_work/outputs",
+  "top_n_cities": 2,
+  "top_n_pairs": 5,
+  "max_routes_per_request": 20,
+  "town_2021": {
+    "commute_dta_path": "raw_data/commuting_town_2021.dta",
+    "county_shp_path": "raw_data/gis/map/2019中国地图-审图号GS(2019)1822号/县（等积投影）.shp",
+    "county_shp_prj_path": "raw_data/gis/map/2019中国地图-审图号GS(2019)1822号/县（等积投影）.prj",
+    "county_shp_encoding": "gbk"
+  }
+}

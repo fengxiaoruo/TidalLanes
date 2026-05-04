@@ -4,8 +4,7 @@ Stage 02: Match Raw to Centerline
 Purpose:
 - Split raw roads into matchable segments
 - Run baseline raw-to-centerline matching
-- Add fallback projection-based matching for unmatched segments
-- Preserve old, fallback, and final chosen matches side by side
+- Preserve final chosen baseline matches and manual overrides
 
 Planned inputs:
 - outputs/{version_id}/data/centerline_master.parquet
@@ -28,46 +27,39 @@ from pathlib import Path
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from shapely.geometry import LineString, MultiPoint, Point, Polygon
-from shapely.ops import split, substring, unary_union
+from shapely.geometry import LineString, MultiPoint, Point
+from shapely.ops import split, unary_union
 from tqdm import tqdm
 
 ROOT = Path(__file__).resolve().parents[2]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.stages.stage01_build_centerline import geom_bearing_full, load_raw_roads
+from src.stages.stage01_build_centerline import configure_stage01_runtime, geom_bearing_full, load_raw_roads
 
 TARGET_EPSG = 3857
 MAX_DIST = 60.0
 CUT_BUF = 40.0
 SNAP_TOL = 30.0
 MIN_SEG_GAP = 5.0
-SPLIT_SAMPLE_STEP = 200.0
 SPLIT_SEARCH_DIST = 80.0
 NODE_SNAP_TOL = 35.0
 NODE_BUFFER = 40.0
 MERGE_CUT_DIST = 30.0
 DISABLE_CUT_MERGE = False
+MIN_SPLIT_SEG_LEN = 120.0
 SAMPLE_STEP = 30.0
 W_DIST = 1.0
 W_ANG = 0.1
 DIST_CAP = 180.0
 MIN_SEG_LEN_BASELINE = 50.0
-PROJ_SEARCH_DIST = 120.0
-PROJ_BUF = 18.0
-PROJ_DIST_PENALTY = 0.15
-PROJ_CLOSE_DIST = 60.0
-PROJ_MIN_CLOSE_SHARE = 0.30
-PROJ_MAX_AREA_PER_LENGTH = 180.0
-LONG_UNMATCHED_THRESHOLD_M = 1000.0
-LONG_PROJ_CLOSE_DIST = 120.0
-LONG_PROJ_MIN_CLOSE_SHARE = 0.15
-LONG_PROJ_MAX_AREA_PER_LENGTH = 400.0
 ROADTYPE_LANE_MAP = {
     2: 6.0,  # expressway
     3: 4.0,  # arterial
     4: 2.0,  # secondary arterial
+}
+DEFAULT_STAGE02_OPTIONS = {
+    "baseline_exclude_manual_centerlines": False,
 }
 
 
@@ -88,7 +80,23 @@ def parse_args():
     return parser.parse_args()
 
 
-def save_config_snapshot(version_root: Path, config_path: str | None, manual_overrides_path: str | None):
+def load_stage_config(config_path: str | None) -> dict:
+    opts = DEFAULT_STAGE02_OPTIONS.copy()
+    if not config_path:
+        return opts
+    path = Path(config_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Stage02 config not found: {path}")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    stage_payload = payload.get("stage02", payload)
+    for key in opts:
+        if key in stage_payload:
+            opts[key] = stage_payload[key]
+    opts["baseline_exclude_manual_centerlines"] = bool(opts["baseline_exclude_manual_centerlines"])
+    return opts
+
+
+def save_config_snapshot(version_root: Path, config_path: str | None, manual_overrides_path: str | None, stage_options: dict):
     payload = {
         "stage": "stage02_match_raw_to_centerline",
         "config_path": config_path,
@@ -98,25 +106,17 @@ def save_config_snapshot(version_root: Path, config_path: str | None, manual_ove
         "cut_buf": CUT_BUF,
         "snap_tol": SNAP_TOL,
         "min_seg_gap": MIN_SEG_GAP,
-        "split_sample_step": SPLIT_SAMPLE_STEP,
         "split_search_dist": SPLIT_SEARCH_DIST,
         "node_snap_tol": NODE_SNAP_TOL,
         "node_buffer": NODE_BUFFER,
         "merge_cut_dist": MERGE_CUT_DIST,
         "disable_cut_merge": DISABLE_CUT_MERGE,
+        "min_split_seg_len": MIN_SPLIT_SEG_LEN,
         "manual_overrides_path": manual_overrides_path,
+        "stage02_options": stage_options,
         "baseline_matching_mode": "notebook_consistent_distance_cap_only",
+        "split_trigger_rules": ["endpoint_change", "major_node_hit"],
         "dist_cap": DIST_CAP,
-        "proj_search_dist": PROJ_SEARCH_DIST,
-        "projection_mode": "integrated_projection_area",
-        "proj_buffer": PROJ_BUF,
-        "proj_close_dist": PROJ_CLOSE_DIST,
-        "proj_min_close_share": PROJ_MIN_CLOSE_SHARE,
-        "proj_max_area_per_length": PROJ_MAX_AREA_PER_LENGTH,
-        "long_unmatched_threshold_m": LONG_UNMATCHED_THRESHOLD_M,
-        "long_proj_close_dist": LONG_PROJ_CLOSE_DIST,
-        "long_proj_min_close_share": LONG_PROJ_MIN_CLOSE_SHARE,
-        "long_proj_max_area_per_length": LONG_PROJ_MAX_AREA_PER_LENGTH,
         "roadtype_lane_map": ROADTYPE_LANE_MAP,
         "roadtype_lane_sensitivity": {
             "2": [6.0, 8.0],
@@ -362,49 +362,29 @@ def merge_cut_positions(s_vals, merge_dist: float, line_length: float):
     return [float(np.mean(g)) for g in groups]
 
 
-def sampled_nearest_cline_ids(ls: LineString, cl_gdf: gpd.GeoDataFrame, cl_sindex, step: float, search_dist: float):
-    if ls.is_empty or ls.length <= 0:
+def enforce_min_segment_length(s_vals, line_length: float, min_seg_len: float):
+    if not s_vals:
+        return []
+    if line_length <= 0:
+        return []
+    use = sorted(float(s) for s in s_vals if 0.0 < float(s) < line_length)
+    if not use:
         return []
 
-    L = float(ls.length)
-    s_vals = list(np.arange(0.0, L, step))
-    if (not s_vals) or (s_vals[-1] < L):
-        s_vals.append(L)
-
-    out = []
-    for s in s_vals:
-        pt = ls.interpolate(float(s))
-        cand_idx = list(cl_sindex.query(pt.buffer(search_dist)))
-        if not cand_idx:
-            out.append((float(s), None))
+    kept = []
+    prev = 0.0
+    for s in use:
+        if (s - prev) < min_seg_len:
             continue
-        cand = cl_gdf.iloc[cand_idx]
-        d = cand.distance(pt)
-        j = int(np.argmin(d.values))
-        dmin = float(d.iloc[j])
-        if dmin > search_dist:
-            out.append((float(s), None))
+        if (line_length - s) < min_seg_len:
             continue
-        out.append((float(s), int(cand.iloc[j]["cline_id"])))
-    return out
+        kept.append(float(s))
+        prev = float(s)
 
+    while kept and (line_length - kept[-1]) < min_seg_len:
+        kept.pop()
 
-def sample_change_positions(ls: LineString, cl_gdf: gpd.GeoDataFrame, cl_sindex, step: float, search_dist: float):
-    sampled = sampled_nearest_cline_ids(ls, cl_gdf, cl_sindex, step=step, search_dist=search_dist)
-    if not sampled:
-        return []
-
-    valid = [(s, cid) for s, cid in sampled if cid is not None]
-    if len(valid) < 2:
-        return []
-
-    change_s = []
-    prev_s, prev_cid = valid[0]
-    for s, cid in valid[1:]:
-        if cid != prev_cid:
-            change_s.append(0.5 * (prev_s + s))
-        prev_s, prev_cid = s, cid
-    return change_s
+    return kept
 
 
 def sample_dist_mean(seg: LineString, ls: LineString) -> float:
@@ -428,6 +408,7 @@ def load_stage01_outputs(version_root: Path):
     data_dir = version_root / "data"
     centerline_path = data_dir / "centerline_master.parquet"
     centerline_dir_path = data_dir / "centerline_dir_master.parquet"
+    manual_raw_to_cline_path = data_dir / "manual_raw_to_centerline.parquet"
 
     if not centerline_path.exists():
         raise FileNotFoundError(f"Stage01 output missing: {centerline_path}")
@@ -438,7 +419,8 @@ def load_stage01_outputs(version_root: Path):
     centerline_dir = gpd.read_parquet(centerline_dir_path)
     centerline = ensure_3857(centerline)
     centerline_dir = ensure_3857(centerline_dir)
-    return centerline, centerline_dir
+    manual_raw_to_cline = pd.read_parquet(manual_raw_to_cline_path) if manual_raw_to_cline_path.exists() else pd.DataFrame()
+    return centerline, centerline_dir, manual_raw_to_cline
 
 
 def prepare_directed_centerline_for_matching(centerline_dir: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -463,29 +445,60 @@ def infer_need_split(raw: gpd.GeoDataFrame, cl_dir: gpd.GeoDataFrame) -> gpd.Geo
         return int(cand.iloc[j]["cline_id"])
 
     need_split = []
+    endpoint_change_flags = []
+    major_node_hit_flags = []
+    major_node_cut_counts = []
     for row in tqdm(raw.itertuples(index=False), total=len(raw), desc="infer_need_split"):
         ls = row.geometry
         if ls.is_empty or ls.geom_type != "LineString":
             need_split.append(False)
+            endpoint_change_flags.append(False)
+            major_node_hit_flags.append(False)
+            major_node_cut_counts.append(0)
             continue
         p0, p1 = line_endpoints(ls)
         c0 = nearest_cline_id(p0)
         c1 = nearest_cline_id(p1)
         endpoint_change = c0 is not None and c1 is not None and c0 != c1
-        sample_pairs = sampled_nearest_cline_ids(ls, cl_dir, cl_sindex, step=SPLIT_SAMPLE_STEP, search_dist=SPLIT_SEARCH_DIST)
-        sampled_ids = [cid for _, cid in sample_pairs if cid is not None]
-        sampled_change = len(set(sampled_ids)) >= 2
         major_node_hit = False
         if node_sindex is not None:
             cand_idx = list(node_sindex.query(ls.buffer(SPLIT_SEARCH_DIST)))
             if cand_idx:
                 sel = node_major.iloc[cand_idx]
                 s_vals = midpoint_cut_positions_from_node_buffer(ls, sel.geometry.values, NODE_BUFFER)
-                major_node_hit = len(merge_cut_positions(s_vals, MERGE_CUT_DIST, float(ls.length))) > 0
-        need_split.append(endpoint_change or sampled_change or major_node_hit)
+                merged_cuts = merge_cut_positions(s_vals, MERGE_CUT_DIST, float(ls.length))
+                major_node_hit = len(merged_cuts) > 0
+                major_node_cut_counts.append(int(len(merged_cuts)))
+            else:
+                major_node_cut_counts.append(0)
+        else:
+            major_node_cut_counts.append(0)
+        need_split.append(endpoint_change or major_node_hit)
+        endpoint_change_flags.append(endpoint_change)
+        major_node_hit_flags.append(major_node_hit)
 
     out = raw.copy()
+    if "manual_exact_match" in out.columns:
+        manual_mask = out["manual_exact_match"].fillna(False)
+        for col, fill_value in [
+            ("need_split", False),
+            ("split_reason_endpoint_change", False),
+            ("split_reason_major_node", False),
+        ]:
+            if col in out.columns:
+                out.loc[manual_mask, col] = fill_value
+        if "major_node_cut_count_hint" in out.columns:
+            out.loc[manual_mask, "major_node_cut_count_hint"] = 0
     out["need_split"] = need_split
+    out["split_reason_endpoint_change"] = endpoint_change_flags
+    out["split_reason_major_node"] = major_node_hit_flags
+    out["major_node_cut_count_hint"] = pd.Series(major_node_cut_counts, index=out.index).astype(int)
+    if "manual_exact_match" in out.columns:
+        manual_mask = out["manual_exact_match"].fillna(False)
+        out.loc[manual_mask, "need_split"] = False
+        out.loc[manual_mask, "split_reason_endpoint_change"] = False
+        out.loc[manual_mask, "split_reason_major_node"] = False
+        out.loc[manual_mask, "major_node_cut_count_hint"] = 0
     return out
 
 
@@ -507,6 +520,8 @@ def split_raw_segments(raw: gpd.GeoDataFrame, centerline: gpd.GeoDataFrame) -> g
 
     def cut_one(row):
         ls = row.geometry
+        if getattr(row, "manual_exact_match", False):
+            return [ls]
         if (not row.need_split) or ls.is_empty or ls.length <= 0:
             return [ls]
 
@@ -547,23 +562,13 @@ def split_raw_segments(raw: gpd.GeoDataFrame, centerline: gpd.GeoDataFrame) -> g
                     if 1.0 < s < ls.length - 1.0:
                         pts.append(ls.interpolate(s))
 
-        # For long curved roads, split where the locally nearest centerline changes.
-        for s in sample_change_positions(
-            ls,
-            centerline,
-            cl_sindex,
-            step=SPLIT_SAMPLE_STEP,
-            search_dist=SPLIT_SEARCH_DIST,
-        ):
-            if 1.0 < s < ls.length - 1.0:
-                pts.append(ls.interpolate(float(s)))
-
         if not pts:
             return [ls]
 
         L = ls.length
         s_vals = [ls.project(p) for p in pts if 1.0 < ls.project(p) < L - 1.0]
         s_clean = merge_cut_positions(s_vals, max(MIN_SEG_GAP, MERGE_CUT_DIST), L)
+        s_clean = enforce_min_segment_length(s_clean, L, MIN_SPLIT_SEG_LEN)
         if not s_clean:
             return [ls]
 
@@ -683,190 +688,13 @@ def baseline_match_segments(split_with_raw: gpd.GeoDataFrame, cl_dir: gpd.GeoDat
     return pd.DataFrame(match_rows)
 
 
-def projection_fallback_segments(split_with_raw: gpd.GeoDataFrame, cl_dir: gpd.GeoDataFrame) -> pd.DataFrame:
-    cl_sindex = cl_dir.sindex
-
-    def projection_area_metrics(seg: LineString, ls: LineString, close_dist: float):
-        L = float(seg.length)
-        if L <= 0:
-            return {
-                "proj_area": np.nan,
-                "proj_area_per_length": np.nan,
-                "proj_mean_dist": np.nan,
-                "proj_max_dist": np.nan,
-                "proj_p90_dist": np.nan,
-                "proj_close_share": np.nan,
-            }
-
-        ds = list(np.arange(0, L, SAMPLE_STEP))
-        if (not ds) or (ds[-1] < L):
-            ds.append(L)
-
-        seg_pts = [seg.interpolate(d) for d in ds]
-        proj_pts = [ls.interpolate(float(ls.project(pt))) for pt in seg_pts]
-        dists = np.asarray([float(a.distance(b)) for a, b in zip(seg_pts, proj_pts)], dtype=float)
-
-        quad_area = 0.0
-        for p0, p1, q0, q1 in zip(seg_pts[:-1], seg_pts[1:], proj_pts[:-1], proj_pts[1:]):
-            poly = Polygon(
-                [
-                    (p0.x, p0.y),
-                    (p1.x, p1.y),
-                    (q1.x, q1.y),
-                    (q0.x, q0.y),
-                ]
-            )
-            if poly.is_empty:
-                continue
-            quad_area += abs(float(poly.area))
-
-        return {
-            "proj_area": float(quad_area),
-            "proj_area_per_length": float(quad_area / L) if L > 0 else np.nan,
-            "proj_mean_dist": float(dists.mean()) if len(dists) else np.nan,
-            "proj_max_dist": float(dists.max()) if len(dists) else np.nan,
-            "proj_p90_dist": float(np.quantile(dists, 0.90)) if len(dists) else np.nan,
-            "proj_close_share": float((dists <= close_dist).mean()) if len(dists) else np.nan,
-        }
-
-    def score_projection(seg: LineString, seg_dir_deg: float, cand_row):
-        seg_bear = geom_bearing_full(seg) if pd.isna(seg_dir_deg) else float(seg_dir_deg)
-        a = angle_diff(seg_bear, cand_row.bear)
-        seg_len = float(seg.length)
-        is_long_unmatched = seg_len > LONG_UNMATCHED_THRESHOLD_M
-        close_dist = LONG_PROJ_CLOSE_DIST if is_long_unmatched else PROJ_CLOSE_DIST
-        min_close_share = LONG_PROJ_MIN_CLOSE_SHARE if is_long_unmatched else PROJ_MIN_CLOSE_SHARE
-        max_area_per_length = LONG_PROJ_MAX_AREA_PER_LENGTH if is_long_unmatched else PROJ_MAX_AREA_PER_LENGTH
-
-        s_from, s_to = project_span(seg, cand_row.geometry)
-        span = max(0.0, float(s_to - s_from))
-        if span <= 0:
-            return None
-
-        proj_line = substring(cand_row.geometry, s_from, s_to)
-        if proj_line.is_empty or proj_line.length <= 0:
-            return None
-
-        area_metrics = projection_area_metrics(seg, cand_row.geometry, close_dist)
-        d_mean = float(area_metrics["proj_mean_dist"])
-        area_per_length = float(area_metrics["proj_area_per_length"])
-        close_share = float(area_metrics["proj_close_share"])
-        p90_dist = float(area_metrics["proj_p90_dist"])
-        if not np.isfinite(d_mean) or d_mean > DIST_CAP:
-            return None
-        if (not np.isfinite(area_per_length)) or area_per_length > max_area_per_length:
-            return None
-        if (not np.isfinite(close_share)) or close_share < min_close_share:
-            return None
-
-        score = float(
-            close_share
-            - PROJ_DIST_PENALTY * min(area_per_length, PROJ_SEARCH_DIST) / PROJ_SEARCH_DIST
-        )
-        return {
-            "score_proj": score,
-            "proj_overlap_area": np.nan,
-            "proj_overlap_share": np.nan,
-            "proj_area": float(area_metrics["proj_area"]),
-            "proj_area_per_length": area_per_length,
-            "proj_length_ratio": np.nan,
-            "proj_close_share": close_share,
-            "dist_mean_proj": float(d_mean),
-            "dist_max_proj": float(area_metrics["proj_max_dist"]),
-            "dist_p90_proj": p90_dist,
-            "projection_rule_proj": "long_segment_relaxed" if is_long_unmatched else "default",
-            "angle_diff_proj": float(a) if np.isfinite(a) else np.nan,
-            "skel_dir_proj": int(cand_row.skel_dir),
-            "cline_id_proj": int(cand_row.cline_id),
-            "dir_proj": cand_row.dir,
-            "s_from_proj": float(s_from),
-            "s_to_proj": float(s_to),
-        }
-
-    rows = []
-    dir_col = "dir_deg" if "dir_deg" in split_with_raw.columns else "dir_deg_final"
-    for row in tqdm(split_with_raw.itertuples(index=False), total=len(split_with_raw), desc="projection_fallback"):
-        seg = row.geometry
-        rec = {"split_id": int(row.split_id), "raw_edge_id": int(row.raw_edge_id)}
-        if seg.is_empty or seg.geom_type != "LineString" or seg.length <= 0:
-            rec.update(
-                {
-                    "matched_proj": 0,
-                    "skel_dir_proj": None,
-                    "cline_id_proj": None,
-                    "dir_proj": None,
-                    "score_proj": None,
-                    "proj_overlap_area": None,
-                    "proj_overlap_share": None,
-                    "proj_area": None,
-                    "proj_area_per_length": None,
-                    "proj_length_ratio": None,
-                    "proj_close_share": None,
-                    "candidate_count_proj": 0,
-                    "dist_mean_proj": None,
-                    "dist_max_proj": None,
-                    "dist_p90_proj": None,
-                    "projection_rule_proj": None,
-                    "angle_diff_proj": None,
-                    "s_from_proj": None,
-                    "s_to_proj": None,
-                }
-            )
-            rows.append(rec)
-            continue
-
-        cand_idx = list(cl_sindex.query(seg.buffer(PROJ_SEARCH_DIST)))
-        cand = cl_dir.iloc[cand_idx].copy() if cand_idx else cl_dir.iloc[[]].copy()
-        if not cand.empty:
-            cand = cand[cand.distance(seg) <= PROJ_SEARCH_DIST].copy()
-        best = None
-        candidate_count = int(len(cand))
-        for cand_row in cand.itertuples(index=False):
-            scored = score_projection(seg, getattr(row, dir_col, np.nan), cand_row)
-            if scored is None:
-                continue
-            if (best is None) or (scored["score_proj"] > best["score_proj"]):
-                best = scored
-
-        if best is None:
-            rec.update(
-                {
-                    "matched_proj": 0,
-                    "skel_dir_proj": None,
-                    "cline_id_proj": None,
-                    "dir_proj": None,
-                    "score_proj": None,
-                    "proj_overlap_area": None,
-                    "proj_overlap_share": None,
-                    "proj_area": None,
-                    "proj_area_per_length": None,
-                    "proj_length_ratio": None,
-                    "proj_close_share": None,
-                    "candidate_count_proj": candidate_count,
-                    "dist_mean_proj": None,
-                    "dist_max_proj": None,
-                    "dist_p90_proj": None,
-                    "projection_rule_proj": None,
-                    "angle_diff_proj": None,
-                    "s_from_proj": None,
-                    "s_to_proj": None,
-                }
-            )
-        else:
-            best["matched_proj"] = 1
-            best["candidate_count_proj"] = candidate_count
-            rec.update(best)
-        rows.append(rec)
-
-    return pd.DataFrame(rows)
-
-
 def build_raw_segment_master(raw_segments: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     gdf = raw_segments.copy()
     gdf["length_m"] = gdf.geometry.length.astype(float)
     gdf["is_valid_geometry"] = gdf.geometry.notna() & (~gdf.geometry.is_empty)
     gdf["is_linestring"] = gdf.geometry.geom_type.isin(["LineString", "MultiLineString"])
     gdf["is_split"] = gdf.groupby("raw_edge_id")["split_id"].transform("count") > 1
+    gdf["split_piece_count"] = gdf.groupby("raw_edge_id")["split_id"].transform("count").astype(int)
     gdf["is_short_segment"] = gdf["length_m"] < MIN_SEG_LEN_BASELINE
     gdf["is_dead_end"] = pd.NA
     gdf["road_class"] = gdf["roadtype"] if "roadtype" in gdf.columns else pd.NA
@@ -883,6 +711,12 @@ def build_raw_segment_master(raw_segments: gpd.GeoDataFrame) -> gpd.GeoDataFrame
         gdf["dir_source"] = pd.NA
     if "need_split" not in gdf.columns:
         gdf["need_split"] = pd.NA
+    if "manual_exact_match" not in gdf.columns:
+        gdf["manual_exact_match"] = False
+    if "manual_group_id" not in gdf.columns:
+        gdf["manual_group_id"] = pd.NA
+    if "manual_cline_id" not in gdf.columns:
+        gdf["manual_cline_id"] = pd.NA
     gdf["keep_baseline"] = gdf["is_valid_geometry"] & gdf["is_linestring"] & (~gdf["is_short_segment"])
     gdf["keep_relaxed"] = gdf["is_valid_geometry"] & gdf["is_linestring"]
     gdf["keep_qsm"] = gdf["keep_baseline"]
@@ -890,14 +724,83 @@ def build_raw_segment_master(raw_segments: gpd.GeoDataFrame) -> gpd.GeoDataFrame
     return gdf
 
 
+def apply_stage01_manual_matches(
+    match_master: pd.DataFrame,
+    raw_segment_master: gpd.GeoDataFrame,
+    centerline_dir: gpd.GeoDataFrame,
+) -> pd.DataFrame:
+    manual_cols = ["split_id", "raw_edge_id", "manual_exact_match", "manual_group_id", "manual_cline_id", "dir_deg_final"]
+    present = [c for c in manual_cols if c in raw_segment_master.columns]
+    if "manual_exact_match" not in present or "manual_cline_id" not in present:
+        return match_master
+
+    manual = raw_segment_master[present].copy()
+    manual["manual_exact_match"] = manual["manual_exact_match"].fillna(False)
+    manual = manual.loc[manual["manual_exact_match"]].copy()
+    if manual.empty:
+        return match_master
+
+    dir_ref = centerline_dir[["cline_id", "dir", "skel_dir", "bear"]].copy()
+    dir_ref["cline_id"] = pd.to_numeric(dir_ref["cline_id"], errors="coerce").astype("Int64")
+    dir_ref = dir_ref.rename(
+        columns={
+            "dir": "dir_manualstage01",
+            "skel_dir": "skel_dir_manualstage01",
+            "bear": "bear_manualstage01",
+        }
+    )
+    manual["manual_cline_id"] = pd.to_numeric(manual["manual_cline_id"], errors="coerce").astype("Int64")
+    manual = manual.merge(dir_ref, left_on="manual_cline_id", right_on="cline_id", how="left")
+    manual = manual.dropna(subset=["skel_dir_manualstage01"]).copy()
+    if manual.empty:
+        return match_master
+
+    manual["dir_score"] = manual.apply(
+        lambda r: angle_diff(r.get("dir_deg_final", np.nan), r.get("bear_manualstage01", np.nan)),
+        axis=1,
+    )
+    manual["dir_score"] = pd.to_numeric(manual["dir_score"], errors="coerce").fillna(180.0)
+    manual = manual.sort_values(["split_id", "dir_score", "dir_manualstage01"]).drop_duplicates(
+        subset=["split_id"], keep="first"
+    )
+
+    out = match_master.copy()
+    out = out.merge(
+        manual[
+            [
+                "split_id",
+                "manual_group_id",
+                "manual_cline_id",
+                "dir_manualstage01",
+                "skel_dir_manualstage01",
+            ]
+        ],
+        on="split_id",
+        how="left",
+    )
+    mask = out["manual_cline_id"].notna()
+    if mask.any():
+        out.loc[mask, "match_method_final"] = "stage01_manual_group"
+        out.loc[mask, "matched_final"] = 1
+        out.loc[mask, "cline_id_final"] = out.loc[mask, "manual_cline_id"].astype("Int64")
+        out.loc[mask, "dir_final"] = out.loc[mask, "dir_manualstage01"].astype("string")
+        out.loc[mask, "skel_dir_final"] = out.loc[mask, "skel_dir_manualstage01"].astype("Int64")
+        out.loc[mask, "score_final"] = 0.0
+        out.loc[mask, "dist_mean_final"] = 0.0
+        out.loc[mask, "angle_diff_final"] = 0.0
+        out.loc[mask, "review_flag"] = 0
+        out.loc[mask, "match_conflict_flag"] = 0
+
+    out = out.drop(columns=["manual_group_id", "manual_cline_id", "dir_manualstage01", "skel_dir_manualstage01"], errors="ignore")
+    return out
+
+
 def build_match_master(
     raw2split: pd.DataFrame,
     baseline_df: pd.DataFrame,
-    projection_df: pd.DataFrame,
     raw_segments: gpd.GeoDataFrame,
 ) -> pd.DataFrame:
     base = raw2split.merge(baseline_df, on=["split_id", "raw_edge_id"], how="left")
-    base = base.merge(projection_df, on=["split_id", "raw_edge_id"], how="left")
     base = base.merge(
         raw_segments[["split_id", "keep_baseline", "keep_relaxed", "keep_qsm"]],
         on="split_id",
@@ -910,24 +813,22 @@ def build_match_master(
         base["roadseg_id"] = pd.NA
 
     base["matched_old"] = pd.to_numeric(base["matched_old"], errors="coerce").fillna(0).astype(int)
-    base["matched_proj"] = pd.to_numeric(base["matched_proj"], errors="coerce").fillna(0).astype(int)
 
     use_old = base["matched_old"] == 1
-    use_proj = (base["matched_old"] == 0) & (base["matched_proj"] == 1)
     final_method = np.select(
-        [use_old, use_proj],
-        ["baseline_old", "projection_fallback"],
+        [use_old],
+        ["baseline_old"],
         default="unmatched",
     )
-    matched_final = np.where(use_old | use_proj, 1, 0).astype(int)
-    skel_dir_final = np.where(use_old, base["skel_dir_old"], np.where(use_proj, base["skel_dir_proj"], pd.NA))
-    cline_id_final = np.where(use_old, base["cline_id_old"], np.where(use_proj, base["cline_id_proj"], pd.NA))
-    dir_final = np.where(use_old, base["dir_old"], np.where(use_proj, base["dir_proj"], pd.NA))
-    score_final = np.where(use_old, base["score_old"], np.where(use_proj, base["score_proj"], np.nan))
-    dist_mean_final = np.where(use_old, base["dist_mean_old"], np.where(use_proj, base["dist_mean_proj"], np.nan))
-    angle_diff_final = np.where(use_old, base["angle_diff_old"], np.where(use_proj, base["angle_diff_proj"], np.nan))
-    s_from_final = np.where(use_old, base["s_from_old"], np.where(use_proj, base["s_from_proj"], np.nan))
-    s_to_final = np.where(use_old, base["s_to_old"], np.where(use_proj, base["s_to_proj"], np.nan))
+    matched_final = np.where(use_old, 1, 0).astype(int)
+    skel_dir_final = np.where(use_old, base["skel_dir_old"], pd.NA)
+    cline_id_final = np.where(use_old, base["cline_id_old"], pd.NA)
+    dir_final = np.where(use_old, base["dir_old"], pd.NA)
+    score_final = np.where(use_old, base["score_old"], np.nan)
+    dist_mean_final = np.where(use_old, base["dist_mean_old"], np.nan)
+    angle_diff_final = np.where(use_old, base["angle_diff_old"], np.nan)
+    s_from_final = np.where(use_old, base["s_from_old"], np.nan)
+    s_to_final = np.where(use_old, base["s_to_old"], np.nan)
 
     out = pd.DataFrame(
         {
@@ -947,25 +848,6 @@ def build_match_master(
             "candidate_count_old": pd.to_numeric(base["candidate_count_old"], errors="coerce"),
             "s_from_old": pd.to_numeric(base["s_from_old"], errors="coerce"),
             "s_to_old": pd.to_numeric(base["s_to_old"], errors="coerce"),
-            "matched_proj": base["matched_proj"],
-            "skel_dir_proj": base["skel_dir_proj"],
-            "cline_id_proj": base["cline_id_proj"],
-            "dir_proj": base["dir_proj"],
-            "score_proj": pd.to_numeric(base["score_proj"], errors="coerce"),
-            "proj_overlap_area": pd.to_numeric(base["proj_overlap_area"], errors="coerce"),
-            "proj_overlap_share": pd.to_numeric(base["proj_overlap_share"], errors="coerce"),
-            "proj_area": pd.to_numeric(base["proj_area"], errors="coerce"),
-            "proj_area_per_length": pd.to_numeric(base["proj_area_per_length"], errors="coerce"),
-            "proj_length_ratio": pd.to_numeric(base["proj_length_ratio"], errors="coerce"),
-            "proj_close_share": pd.to_numeric(base["proj_close_share"], errors="coerce"),
-            "candidate_count_proj": pd.to_numeric(base["candidate_count_proj"], errors="coerce"),
-            "dist_mean_proj": pd.to_numeric(base["dist_mean_proj"], errors="coerce"),
-            "dist_max_proj": pd.to_numeric(base["dist_max_proj"], errors="coerce"),
-            "dist_p90_proj": pd.to_numeric(base["dist_p90_proj"], errors="coerce"),
-            "projection_rule_proj": base["projection_rule_proj"],
-            "angle_diff_proj": pd.to_numeric(base["angle_diff_proj"], errors="coerce"),
-            "s_from_proj": pd.to_numeric(base["s_from_proj"], errors="coerce"),
-            "s_to_proj": pd.to_numeric(base["s_to_proj"], errors="coerce"),
             "match_method_final": final_method,
             "matched_final": matched_final,
             "skel_dir_final": skel_dir_final,
@@ -982,28 +864,8 @@ def build_match_master(
         }
     )
 
-    out["match_conflict_flag"] = np.where(
-        (out["matched_old"] == 1)
-        & (out["matched_proj"] == 1)
-        & (
-            out["skel_dir_old"].astype("string").fillna("<NA>")
-            != out["skel_dir_proj"].astype("string").fillna("<NA>")
-        ),
-        1,
-        0,
-    )
-    out["review_flag"] = np.where(
-        (out["match_method_final"] == "projection_fallback")
-        & (
-            out["proj_area_per_length"].isna()
-            | (out["proj_area_per_length"] > 120.0)
-            | out["proj_close_share"].isna()
-            | (out["proj_close_share"] < 0.5)
-            | (pd.to_numeric(out["candidate_count_proj"], errors="coerce").fillna(0) >= 10)
-        ),
-        1,
-        0,
-    )
+    out["match_conflict_flag"] = 0
+    out["review_flag"] = 0
     out.loc[out["matched_final"] == 0, ["skel_dir_final", "cline_id_final", "dir_final"]] = pd.NA
     return out
 
@@ -1011,11 +873,7 @@ def build_match_master(
 def align_match_ids_to_stage01(match_master: pd.DataFrame, centerline_dir: gpd.GeoDataFrame) -> pd.DataFrame:
     use = match_master.copy()
     dir_ref = centerline_dir[["skel_dir", "cline_id", "dir"]].copy()
-    for col in ["skel_dir"]:
-        use[col + "_old"] = pd.to_numeric(use.get(col + "_old"), errors="coerce").astype("Int64")
-        use[col + "_proj"] = pd.to_numeric(use.get(col + "_proj"), errors="coerce").astype("Int64")
-        use[col + "_final"] = pd.to_numeric(use.get(col + "_final"), errors="coerce").astype("Int64")
-    for col in ["cline_id_old", "cline_id_proj", "cline_id_final"]:
+    for col in ["skel_dir_old", "skel_dir_final", "cline_id_old", "cline_id_final"]:
         use[col] = pd.to_numeric(use.get(col), errors="coerce").astype("Int64")
     dir_ref["skel_dir"] = pd.to_numeric(dir_ref["skel_dir"], errors="coerce").astype("Int64")
     dir_ref["cline_id"] = pd.to_numeric(dir_ref["cline_id"], errors="coerce").astype("Int64")
@@ -1077,7 +935,6 @@ def save_metrics(raw_segment_master: gpd.GeoDataFrame, match_master: pd.DataFram
     relaxed_mask = match_master["keep_relaxed"].fillna(False) if "keep_relaxed" in match_master.columns else pd.Series(True, index=match_master.index)
 
     old_rate = float(match_master.loc[baseline_mask, "matched_old"].mean()) if baseline_mask.any() else np.nan
-    proj_rate = float(match_master.loc[baseline_mask, "matched_proj"].mean()) if baseline_mask.any() else np.nan
     match_rate = float(match_master.loc[baseline_mask, "matched_final"].mean()) if baseline_mask.any() else np.nan
     raw_edge_rate = (
         float(match_master.loc[baseline_mask].groupby("raw_edge_id")["matched_final"].max().mean())
@@ -1094,15 +951,11 @@ def save_metrics(raw_segment_master: gpd.GeoDataFrame, match_master: pd.DataFram
                 "split_segments_keep_baseline": int(raw_segment_master["keep_baseline"].fillna(False).sum()),
                 "split_segments_keep_relaxed": int(raw_segment_master["keep_relaxed"].fillna(False).sum()),
                 "split_match_rate_old": old_rate,
-                "split_match_rate_proj_only": proj_rate,
                 "split_match_rate": match_rate,
                 "split_match_rate_relaxed": relaxed_match_rate,
                 "raw_edge_match_rate": raw_edge_rate,
-                "projection_uplift_pp": (match_rate - old_rate) * 100.0 if np.isfinite(match_rate) and np.isfinite(old_rate) else np.nan,
-                "projection_added_matches": int(((match_master["matched_old"] == 0) & (match_master["matched_proj"] == 1) & baseline_mask).sum()),
                 "matched_split_segments": int(match_master.loc[baseline_mask, "matched_final"].sum()),
                 "unmatched_split_segments": int(((match_master["matched_final"] == 0) & baseline_mask).sum()),
-                "projection_review_flagged": int(((match_master["review_flag"] == 1) & baseline_mask).sum()),
             }
         ]
     )
@@ -1130,6 +983,80 @@ def save_metrics(raw_segment_master: gpd.GeoDataFrame, match_master: pd.DataFram
         )
         key_summary.to_csv(metrics_dir / "stage02_stage01_alignment_summary.csv", index=False)
 
+    export_split_diagnostics(raw_segment_master, match_master, metrics_dir)
+
+
+def export_split_diagnostics(raw_segment_master: gpd.GeoDataFrame, match_master: pd.DataFrame, metrics_dir: Path):
+    seg = raw_segment_master.copy()
+    mm = match_master[["split_id", "matched_final"]].copy()
+    mm["matched_final"] = pd.to_numeric(mm["matched_final"], errors="coerce").fillna(0).astype(int)
+    seg = seg.merge(mm, on="split_id", how="left")
+    seg["matched_final"] = seg["matched_final"].fillna(0).astype(int)
+
+    group_cols = [
+        "raw_edge_id",
+        "roadseg_id",
+        "roadname",
+        "roadtype",
+        "need_split",
+        "split_reason_endpoint_change",
+        "split_reason_major_node",
+        "major_node_cut_count_hint",
+    ]
+    present_group_cols = [c for c in group_cols if c in seg.columns]
+    edge_diag = (
+        seg.groupby(present_group_cols, dropna=False)
+        .agg(
+            n_split=("split_id", "count"),
+            matched_split_segments=("matched_final", "sum"),
+            total_length_m=("length_m", "sum"),
+            mean_segment_length_m=("length_m", "mean"),
+            min_segment_length_m=("length_m", "min"),
+            max_segment_length_m=("length_m", "max"),
+        )
+        .reset_index()
+    )
+    edge_diag["unmatched_split_segments"] = edge_diag["n_split"] - edge_diag["matched_split_segments"]
+    edge_diag["match_rate"] = np.where(
+        edge_diag["n_split"] > 0,
+        edge_diag["matched_split_segments"] / edge_diag["n_split"],
+        np.nan,
+    )
+    edge_diag["split_density_per_km"] = np.where(
+        edge_diag["total_length_m"] > 0,
+        edge_diag["n_split"] / (edge_diag["total_length_m"] / 1000.0),
+        np.nan,
+    )
+
+    oversplit = edge_diag.loc[edge_diag["n_split"] >= 20].sort_values(
+        ["n_split", "split_density_per_km", "total_length_m"],
+        ascending=[False, False, False],
+    )
+    oversplit.to_csv(metrics_dir / "stage02_oversplit_raw_edges.csv", index=False)
+
+    needsplit_unsplit = edge_diag.loc[
+        edge_diag["need_split"].fillna(False) & (edge_diag["n_split"] == 1)
+    ].sort_values(
+        ["major_node_cut_count_hint", "total_length_m"],
+        ascending=[False, False],
+    )
+    needsplit_unsplit.to_csv(metrics_dir / "stage02_needsplit_not_split.csv", index=False)
+
+    reason_cols = [c for c in ["split_reason_endpoint_change", "split_reason_major_node"] if c in edge_diag.columns]
+    if reason_cols:
+        reason_summary = (
+            edge_diag.groupby(reason_cols, dropna=False)
+            .agg(
+                raw_edges=("raw_edge_id", "count"),
+                mean_n_split=("n_split", "mean"),
+                median_n_split=("n_split", "median"),
+                oversplit_edges=("n_split", lambda s: int((pd.to_numeric(s, errors="coerce") >= 20).sum())),
+                needsplit_unsplit_edges=("n_split", lambda s: int((pd.to_numeric(s, errors="coerce") == 1).sum())),
+            )
+            .reset_index()
+        )
+        reason_summary.to_csv(metrics_dir / "stage02_split_reason_summary.csv", index=False)
+
 
 def run(config_path: str | None, version_id: str, output_dir: str, manual_overrides_path: str | None = None):
     version_root = Path(output_dir) / version_id
@@ -1148,55 +1075,45 @@ def run(config_path: str | None, version_id: str, output_dir: str, manual_overri
     print(f"[stage02] metrics_dir={metrics_dir}")
     print(f"[stage02] figures_dir={figures_dir}")
 
-    save_config_snapshot(version_root, config_path, manual_overrides_path)
-    centerline, centerline_dir = load_stage01_outputs(version_root)
+    stage01_runtime = configure_stage01_runtime(config_path)
+    stage_options = load_stage_config(config_path)
+    save_config_snapshot(version_root, config_path, manual_overrides_path, stage_options)
+    centerline, centerline_dir, manual_raw_to_cline = load_stage01_outputs(version_root)
     print(f"[stage02] loaded stage01 centerline rows: {len(centerline):,}")
     print(f"[stage02] loaded stage01 directed rows: {len(centerline_dir):,}")
 
+    print(f"[stage02] stage01_runtime={stage01_runtime}")
     raw = load_raw_roads()
     raw_match = raw.loc[raw["is_valid_geometry"] & raw["is_linestring"]].copy()
+    if len(manual_raw_to_cline):
+        manual_use = manual_raw_to_cline.copy()
+        manual_use["raw_edge_id"] = pd.to_numeric(manual_use["raw_edge_id"], errors="coerce").astype("Int64")
+        manual_use["cline_id"] = pd.to_numeric(manual_use["cline_id"], errors="coerce").astype("Int64")
+        raw_match = raw_match.merge(
+            manual_use[["raw_edge_id", "manual_group_id", "cline_id"]].rename(columns={"cline_id": "manual_cline_id"}),
+            on="raw_edge_id",
+            how="left",
+        )
+        raw_match["manual_exact_match"] = raw_match["manual_cline_id"].notna()
+    else:
+        raw_match["manual_group_id"] = pd.NA
+        raw_match["manual_cline_id"] = pd.NA
+        raw_match["manual_exact_match"] = False
     centerline_keep = filter_by_flag(centerline, "keep_baseline")
-    cl_dir_match = prepare_directed_centerline_for_matching(filter_by_flag(centerline_dir, "keep_baseline"))
-    raw_match = infer_need_split(raw_match, cl_dir_match)
+    cl_dir_split = prepare_directed_centerline_for_matching(filter_by_flag(centerline_dir, "keep_baseline"))
+    cl_dir_match_base = filter_by_flag(centerline_dir, "keep_baseline")
+    if stage_options["baseline_exclude_manual_centerlines"] and "build_source" in cl_dir_match_base.columns:
+        cl_dir_match_base = cl_dir_match_base.loc[cl_dir_match_base["build_source"].astype("string") != "manual_group"].copy()
+    cl_dir_match = prepare_directed_centerline_for_matching(cl_dir_match_base)
+    raw_match = infer_need_split(raw_match, cl_dir_split)
     raw_segments = split_raw_segments(raw_match, centerline_keep)
     raw_segment_master = build_raw_segment_master(raw_segments)
     match_input = raw_segment_master.loc[raw_segment_master["keep_baseline"].fillna(False)].copy()
     baseline_df = baseline_match_segments(match_input, cl_dir_match)
-    unmatched_input = match_input.merge(
-        baseline_df[["split_id", "matched_old"]],
-        on="split_id",
-        how="left",
-    )
-    unmatched_input["matched_old"] = pd.to_numeric(unmatched_input["matched_old"], errors="coerce").fillna(0).astype(int)
-    unmatched_input = unmatched_input.loc[unmatched_input["matched_old"] == 0].drop(columns=["matched_old"])
-    projection_df = projection_fallback_segments(unmatched_input, cl_dir_match) if len(unmatched_input) else pd.DataFrame(
-        columns=[
-            "split_id",
-            "raw_edge_id",
-            "matched_proj",
-            "skel_dir_proj",
-            "cline_id_proj",
-            "dir_proj",
-            "score_proj",
-            "proj_overlap_area",
-            "proj_overlap_share",
-            "proj_area",
-            "proj_area_per_length",
-            "proj_length_ratio",
-            "proj_close_share",
-            "candidate_count_proj",
-            "dist_mean_proj",
-            "dist_max_proj",
-            "dist_p90_proj",
-            "projection_rule_proj",
-            "angle_diff_proj",
-            "s_from_proj",
-            "s_to_proj",
-        ]
-    )
     raw2split = raw_segments[["raw_edge_id", "split_id", "raw_seg_idx"]].copy()
-    match_master = build_match_master(raw2split, baseline_df, projection_df, raw_segment_master)
+    match_master = build_match_master(raw2split, baseline_df, raw_segment_master)
     match_master = align_match_ids_to_stage01(match_master, centerline_dir)
+    match_master = apply_stage01_manual_matches(match_master, raw_segment_master, centerline_dir)
     match_master, manual_applied = apply_manual_overrides(match_master, centerline_dir, manual_overrides_path)
     split2cl = match_master[
         [

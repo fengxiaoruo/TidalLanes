@@ -1,0 +1,286 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[UTF8,fontset=fandol]{ctex}
+\renewcommand{\figurename}{Figure}
+\renewcommand{\tablename}{Table}
+\usepackage{amsmath, amssymb, graphicx, setspace, natbib}
+\usepackage{booktabs,tabularx}
+\usepackage{multirow}
+\usepackage{comment}
+\usepackage{enumitem}
+\usepackage{array}
+
+\title{Tidal Lanes: Shenzhen Data Pipeline Draft}
+\author{Xiaoruo Feng}
+\date{April 2026}
+
+\begin{document}
+\maketitle
+
+\section{Data}
+\subsection{Commuting-Flow Data}
+
+The Shenzhen commuting matrix used in this draft is the 2024 100-meter grid origin--destination dataset. After standardizing field names for the stage-based pipeline, the sample contains 3,970,569 origin--destination pairs, 94,670 unique origin grids, 105,322 unique destination grids, and 110,339 unique grids in the union of origins and destinations.
+
+The pipeline-level commuting file keeps grid identifiers, grid-center coordinates, and commuter counts. The transport-mode decomposition fields are not used in the current Shenzhen run. This is a deliberate design choice for this draft version. The downstream network and QSM stages are built from total commuters.
+
+\subsection{Road Segment Speed Data}
+
+Road speeds are built from the Raw\_fromBaidu source for Shenzhen. We match the Shenzhen road segment list to the high-frequency speed index by \texttt{roadseg\_id}, then retain the common support. The resulting speed table contains 10,435,104 records and 10,433 unique road segments.
+
+The retained raw speed fields are \texttt{cityname}, \texttt{roadseg\_id}, \texttt{roadname}, \texttt{semantic}, \texttt{location}, \texttt{geometry}, \texttt{speed}, \texttt{day}, and \texttt{hour}. The temporal resolution remains ten-minute bins.
+
+\section{Pipeline Overview}
+\label{sec:sz_pipeline}
+
+The Shenzhen pipeline run in this draft is \texttt{shenzhen\_test\_line\_v1\_run1}. The stage sequence is
+\[
+\texttt{stage01} \rightarrow \texttt{stage02} \rightarrow \texttt{stage03} \rightarrow \texttt{stage03b} \rightarrow \texttt{stage04} \rightarrow \texttt{stage05} \rightarrow \texttt{stage06} \rightarrow \texttt{stage07} \rightarrow \texttt{stage08} \rightarrow \texttt{stage09} \rightarrow \texttt{stage10}.
+\]
+
+Stage01 and stage02 construct the directed centerline backbone and the raw-to-centerline crosswalk. Stage03 and stage03b aggregate directional speeds and compute asymmetry diagnostics. Stage05 to stage08 build the square, hex, and Voronoi grid systems, route-level travel costs, OD reachability objects, and QSM-ready node-edge-OD inputs. Stage10 generates diagnostic figures.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.92\textwidth]{../../data_work/outputs/shenzhen_test_line_v1_run1/figures/map_raw_roads_15km.png}
+\caption{Raw Shenzhen roads in the local diagnostic window used by the pipeline.}
+\label{fig:sz_raw_roads_15km}
+\end{figure}
+
+\section{Road Network Construction and Centerline Matching}
+
+\subsection{Stage01 centerline construction}
+
+The Shenzhen road geometry enters stage01 through \texttt{raw\_data/gis/roads\_baidu/shenzhen\_roads.shp}, with the Shenzhen boundary file used in grid construction later. The skeleton branch runs with the retained production parameters in the project codebase, including 50-meter buffering and 5-meter raster resolution.
+
+In the Shenzhen run, stage01 starts from 10,536 raw segments and outputs 12,714 undirected centerlines and 25,428 directed centerline links. After baseline filtering, 6,456 directed links remain in the retained backbone.
+
+\begin{table}[h!]
+\centering
+\caption{Stage01 summary, Shenzhen run}
+\label{tab:sz_stage01_summary}
+\begin{tabular}{lr}
+\toprule
+Statistic & Value \\
+\midrule
+Raw segments & 10,536 \\
+Undirected centerlines (all) & 12,714 \\
+Directed centerlines (all) & 25,428 \\
+Directed centerlines (baseline) & 6,456 \\
+Total centerline length (km, all) & 2,420.4 \\
+Baseline centerline length (km) & 2,356.0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Stage02 matching quality}
+
+Stage02 splits raw roads only where network geometry indicates a plausible multi-centerline overlap, then matches split segments to the directed backbone under the retained distance-cap rule. The Shenzhen run has 10,536 split segments, 9,909 baseline-kept split segments, and a baseline split match rate of 98.37\%. At the raw-edge level, 9,747 edges are matched and 162 are unmatched in the baseline-kept sample.
+
+\begin{table}[h!]
+\centering
+\caption{Stage02 matching summary, Shenzhen run}
+\label{tab:sz_stage02_summary}
+\begin{tabular}{lr}
+\toprule
+Statistic & Value \\
+\midrule
+Split segments (all) & 10,536 \\
+Split segments (baseline-kept) & 9,909 \\
+Baseline split match rate & 98.37\% \\
+Raw-edge match rate (baseline-kept) & 98.37\% \\
+Matched split segments (baseline-kept) & 9,747 \\
+Unmatched split segments (baseline-kept) & 162 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.88\textwidth]{../../data_work/outputs/shenzhen_test_line_v1_run1/figures/map_raw_split_matched_vs_unmatched.png}
+\caption{Raw split segments classified by matched and unmatched status in the Shenzhen run.}
+\label{fig:sz_match_status_map}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.82\textwidth]{../../data_work/outputs/shenzhen_test_line_v1_run1/figures/fig_length_cdf_4networks.png}
+\caption{Length CDF comparison across retained Shenzhen network objects.}
+\label{fig:sz_length_cdf}
+\end{figure}
+
+\section{Aggregating Raw Speeds to Directed Centerlines}
+
+Stage03 maps Shenzhen speed observations to matched centerline segments and aggregates by weekday label and hour. The run yields 9,673,722 matched speed observations, 232,633 centerline-time rows, and 4,875 unique directed centerlines with valid speed support.
+
+\begin{table}[h!]
+\centering
+\caption{Stage03 speed aggregation summary, Shenzhen run}
+\label{tab:sz_stage03_summary}
+\begin{tabular}{lr}
+\toprule
+Statistic & Value \\
+\midrule
+Matched speed observations & 9,673,722 \\
+Centerline-time rows & 232,633 \\
+Unique directed centerlines & 4,875 \\
+Mean centerline speed (km/h) & 32.88 \\
+Median centerline speed (km/h) & 29.64 \\
+AM peak rows & 19,412 \\
+PM peak rows & 19,453 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.86\textwidth]{../../data_work/outputs/shenzhen_test_line_v1_run1/figures/hist_speed_raw_vs_centerline_all.png}
+\caption{Speed distribution comparison between raw segment observations and aggregated centerline speeds.}
+\label{fig:sz_speed_hist_raw_vs_centerline}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.86\textwidth]{../../data_work/outputs/shenzhen_test_line_v1_run1/figures/diurnal_raw_centerline_combined.png}
+\caption{Diurnal profile of raw and centerline speeds in the Shenzhen run.}
+\label{fig:sz_speed_diurnal}
+\end{figure}
+
+\section{Directional Asymmetry and Tidal-Lane Screen}
+
+Stage03b runs on the Shenzhen speed table produced by stage03. In the current run, the asymmetry output table is empty after the applied filters, so the baseline \texttt{unsym1} counts are zero in both AM and PM, and the tidal-candidate count is also zero.
+
+The zero-count result is an empirical output of the current Shenzhen preprocessing and filter combination, not a structural statement about directional congestion in Shenzhen. The appropriate next diagnostic step is to inspect stage03b inclusion filters, effective directional pairing coverage by \texttt{cline\_id}, and peak-window support before interpreting this as evidence on the underlying asymmetry distribution.
+
+\begin{table}[h!]
+\centering
+\caption{Stage03b asymmetry summary, Shenzhen run}
+\label{tab:sz_stage03b_summary}
+\begin{tabular}{lr}
+\toprule
+Statistic & Value \\
+\midrule
+Asymmetry rows & 0 \\
+AM asymmetric centerlines (unsym1) & 0 \\
+PM asymmetric centerlines (unsym1) & 0 \\
+Reversed faster direction count & 0 \\
+Tidal-lane candidates & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.72\textwidth]{../../data_work/outputs/shenzhen_test_line_v1_run1/figures/hist_speed_ratio_am_pm.png}
+\caption{AM and PM speed-ratio histogram from the Shenzhen asymmetry diagnostic stage.}
+\label{fig:sz_asym_ratio_hist}
+\end{figure}
+
+\section{Grid Construction}
+
+Stage05 builds three grid systems on the Shenzhen boundary. The directed baseline backbone from stage01 is the network object used for within-cell diagnostics. This section now reports the smaller-grid Shenzhen run (\texttt{shenzhen\_smallgrid\_v1\_run1}).
+
+\begin{table}[h!]
+\centering
+\caption{Stage05 grid comparison, Shenzhen run}
+\label{tab:sz_stage05_grid}
+\begin{tabular}{lrrrr}
+\toprule
+Grid type & Cells & Mean area (km$^2$) & Segment-within share & Length-within share \\
+\midrule
+Square & 695 & 3.30 & 65.55\% & 41.93\% \\
+Hex & 1,698 & 0.83 & 25.56\% & 11.83\% \\
+Voronoi & 505 & 4.54 & 59.67\% & 31.55\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.95\textwidth]{../../data_work/outputs/shenzhen_smallgrid_v1_run1/figures/aa_style_square3km_AM_2panel.png}
+\caption{Square-grid AM diagnostics in the Shenzhen run: coverage and asymmetry panels.}
+\label{fig:sz_square_am_2panel}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.95\textwidth]{../../data_work/outputs/shenzhen_smallgrid_v1_run1/figures/aa_style_hex3km_AM_2panel.png}
+\caption{Hex-grid AM diagnostics in the Shenzhen run: coverage and asymmetry panels.}
+\label{fig:sz_hex_am_2panel}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.95\textwidth]{../../data_work/outputs/shenzhen_smallgrid_v1_run1/figures/aa_style_voronoi3km_AM_2panel.png}
+\caption{Voronoi-grid AM diagnostics in the Shenzhen run: coverage and asymmetry panels.}
+\label{fig:sz_voronoi_am_2panel}
+\end{figure}
+
+\section{Grid-to-Grid Travel Costs and QSM Inputs}
+
+\subsection{Stage06 travel-cost graph objects}
+
+Stage06 outputs directional grid-link objects for all three grid systems. The Shenzhen run produces finite AM and PM edge tables in each partition.
+
+\begin{table}[h!]
+\centering
+\caption{Stage06 network objects, Shenzhen run}
+\label{tab:sz_stage06_summary}
+\begin{tabular}{lrrrrr}
+\toprule
+Grid type & Links (long) & Links (agg) & Nodes & AM edges & PM edges \\
+\midrule
+Square & 3,322 & 1,408 & 328 & 704 & 704 \\
+Hex & 4,013 & 2,213 & 437 & 1,106 & 1,107 \\
+Voronoi & 4,043 & 2,099 & 304 & 1,049 & 1,050 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Stage07 OD reachability}
+
+Stage07 maps commuters to grids and computes reachable OD pairs under the AM graph. Reachability is high in all three systems, with the strongest pair-level coverage in Voronoi.
+
+\begin{table}[h!]
+\centering
+\caption{Stage07 OD reachability, Shenzhen run}
+\label{tab:sz_stage07_summary}
+\begin{tabular}{lrrrr}
+\toprule
+Grid type & OD pairs (all) & OD pairs (reachable) & Reachable pair share & Reachable pop share \\
+\midrule
+Square & 45,048 & 37,245 & 82.68\% & 98.42\% \\
+Hex & 76,077 & 62,421 & 82.05\% & 96.97\% \\
+Voronoi & 73,903 & 71,811 & 97.17\% & 99.65\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Stage08 QSM exports}
+
+Stage08 exports QSM-ready node, edge, and OD tables. In this Shenzhen draft, road commuters are defined as total commuters by configuration, so the QSM OD object does not rely on a mode-specific decomposition.
+
+\begin{table}[h!]
+\centering
+\caption{Stage08 QSM export summary, Shenzhen run}
+\label{tab:sz_stage08_summary}
+\begin{tabular}{lrrrr}
+\toprule
+Grid type & QSM nodes & QSM edges & QSM OD pairs & Missing-lane edges \\
+\midrule
+Square & 305 & 704 & 37,245 & 0 \\
+Hex & 413 & 1,106 & 62,421 & 0 \\
+Voronoi & 304 & 1,049 & 71,811 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Implementation Notes for the Shenzhen Draft}
+
+This draft is a Shenzhen counterpart to the Beijing manuscript structure in \texttt{TidalLanes\_0424.tex}, starting from the data-processing sections. The quantitative statements and figure paths are taken from \texttt{shenzhen\_test\_line\_v1\_run1} outputs.
+
+[TODO: verify whether the Shenzhen asymmetry zero-count result is driven by filter design, directional pairing sparsity, or a preprocessing mismatch in stage03b.]
+
+[TODO: lock the Shenzhen-specific figure list and update each section with figure references that match the final appendix layout.]
+
+\end{document}

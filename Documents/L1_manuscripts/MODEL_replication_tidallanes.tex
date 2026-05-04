@@ -1,0 +1,498 @@
+%% MODEL_replication_tidallanes.tex
+%% Replication package introduction + Beijing tidal-lane counterfactual (Spec C)
+%% 2026-04-29
+%%
+%% Compile: pdflatex MODEL_replication_tidallanes.tex  (twice for refs)
+%% Requires: graphicx, booktabs, amsmath, hyperref, geometry
+
+\documentclass[12pt, a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{setspace}
+\usepackage{parskip}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
+
+\hypersetup{colorlinks=true, linkcolor=blue!60!black, citecolor=blue!60!black, urlcolor=teal}
+\definecolor{codebg}{gray}{0.95}
+
+\lstdefinestyle{pycode}{
+  language=Python,
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\bfseries\color{blue!70!black},
+  commentstyle=\itshape\color{gray},
+  stringstyle=\color{green!50!black},
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  framerule=0.4pt,
+  xleftmargin=1em,
+  xrightmargin=1em,
+}
+
+\title{\textbf{Replication Package Notes \& Application}}
+
+\author{Yige Duan \and Xiaoruo Feng \and Yizhen Gu}
+\date{\today}
+
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% ============================================================
+\section{Replication Package: Framework and Architecture}
+\label{sec:replication}
+% ============================================================
+
+\subsection{Conceptual Framework}
+
+This note adapts the exact-hat algebra of Ahlfeldt \& Albers (2022,
+henceforth AA) to a Beijing counterfactual with direction-specific
+commuting costs.\footnote{%
+  Ahlfeldt, G.M.\ \& Albers, N.\ (2022).
+  \emph{Commuting, wages, and urban form.}
+  Reproduced and extended for Beijing AM-peak data.}
+
+The city is represented as $N$ grid cells.  Each cell can host residents
+$l_{R,i}$ and workers $l_{F,i}$, and bilateral commuting between residence
+$i$ and workplace $j$ depends on an iceberg commuting cost
+$\bar{t}_{ij}$.  The Beijing application keeps the AA spatial-equilibrium
+objects but lets the cost matrix be directed: $\bar{t}_{ij}$ and
+$\bar{t}_{ji}$ may differ because morning road congestion is asymmetric.
+
+\paragraph{Welfare closure.}
+The model records aggregate welfare through the scalar $\chi$, a
+cost-index closure for the commuting equilibrium.  A stripped-down version
+of the object is:
+\begin{equation}
+  \chi^{-1} \;=\; \sum_{i,j}
+    \Bigl(\frac{\bar{u}_i\,\bar{v}_j}{\bar{t}_{ij}}\Bigr)^{\!\theta}
+  \label{eq:chi}
+\end{equation}
+where $\bar{u}_i$ is residential amenity, $\bar{v}_j$ is workplace
+productivity, and $\theta$ is the Fr\'echet dispersion parameter.  In the
+implemented system, this scalar is solved jointly with residential and
+workplace location shares.  Lower $\chi$ corresponds to higher expected
+utility.
+
+\paragraph{Exact-hat algebra.}
+The counterfactual does not require levels of the unobserved fundamentals.
+It solves for ratios of counterfactual to baseline values.  For any object
+$z$, $\hat{z}=z^{\text{new}}/z^{\text{baseline}}$.  The welfare ratio is:
+\begin{equation}
+  \hat{\chi} = \frac{\chi^{\text{new}}}{\chi^{\text{baseline}}}
+  \quad \Rightarrow \quad
+  \hat{\chi} < 1 \;\text{(welfare \textbf{gain})}, \quad
+  \hat{\chi} > 1 \;\text{(welfare \textbf{worsens})}.
+  \label{eq:chihat}
+\end{equation}
+
+\subsection{Model Parameters}
+
+\begin{table}[H]
+\centering
+\caption{Structural parameters}
+\label{tab:params}
+\begin{tabular}{lll}
+\toprule
+Parameter & Symbol & Value \\
+\midrule
+Fr\'echet dispersion         & $\theta$    & 6.83 \\
+BPR congestion elasticity  & $\delta_1$  & 0.488 \\
+Commuting--productivity coupling & $\lambda = \delta_1/\theta$ & 0.0714 \\
+Residential agglomeration  & $\alpha$    & $-0.12$ \\
+Workplace agglomeration    & $\beta$     & $-0.10$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The combined exponent used in hat-algebra inversion is:
+\begin{equation}
+  \frac{1 + \theta\lambda}{\theta} \;=\; \frac{1}{\theta} + \lambda \;\approx\; 0.218.
+  \label{eq:exponent}
+\end{equation}
+
+\subsection{Input and Output Objects}
+
+The AA solver requires three sparse input tables, each indexed by
+consecutive 1-based node IDs:
+
+\begin{table}[H]
+\centering
+\caption{Input tables for the AA commuting solver}
+\label{tab:inputs}
+\begin{tabular}{lll}
+\toprule
+Table & Key columns & Economic object \\
+\midrule
+Sparse adjacency
+  & \texttt{i, j, Xi\_ij}
+  & Baseline edge traffic input $\Xi_{ij}$ \\
+Node masses
+  & \texttt{node, l\_R, l\_F}
+  & Baseline residents $l_{R,i}$ and workers $l_{F,j}$ per node \\
+Commute OD
+  & \texttt{i, j, L\_ij}
+  & Observed road-commuting OD flows $L_{ij}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The inherited AA file names are retained only as an input contract.  In this
+Beijing application, the sparse-adjacency third column is not an iceberg
+cost.  It is the baseline traffic-state input $\Xi_{ij}$, constructed from
+the same raw-road path's observed travel time, free-flow travel time, and
+lane proxy:
+\begin{equation}
+  \Xi_{ij} \;=\; \text{lanes}_{ij}
+    \cdot \left(\frac{\max(\tau_{ij}^{\text{obs}},\,\tau_{ij}^{\text{ff}})}
+                     {\tau_{ij}^{\text{ff}}}\right)^{1/\delta_1}.
+  \label{eq:bpr_inversion}
+\end{equation}
+The output objects are the baseline equilibrium $(\chi,l_R,l_F)$ and, after
+a policy shock, the counterfactual hats
+$(\hat{\chi},\hat{l}_R,\hat{l}_F)$.  The OD table $L_{ij}$ enters as a
+baseline commuting-flow object; the counterfactual solution reallocates
+residents and workers across nodes rather than solving a separate
+road-network route assignment.
+
+\subsection{Solver Architecture}
+
+\paragraph{Baseline equilibrium.}
+Given $(\Xi,L,l_R,l_F)$ and the structural parameters, the baseline problem
+solves for $(\chi,l_R,l_F)$ through a nested fixed point.  The outer loop
+searches over $\chi$.  Conditional on that value, the inner loop iterates on
+transformed variables $(x_1,x_2)$ until the implied residential and workplace
+shares satisfy the equilibrium restrictions.  The transformation matrix is:
+\begin{equation}
+  \mathbf{X} =
+  \begin{pmatrix}
+    1 - \beta\theta & \dfrac{\theta\lambda(1-\alpha\theta)}{1+\theta\lambda} \\[8pt]
+    \dfrac{\theta\lambda(1-\beta\theta)}{1+\theta\lambda} & 1 - \alpha\theta
+  \end{pmatrix}
+\end{equation}
+
+\paragraph{Counterfactual equilibrium.}
+A policy is represented as a directed cost shock
+$\hat{\bar{t}}_{ij}$.  The solver applies the same nested structure in
+hat form:
+\begin{itemize}
+  \item Given a candidate $\hat{\chi}$, iterate
+    $(\hat{x}_1,\hat{x}_2)$ to recover $(\hat{l}_R,\hat{l}_F)$.
+  \item Update $\hat{\chi}$ so that the equilibrium restrictions hold under
+    the shocked cost matrix.
+  \item Repeat until
+    $|\log\hat{\chi}^{\text{new}}-\log\hat{\chi}|<\text{tol}$.
+\end{itemize}
+
+
+% ============================================================
+\section{Application: Beijing Data to AA Inputs}
+\label{sec:application}
+% ============================================================
+
+\subsection{Data Source}
+
+The Beijing input bundle separates spatial units from road-path costs.
+The retained centerline-grid pipeline supplies square grid IDs, node-level
+residents and jobs, and the reachable AM road-commuting OD sample.  The
+raw-edge-projection pipeline supplies directed AM path costs, free-flow
+path costs, lane proxies, and BPR traffic-state inputs.  The active bundle
+contains $2{,}723$ nodes, $3{,}666$ finite directed edges, and $377{,}708$
+origin--destination rows.
+
+\subsection{Edge Attributes Used}
+
+\begin{table}[H]
+\centering
+\caption{Edge-level columns from the raw edge-projection cost file}
+\label{tab:edge_cols}
+\small
+\begin{tabular}{p{4.5cm}p{2.3cm}p{6.0cm}}
+\toprule
+Column & Units & Description \\
+\midrule
+\texttt{tau\_obs\_min}      & minutes & Raw edge-projection AM path time \\
+\texttt{tau\_ff\_min}       & minutes & Same path recomputed with 22:00--05:00 speeds \\
+\texttt{lane\_resolved\_for\_bpr} & lanes & Path lane estimate, with numeric fallback \\
+\texttt{xi\_bpr\_edgeproj} & traffic index & BPR-inverted baseline traffic input \\
+\texttt{route\_length\_m}& metres  & Pair-specific raw-road path length \\
+\texttt{home\_grid}, \texttt{work\_grid} & -- & Origin and destination grid IDs \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Node Mapping}
+
+Grid IDs are remapped to the consecutive 1-based node indices expected by
+the AA solver:
+\begin{equation}
+  \texttt{node\_i} \;\longrightarrow\; \texttt{node\_i\_aa\_1based}
+  \quad (\in \{1, \ldots, N\}), \qquad N = 2{,}723 \text{ nodes.}
+\end{equation}
+
+The node file is not restricted to the largest connected component of the
+raw edge-projection graph.  A grid enters the AA node file if it has positive
+residents or jobs, appears in the positive reachable-AM OD sample, or appears
+as an endpoint of a finite raw edge-projection link.  The retained edge file
+then contains only finite raw edge-projection AM links.  In the current
+square input, this yields $2{,}723$ nodes and $3{,}666$ directed edges.
+
+\subsection{Observed Flow Reconstruction (BPR Inversion)}
+
+For each directed AM edge $(i,j)$, the traffic-state input is inferred from
+the observed and free-flow path times:
+\begin{align}
+  \tau_{ij}^{\text{obs}} &= \tau_{ij}^{\text{ff}}
+    \cdot \left(\frac{\xi_{ij}}{\text{lanes}_{ij}}\right)^{\delta_1}
+  \;\Longrightarrow\;
+  \xi_{ij} = \text{lanes}_{ij}
+    \cdot \left(\frac{\max(\tau_{ij}^{\text{obs}},\,\tau_{ij}^{\text{ff}})}
+                     {\tau_{ij}^{\text{ff}}}\right)^{1/\delta_1}
+  \label{eq:xi}
+\end{align}
+This $\xi_{ij}$ enters the solver as the baseline traffic-state matrix.  The
+observed time, free-flow time, and lane proxy are all measured on the same
+pair-specific raw-road path.  The lane term prioritises the path-based
+length-weighted lane estimate, then the path-based bottleneck estimate, and
+finally a numeric fallback of two lanes.
+
+The exported object is:
+\begin{equation}
+  \Xi_{ij}^{\text{BJ}} =
+  \text{lanes}_{ij}^{\text{resolved}}
+  \cdot
+  \left(\frac{\max(\tau_{ij}^{\text{obs}},\,\tau_{ij}^{\text{ff}})}
+             {\tau_{ij}^{\text{ff}}}\right)^{1/\delta_1},
+  \label{eq:xi_bj_export}
+\end{equation}
+for each directed AM edge retained in the square-grid network.  This value is
+written as the third column of the sparse adjacency input.
+
+\subsection{Current AA Input Bundle}
+
+The current Spec C run deploys the v2 Beijing input bundle.  Its edge-cost
+and traffic-state inputs are based on raw edge-projection path travel times
+and the BPR inversion in \eqref{eq:xi}.  The bundle preserves the AA file
+contract but changes the economic content from Seattle inputs to Beijing
+grid nodes, Beijing OD flows, and Beijing directed road-path costs.
+
+
+% ============================================================
+\section{Counterfactual: Tidal Lane Policy}
+\label{sec:counterfactual}
+% ============================================================
+
+\subsection{Counterfactual Definition}
+
+Here we implement a one-lane directional-capacity reallocation.  For each treated
+bidirectional road pair, the AM direction with the longer observed travel
+time receives one lane; the opposite direction loses one lane.  The slow
+direction is defined from observed directed travel times.
+
+The counterfactual asks how aggregate welfare and the spatial allocation of
+residents and workers change when the 100 most asymmetric eligible road
+pairs receive this tidal-lane-style reallocation.
+
+\subsection{Implementation}
+
+Eligible pairs must appear in the AM raw-edge-projection data, have more
+than 200 metres of path length in both directions, and retain at least one
+lane in the fast direction after reallocation.  They are ranked by:
+\begin{equation}
+  r_{ij} = \frac{\max(\tau_{ij}^{\text{obs}},\, \tau_{ji}^{\text{obs}})}
+                {\min(\tau_{ij}^{\text{obs}},\, \tau_{ji}^{\text{obs}})}
+  \label{eq:asymratio}
+\end{equation}
+The retained sample contains 100 treated pairs.  Their asymmetry ratios run
+from 3.24 to 25.17.  Figure~\ref{fig:treated_grid_links} maps these treated
+grid-pair links in the square-grid system.
+
+Let $s$ denote the slow direction and $f$ the fast direction for a given pair.
+The lane transfer is evaluated with the same raw-path observed time,
+free-flow time, and lane proxy used in the v2 Beijing input bundle:
+\begin{align}
+  \tau_s^{\text{new}}
+    &= \max\!\left[
+        \tau_s^{\text{ff}} \cdot
+        \left(\frac{\xi_s}{\text{lanes}_s + 1}\right)^{\!\delta_1},\;
+        \tau_s^{\text{ff}}
+      \right]
+  \label{eq:tau_slow_new} \\[6pt]
+  \tau_f^{\text{new}}
+    &= \max\!\left[
+        \tau_f^{\text{ff}} \cdot
+        \left(\frac{\xi_f}{\text{lanes}_f - 1}\right)^{\!\delta_1},\;
+        \tau_f^{\text{ff}}
+      \right]
+  \label{eq:tau_fast_new}
+\end{align}
+The free-flow floor prevents mechanically predicted times below the same
+path's free-flow time.  The resulting directed iceberg-cost shocks are:
+\begin{align}
+  \hat{\bar{t}}_{s}
+    &= \frac{\tau_s^{\text{new}}}{\tau_s^{\text{obs}}}, \\[4pt]
+  \hat{\bar{t}}_{f}
+    &= \frac{\tau_f^{\text{new}}}{\tau_f^{\text{obs}}}.
+  \label{eq:tbarhat}
+\end{align}
+
+The counterfactual changes only the directed cost matrix for the 200 treated
+directions.  It does not change the grid system, the OD matrix, free-flow
+path times, total city population, or non-treated links.  The BPR step holds
+baseline traffic inputs $\xi_s$ and $\xi_f$ fixed when computing the local
+travel-time shock; the AA solver then re-solves the spatial commuting
+equilibrium under the shocked cost matrix.  It does not solve a separate
+Wardrop route-assignment problem.
+
+\subsection{Results}
+
+The local cost shock has the intended sign.  Capacity gains reduce travel
+times in the slow direction by 10.6 percent on average.  Capacity losses
+raise travel times in the fast direction by 20.7 percent on average.
+
+\begin{table}[H]
+\centering
+\caption{Summary of iceberg cost shocks (100 treated pairs)}
+\label{tab:tbar}
+\begin{tabular}{lccc}
+\toprule
+Direction & Range of $\hat{\bar{t}}$ & Avg.\ $\tau$ change & Interpretation \\
+\midrule
+Slow (gains capacity) & $[0.876,\; 1.006]$ & $-10.6\%$ & Cost mostly falls \\
+Fast (loses capacity) & $[1.201,\; 1.402]$ & $+20.7\%$ & Cost rises \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Figure~\ref{fig:tau_obs} plots the observed travel-time asymmetry among the
+100 treated pairs.
+
+\begin{table}[H]
+\centering
+\caption{Counterfactual welfare outcome ($\Delta = 1$ lane, top-100)}
+\label{tab:welfare}
+\begin{tabular}{ll}
+\toprule
+Metric & Value \\
+\midrule
+$\hat{\chi}$ & $0.9998669$ \\
+$(\hat{\chi} - 1) \times 10^6$ & $-133.1$ \\
+Welfare direction & \textbf{GAIN} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The welfare index falls slightly, so the counterfactual is welfare-improving
+in the model's metric.  The magnitude is modest: $\hat{\chi}=0.9998669$,
+equivalent to a gain of 133.1 parts per million relative to the baseline
+cost index.  The sign comes from the asymmetry in baseline congestion: the
+slow direction receives extra capacity where observed travel times are
+substantially higher.
+
+The location responses are redistributions rather than changes in total city
+population.  The model centre is defined internally as the centroid of the
+union of all active square-grid polygons, rather than an externally assigned
+CBD coordinate.  Relative to this centre, the average resident location moves
+only 0.9 metres inward, and the average workplace location moves 0.4 metres
+outward.  The distance-gradient pattern is therefore modest.  Resident shares
+rise slightly in the inner tercile and fall in the outer tercile; workplace
+shares rise most in the middle tercile.  Figures~\ref{fig:resident_distance_scatter}
+and~\ref{fig:worker_distance_scatter} report the underlying node-level people
+changes against distance to the model centre.
+
+
+% ============================================================
+\section*{Appendix: Figures}
+% ============================================================
+\addcontentsline{toc}{section}{Appendix: Figures}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../L3_figs/fig3_tau_obs.pdf}
+  \caption{Observed AM-peak travel times for the 100 treated road pairs.
+    Each point is a bidirectional pair; the slow direction (y-axis) exceeds
+    the fast direction (x-axis). Colour encodes the asymmetry ratio
+    $r_{ij}=\tau^{\max}/\tau^{\min}$, ranging from 3.24 to 25.17
+    in the retained sample.}
+  \label{fig:tau_obs}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.88\textwidth]{../L3_figs/fig4_treated_grid_links.pdf}
+  \caption{Treated grid-pair links in the square-grid system.
+    Each segment connects one treated bidirectional pair; the segment is drawn
+    from the fast AM direction toward the slow AM direction. Colour encodes the
+    observed AM asymmetry ratio used for treatment ranking.}
+  \label{fig:treated_grid_links}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.86\textwidth]{../L3_figs/fig5_resident_change_by_distance.pdf}
+  \caption{Node-level resident change by distance to the model centre.
+    The vertical axis is the change in resident counts implied by
+    $l_{R,i}^{\text{base}}(\hat{l}_{R,i}-1)$; the horizontal axis is the
+    distance from each grid cell to the geometric centre of the active
+    square-grid system.  The black line is a LOWESS nonparametric fit.}
+  \label{fig:resident_distance_scatter}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.86\textwidth]{../L3_figs/fig6_worker_change_by_distance.pdf}
+  \caption{Node-level worker change by distance to the model centre.
+    The vertical axis is the change in worker counts implied by
+    $l_{F,i}^{\text{base}}(\hat{l}_{F,i}-1)$; the horizontal axis is the
+    distance from each grid cell to the geometric centre of the active
+    square-grid system.  The black line is a LOWESS nonparametric fit.}
+  \label{fig:worker_distance_scatter}
+\end{figure}
+
+
+% ============================================================
+\section{Open Questions and Refinement Directions}
+\label{sec:open_questions}
+% ============================================================
+
+The current implementation should be read as a transparent AA-style
+exact-hat counterfactual, not as a fully estimated Beijing structural model.
+It takes the Beijing grid system, OD flows, directed raw-path costs, lane
+proxies, and BPR-inverted traffic inputs as given.  The solver then evaluates
+how a directed cost shock changes aggregate welfare and the spatial allocation
+of residents and workers.
+
+The most useful extension is a richer estimation layer built from Beijing
+origin--destination flows and repeated travel-time observations.  With
+observed commute shares
+\begin{equation}
+  \pi_{ij} = \frac{F_{ij}}{\sum_k F_{ik}},
+\end{equation}
+variation in $\tau_{ij}$ can identify the Fr\'echet dispersion parameter
+$\theta$, subject to the usual concern that travel times and commuting demand
+are jointly determined.  Link-level speed-flow variation can be used to
+discipline the BPR congestion elasticity $\delta_1$.
+
+With $\theta$, $\delta_1$, and richer data on wages or rents, the next version
+could recover structural fundamentals $(\bar{u}_i,\bar{v}_j)$ and move from
+hat-algebra counterfactuals toward level counterfactuals.  A more ambitious
+version would replace the fixed-flow BPR shock with a Wardrop-consistent
+traffic assignment, jointly determining link traffic and travel times inside
+the spatial-equilibrium iteration.  That step is computationally heavier and
+should follow, rather than precede, validation of the raw-edge-projection cost
+inputs.
+
+\end{document}

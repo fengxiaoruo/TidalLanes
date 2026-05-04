@@ -8,6 +8,12 @@ The current validated run is:
 
 This version was rerun from `raw_data` under the new stage-based framework and is the current baseline output to keep.
 
+The current retained raw-centerline-match result is:
+
+- [`outputs/manual_centerline_rules_v11`](/Users/fxr/Desktop/TidalLanes/data_work/outputs/manual_centerline_rules_v11)
+
+This is the final retained output for the manual centerline / raw-centerline matching line, separate from the full end-to-end `raw_rebuild_validation` baseline.
+
 ## Current Structure
 
 - [`raw_data/`](/Users/fxr/Desktop/TidalLanes/data_work/raw_data)
@@ -105,3 +111,11 @@ Keep only validated run directories under [`outputs/`](/Users/fxr/Desktop/TidalL
 At present, the retained validated run is:
 
 - [`outputs/raw_rebuild_validation`](/Users/fxr/Desktop/TidalLanes/data_work/outputs/raw_rebuild_validation)
+
+For the raw-centerline-match workstream, the retained output is:
+
+- [`outputs/manual_centerline_rules_v11`](/Users/fxr/Desktop/TidalLanes/data_work/outputs/manual_centerline_rules_v11)
+
+For the version history and rationale behind that retained matching output, see:
+
+- [`outputs/comparison/raw_centerline_match_version_summary.md`](/Users/fxr/Desktop/TidalLanes/data_work/outputs/comparison/raw_centerline_match_version_summary.md)

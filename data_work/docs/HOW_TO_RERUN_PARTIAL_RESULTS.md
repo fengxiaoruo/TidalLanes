@@ -369,7 +369,13 @@ Edit:
 Run:
 
 ```bash
-python data_work/src/stages/run_full_pipeline.py --version-id raw_rebuild_validation --output-dir data_work/outputs --from-stage stage02 --to-stage stage10
+python data_work/src/stages/run_full_pipeline.py --config data_work/config/manual_centerline_plan1.json --version-id manual_centerline_rules_v10_test1 --output-dir data_work/outputs --from-stage stage02 --to-stage stage10
+```
+
+If the change also affects how centerlines are built, rerun from `stage01` instead:
+
+```bash
+python data_work/src/stages/run_full_pipeline.py --config data_work/config/manual_centerline_plan1.json --version-id manual_centerline_rules_v10_test1 --output-dir data_work/outputs --from-stage stage01 --to-stage stage10
 ```
 
 ### I changed only the match figures
@@ -457,4 +463,3 @@ So the current best way to work is:
 - modify the stage script directly
 - rerun from that stage downstream
 - keep a new `version_id` for each experiment
-

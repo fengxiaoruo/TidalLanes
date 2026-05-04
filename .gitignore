@@ -1,17 +1,22 @@
 .DS_Store
 __pycache__/
 .ipynb_checkpoints/
+.mpl_cache/
 *.py[cod]
+*.pid
 *.log
 *.aux
 *.out
+*.out_*
 *.toc
 *.nav
 *.snm
 *.synctex.gz
 *.synctex(busy)
 *.fdb_latexmk
+*.fdb_latexmk_*
 *.fls
+*.fls_*
 *.xdv
 *.bbl
 *.blg
@@ -25,6 +30,9 @@ __pycache__/
 Outputs/
 data_work/raw_data/
 data_work/outputs/
+Literatures/
+# 本机百度 AK（从 ak_local.py.example 复制，勿提交）
+data_work/src/national_tidal_commuting/ak_local.py
 Documents/archive/
 Documents/generated/
 Documents/figs/

@@ -1,0 +1,12 @@
+{
+  "source_version": "manual_centerline_rules_v11",
+  "grid_type": "square",
+  "node_rows": 2729,
+  "edge_rows": 4087,
+  "od_rows": 377708,
+  "traffic_min": 0.02,
+  "traffic_mean": 0.6941762461412713,
+  "traffic_max": 35.14136882695087,
+  "filter_rule": "keep keep_for_model nodes that are active in at least one of: positive residents/jobs, positive reachable_AM commuters_road, or AM edge incidence.",
+  "note": "Coordinates in node_lr_lf_seattle.csv are placeholder zeros in this first-pass quick-run version."
+}

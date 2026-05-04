@@ -7,7 +7,7 @@ This document is the fastest way for a new Codex session on another machine to u
 - Project root: `/Users/fxr/Desktop/TidalLanes`
 - Main current working pipeline: `data_work/src/stages/`
 - Main current baseline output: `data_work/outputs/raw_rebuild_validation`
-- Best current matching-only experiment: `data_work/outputs/match_projection_complete_v7`
+- Current retained raw-centerline-match output: `data_work/outputs/manual_centerline_rules_v11`
 
 The project studies directional road congestion and tidal-lane policies, currently centered on Beijing. The pipeline constructs a centerline-based directed road network, attaches speeds, builds grid-level directed links and commuting OD objects, and exports model-ready inputs.
 
@@ -17,8 +17,10 @@ Use these as the current trusted baselines.
 
 - Matching / ETL baseline:
   - `data_work/outputs/raw_rebuild_validation`
-- Best current stage02-side matching alternative:
-  - `data_work/outputs/match_projection_complete_v7`
+- Current retained raw-centerline-match result:
+  - `data_work/outputs/manual_centerline_rules_v11`
+- Matching-version comparison note:
+  - `data_work/outputs/comparison/raw_centerline_match_version_summary.md`
 - Paper-style descriptive outputs:
   - `Documents/todo_outputs`
 - Economics draft generated separately from the old TeX:
@@ -66,25 +68,31 @@ See also:
 
 ## Matching work: current state
 
-The stage02 matching problem has been worked on extensively.
+The raw-centerline-match problem has now been narrowed to one retained line.
 
 Current conclusion:
 
-- The most useful version is `match_projection_complete_v7`.
-- The big improvement came from bypassing some outer-ring raw segments that already had a native centerline-like structure.
-- Several more aggressive split experiments were tested and discarded because they over-split or did not materially improve matching.
+- The retained final version is `manual_centerline_rules_v11`.
+- The correct strategy is the `v5a / plan1` route:
+  - manual raw is excluded from skeleton input
+  - manual centerlines are built separately
+  - manual raw edges use exact raw-to-centerline xwalks
+- The `fullskeleton_v1` route was tested and discarded.
+- The later gains from `v6` to `v11` came from repeatedly expanding `manual_centerline_groups.json`.
+- The latest `v11` run reaches `split_match_rate = 0.994243` and `raw_edge_match_rate = 0.994242`.
+- From the length perspective, unmatched raw edges now account for only about `1.27%` of total raw-network length.
 
 Current unresolved issue:
 
-- In the urban core, some raw segments still should be split by major network nodes but are not.
-- A manual override workflow exists for these cases:
-  - `data_work/docs/MANUAL_MATCH_OVERRIDE_WORKFLOW.md`
-- The user may later provide manual raw-to-centerline pairings.
+- Some long unmatched corridors still remain, but they are now a narrow tail concentrated in a small set of named corridors such as `G6辅路`, `首都机场辅路`, `京通快速路`, `南五环路`, and `S217`.
+- The immediate next step is no longer stage02 cleanup for its own sake; it is to run `stage03` and `stage03b` on top of `manual_centerline_rules_v11` on a local large-memory machine.
 
 Important files from that thread:
 
-- `data_work/outputs/match_projection_complete_v7/gis_exports/manual_override_review_v7/raw_split_unmatched_v7.shp`
-- `data_work/outputs/match_projection_complete_v7/metrics/manual_override_template.csv`
+- `data_work/outputs/manual_centerline_rules_v11/metrics/stage02_match_summary.csv`
+- `data_work/outputs/manual_centerline_rules_v11/gis_review_final/unmatched_raw_edges.shp`
+- `data_work/outputs/manual_centerline_rules_v11/gis_review/manual_raw_selected.shp`
+- `data_work/outputs/comparison/raw_centerline_match_version_summary.md`
 
 ## Paper assets already generated
 
@@ -172,8 +180,8 @@ Interpretation:
 
 ## Most important unresolved problems
 
-1. Matching / split logic in the urban core still misses some node-based splits.
-2. Manual override integration for unresolved unmatched segments is prepared but not yet used.
+1. `manual_centerline_rules_v11` still leaves a long-tail of unmatched corridors, but this tail is now small in total length share and concentrated in a short named-road list.
+2. `stage03` and `stage03b` for the final matching version still need a local rerun.
 3. Structural model still needs:
    - better route aggregator
    - smoother route shares
@@ -185,11 +193,11 @@ Interpretation:
 
 If the next Codex session needs to work immediately, these are the first files to read:
 
-1. `data_work/docs/CODEX_HANDOFF_NOTE.md`
-2. `data_work/docs/REPRODUCIBILITY_SNAPSHOT.md`
-3. `data_work/docs/QUICK_RERUN_CHEATSHEET.md`
-4. `data_work/docs/STRUCTURAL_MODEL_WORKFLOW.md`
-5. `data_work/src/stages/README.md`
+1. `nextstep.md`
+2. `data_work/outputs/comparison/raw_centerline_match_version_summary.md`
+3. `data_work/docs/CODEX_HANDOFF_NOTE.md`
+4. `data_work/docs/REPRODUCIBILITY_SNAPSHOT.md`
+5. `data_work/docs/STRUCTURAL_MODEL_WORKFLOW.md`
 
 ## Most useful commands
 
@@ -263,6 +271,6 @@ When starting on a new machine, tell Codex:
 
 - read `data_work/docs/CODEX_HANDOFF_NOTE.md` first
 - treat `raw_rebuild_validation` as the main baseline
-- treat `match_projection_complete_v7` as the best current matching experiment
+- treat `manual_centerline_rules_v11` as the retained raw-centerline-match result
 - do not overwrite the stage pipeline casually
 - structural-model outputs are prototype-level, not final paper estimates

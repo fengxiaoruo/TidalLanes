@@ -1,0 +1,30 @@
+{
+  "stage01": {
+    "raw_path": "data_work/raw_data/gis/roads_baidu/shenzhen_roads.shp",
+    "manual_groups_path": "data_work/config/manual_centerline_groups.json",
+    "center_lonlat": [114.0579, 22.5431],
+    "manual_exclude_from_skeleton_input": true,
+    "manual_replace_default_centerline": false,
+    "manual_replace_buffer_m": 80.0,
+    "manual_replace_overlap_share": 0.6
+  },
+  "stage02": {
+    "baseline_exclude_manual_centerlines": false
+  },
+  "stage03": {
+    "raw_speed_path": "data_work/raw_data/speed_shenzhen_all_wgs84.csv"
+  },
+  "stage05": {
+    "boundary_path": "data_work/raw_data/gis/map/深圳市边界.shp",
+    "square_cell_size_m": 2000,
+    "hex_resolution": 8,
+    "voronoi_min_seed_dist_m": 1000
+  },
+  "stage07": {
+    "commute_path": "data_work/raw_data/commute_shenzhen_202411_for_stage07.csv",
+    "disable_type_outputs": true
+  },
+  "stage08": {
+    "use_pop_as_commuters_road": true
+  }
+}

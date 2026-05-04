@@ -1,0 +1,1140 @@
+[
+  {
+    "group_id": "manual_group_001",
+    "group_name": "京加路",
+    "roadnames": [
+      "京加路"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_002",
+    "group_name": "X009 + RS_NB1531406521_NB1589887787_1",
+    "roadnames": [
+      "X009"
+    ],
+    "roadseg_ids": [
+      "RS_NB1531406521_NB1589887787_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_003",
+    "group_name": "RS_NB1520388874_NB1520388709_1 + RS_NB1520388709_NB1520388874_1 + RS_NB1520273429_NB1520388709_1 + RS_NB1520388709_NB1520273633_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520388874_NB1520388709_1",
+      "RS_NB1520388709_NB1520388874_1",
+      "RS_NB1520273429_NB1520388709_1",
+      "RS_NB1520388709_NB1520273633_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_004",
+    "group_name": "京昆路 + RS_NB1530608794_NB1520298438_1",
+    "roadnames": [
+      "京昆路"
+    ],
+    "roadseg_ids": [
+      "RS_NB1530608794_NB1520298438_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_005",
+    "group_name": "G109",
+    "roadnames": [
+      "G109"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_006",
+    "group_name": "S219",
+    "roadnames": [
+      "S219"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_007",
+    "group_name": "RS_NB1520401664_NB1571467890_1 + RS_NB1571467890_NB1520401664_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520401664_NB1571467890_1",
+      "RS_NB1571467890_NB1520401664_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_008",
+    "group_name": "G110",
+    "roadnames": [
+      "G110"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_009",
+    "group_name": "S212",
+    "roadnames": [
+      "S212"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_010",
+    "group_name": "滦赤路",
+    "roadnames": [
+      "滦赤路"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_012",
+    "group_name": "久黄路",
+    "roadnames": [
+      "久黄路"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_013",
+    "group_name": "密兴旧路",
+    "roadnames": [
+      "密兴旧路"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_014",
+    "group_name": "平程路",
+    "roadnames": [
+      "平程路"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_015",
+    "group_name": "RS_NB1520366800_NB1530885160_1 + RS_NB1530885167_NB1520366800_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520366800_NB1530885160_1",
+      "RS_NB1530885167_NB1520366800_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_016",
+    "group_name": "RS_NB1520312804_NB1578543111_1 + RS_NB1578543119_NB1520312804_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520312804_NB1578543111_1",
+      "RS_NB1578543119_NB1520312804_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_017",
+    "group_name": "RS_NB1530095755_NB1628777123_1 + RS_NB1628777125_NB1530095750_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1530095755_NB1628777123_1",
+      "RS_NB1628777125_NB1530095750_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_018",
+    "group_name": "G108",
+    "roadnames": [
+      "G108"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_019",
+    "group_name": "RS_NB1520281342_NB1520281322_1 + RS_NB1520281322_NB1520281342_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520281342_NB1520281322_1",
+      "RS_NB1520281322_NB1520281342_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_020",
+    "group_name": "RS_NB1520281435_NB1520360440_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520281435_NB1520360440_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_021",
+    "group_name": "S320",
+    "roadnames": [
+      "S320"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_022",
+    "group_name": "RS_NB1520349099_NB1520310762_1 + RS_NB1520310762_NB1520349099_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520349099_NB1520310762_1",
+      "RS_NB1520310762_NB1520349099_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_023",
+    "group_name": "RS_NB1520305031_NB1526675471_1 + RS_NB1526675471_NB1520305031_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520305031_NB1526675471_1",
+      "RS_NB1526675471_NB1520305031_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_024",
+    "group_name": "RS_NB1520313529_NB1520313613_1 + RS_NB1520313613_NB1520313529_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520313529_NB1520313613_1",
+      "RS_NB1520313613_NB1520313529_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_025",
+    "group_name": "琉辛路",
+    "roadnames": [
+      "琉辛路"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_026",
+    "group_name": "RS_NB1531288824_NB1520310725_1 + RS_NB1520310725_NB1531288824_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1531288824_NB1520310725_1",
+      "RS_NB1520310725_NB1531288824_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_027",
+    "group_name": "昌赤路",
+    "roadnames": [
+      "昌赤路"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_028",
+    "group_name": "刘干路",
+    "roadnames": [
+      "刘干路"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_029",
+    "group_name": "X202",
+    "roadnames": [
+      "X202"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_030",
+    "group_name": "X002",
+    "roadnames": [
+      "X002"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_031",
+    "group_name": "X203",
+    "roadnames": [
+      "X203"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_032",
+    "group_name": "RS_NB1520344962_NB1526677123_1 + RS_NB1526677201_NB1520345470_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520344962_NB1526677123_1",
+      "RS_NB1526677201_NB1520345470_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_033",
+    "group_name": "RS_NB1520338377_NB1549743273_1 + RS_NB1549743273_NB1520338377_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520338377_NB1549743273_1",
+      "RS_NB1549743273_NB1520338377_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_034",
+    "group_name": "怀长路",
+    "roadnames": [
+      "怀长路"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_035",
+    "group_name": "RS_NB1520426669_NB1615386877_1 + RS_NB1615386878_NB1620547842_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520426669_NB1615386877_1",
+      "RS_NB1615386878_NB1620547842_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_036",
+    "group_name": "RS_NB1520449625_NB1526675916_1 + RS_NB1526675916_NB1520449625_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520449625_NB1526675916_1",
+      "RS_NB1526675916_NB1520449625_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_037",
+    "group_name": "RS_NB1549334300_NB1526675903_1 + RS_NB1526675902_NB1526675886_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1549334300_NB1526675903_1",
+      "RS_NB1526675902_NB1526675886_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_038",
+    "group_name": "RS_NB1556084453_NB1530972789_1 + RS_NB1530983163_NB1560612499_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1556084453_NB1530972789_1",
+      "RS_NB1530983163_NB1560612499_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_039",
+    "group_name": "Y222",
+    "roadnames": [
+      "Y222"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_040",
+    "group_name": "RS_NB1520309156_NB1520353766_1 + RS_NB1520353766_NB1520309156_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520309156_NB1520353766_1",
+      "RS_NB1520353766_NB1520309156_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_041",
+    "group_name": "RS_NB1520297087_NB1530898122_1 + RS_NB1530898122_NB1520297087_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520297087_NB1530898122_1",
+      "RS_NB1530898122_NB1520297087_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_042",
+    "group_name": "RS_NB1520445535_NB1520447621_1 + RS_NB1520446333_NB1520446163_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520445535_NB1520447621_1",
+      "RS_NB1520446333_NB1520446163_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_043",
+    "group_name": "RS_NB1520445541_NB1520446993_1 + RS_NB1520446993_NB1520445541_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520445541_NB1520446993_1",
+      "RS_NB1520446993_NB1520445541_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_044",
+    "group_name": "RS_NB1520357502_NB1560606049_1 + RS_NB1560606049_NB1520357502_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520357502_NB1560606049_1",
+      "RS_NB1560606049_NB1520357502_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_045",
+    "group_name": "RS_NB1530591126_NB1530915936_1 + RS_NB1530915936_NB1530591126_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1530591126_NB1530915936_1",
+      "RS_NB1530915936_NB1530591126_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_046",
+    "group_name": "RS_NB1520401664_NB1520329168_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520401664_NB1520329168_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_047",
+    "group_name": "RS_NB1530723457_NB1588296890_1 + RS_NB1588296890_NB1530723457_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1530723457_NB1588296890_1",
+      "RS_NB1588296890_NB1530723457_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_048",
+    "group_name": "RS_NB1520292125_NB1575265491_1 + RS_NB1520517073_NB1520292125_1 + RS_NB1520323486_NB1520513900_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520292125_NB1575265491_1",
+      "RS_NB1520517073_NB1520292125_1",
+      "RS_NB1520323486_NB1520513900_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_049",
+    "group_name": "RS_NB1554507159_NB1553474571_1 + RS_NB1553474571_NB1554507159_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1554507159_NB1553474571_1",
+      "RS_NB1553474571_NB1554507159_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_050",
+    "group_name": "RS_NB1520318074_NB1530620325_1 + RS_NB1577204457_NB1520322855_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520318074_NB1530620325_1",
+      "RS_NB1577204457_NB1520322855_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_051",
+    "group_name": "RS_NB1520410488_NB1520513767_1 + RS_NB1520515355_NB1520415670_1 + RS_NB1520518767_NB1556086066_1 + RS_NB1586974771_NB1520517137_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520410488_NB1520513767_1",
+      "RS_NB1520515355_NB1520415670_1",
+      "RS_NB1520518767_NB1556086066_1",
+      "RS_NB1586974771_NB1520517137_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_052",
+    "group_name": "RS_NB1520518012_NB1520516324_1 + RS_NB1520518128_NB1520516207_1 + RS_NB1520514800_NB1520518012_1 + RS_NB1520516208_NB1520518123_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520518012_NB1520516324_1",
+      "RS_NB1520518128_NB1520516207_1",
+      "RS_NB1520514800_NB1520518012_1",
+      "RS_NB1520516208_NB1520518123_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_053",
+    "group_name": "RS_NB1520424942_NB1613260887_1 + RS_NB1520426239_NB1520427474_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520424942_NB1613260887_1",
+      "RS_NB1520426239_NB1520427474_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_054",
+    "group_name": "RS_NB1520427169_NB1586763009_1 + RS_NB1520424670_NB1520425886_1 + RS_NB1553470659_NB1520424670_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520427169_NB1586763009_1",
+      "RS_NB1520424670_NB1520425886_1",
+      "RS_NB1553470659_NB1520424670_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_055",
+    "group_name": "RS_NB1520400572_NB1587616292_1 + RS_NB1578335405_NB1520400571_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520400572_NB1587616292_1",
+      "RS_NB1578335405_NB1520400571_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_056",
+    "group_name": "RS_NB1520401218_NB1520400238_1 + RS_NB1557733442_NB1520399925_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520401218_NB1520400238_1",
+      "RS_NB1557733442_NB1520399925_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_057",
+    "group_name": "RS_NB1557733442_NB1520399925_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1557733442_NB1520399925_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_058",
+    "group_name": "RS_NB1520289433_NB1520291307_1 + RS_NB1520291308_NB1520289435_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520289433_NB1520291307_1",
+      "RS_NB1520291308_NB1520289435_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_059",
+    "group_name": "RS_NB1531416438_NB1553469053_1 + RS_NB1578409824_NB1556084133_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1531416438_NB1553469053_1",
+      "RS_NB1578409824_NB1556084133_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_060",
+    "group_name": "RS_NB1520376313_NB1520378678_1 + RS_NB1520378693_NB1520378966_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520376313_NB1520378678_1",
+      "RS_NB1520378693_NB1520378966_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_061",
+    "group_name": "RS_NB1520377805_NB1557868301_1 + RS_NB1520375985_NB1556067203_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520377805_NB1557868301_1",
+      "RS_NB1520375985_NB1556067203_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_062",
+    "group_name": "RS_NB1520364835_NB1520378291_1 + RS_NB1520378291_NB1520364835_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520364835_NB1520378291_1",
+      "RS_NB1520378291_NB1520364835_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_063",
+    "group_name": "RS_NB1549770973_NB1555279031_1 + RS_NB1555279190_NB1549770979_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1549770973_NB1555279031_1",
+      "RS_NB1555279190_NB1549770979_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_064",
+    "group_name": "RS_NB1520283774_NB1520284358_1 + RS_NB1520284358_NB1520283774_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520283774_NB1520284358_1",
+      "RS_NB1520284358_NB1520283774_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_065",
+    "group_name": "RS_NB1520283896_NB1520295745_1 + RS_NB1520296380_NB1565738220_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520283896_NB1520295745_1",
+      "RS_NB1520296380_NB1565738220_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_066",
+    "group_name": "RS_NB1520326869_NB1520326811_1 + RS_NB1520327430_NB1530621828_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520326869_NB1520326811_1",
+      "RS_NB1520327430_NB1530621828_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_067",
+    "group_name": "京密路",
+    "roadnames": [
+      "京密路"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_068",
+    "group_name": "RS_NB1520304292_NB1520299815_1 + RS_NB1520304756_NB1529995981_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520304292_NB1520299815_1",
+      "RS_NB1520304756_NB1529995981_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_069",
+    "group_name": "RS_NB1627137568_NB1620111143_1 + RS_NB1606327095_NB1608428497_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1627137568_NB1620111143_1",
+      "RS_NB1606327095_NB1608428497_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_070",
+    "group_name": "RS_NB1520399368_NB1619442241_1 + RS_NB1619442241_NB1520399368_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520399368_NB1619442241_1",
+      "RS_NB1619442241_NB1520399368_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_071",
+    "group_name": "密兴路 + 密兴旧路",
+    "roadnames": [
+      "密兴路",
+      "密兴旧路"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_072",
+    "group_name": "RS_NB1520477237_NB1520337802_1 + RS_NB1520337802_NB1520477237_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520477237_NB1520337802_1",
+      "RS_NB1520337802_NB1520477237_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_073",
+    "group_name": "RS_NB1520336532_NB1520472010_1 + RS_NB1520476537_NB1520334053_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520336532_NB1520472010_1",
+      "RS_NB1520476537_NB1520334053_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_074",
+    "group_name": "RS_NB1587172585_NB1553753220_1 + RS_NB1575589571_NB1587172583_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1587172585_NB1553753220_1",
+      "RS_NB1575589571_NB1587172583_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_075",
+    "group_name": "RS_NB1520352648_NB1520358809_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520352648_NB1520358809_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_076",
+    "group_name": "RS_NB1520353329_NB1586485671_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520353329_NB1586485671_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_077",
+    "group_name": "RS_NB1577200827_NB1520358829_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1577200827_NB1520358829_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_078",
+    "group_name": "RS_NB1520351560_NB1520395000_1 + RS_NB1520395761_NB1520351913_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520351560_NB1520395000_1",
+      "RS_NB1520395761_NB1520351913_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_079",
+    "group_name": "RS_NB1520313274_NB1555284462_1 + RS_NB1555284468_NB1520313274_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520313274_NB1555284462_1",
+      "RS_NB1555284468_NB1520313274_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_080",
+    "group_name": "RS_NB1520273638_NB1520291436_1 + RS_NB1520291436_NB1520273638_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520273638_NB1520291436_1",
+      "RS_NB1520291436_NB1520273638_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_081",
+    "group_name": "RS_NB1526676351_NB1526678145_1 + RS_NB1526678148_NB1526676325_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1526676351_NB1526678145_1",
+      "RS_NB1526678148_NB1526676325_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_082",
+    "group_name": "RS_NB1530603653_NB1526678145_1 + RS_NB1526678145_NB1530603653_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1530603653_NB1526678145_1",
+      "RS_NB1526678145_NB1530603653_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_083",
+    "group_name": "RS_NB1608896786_NB1520371248_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1608896786_NB1520371248_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_084",
+    "group_name": "RS_NB1520394114_NB1556111790_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520394114_NB1556111790_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_085",
+    "group_name": "RS_NB1520389340_NB1619477016_1 + RS_NB1619477016_NB1520389340_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520389340_NB1619477016_1",
+      "RS_NB1619477016_NB1520389340_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_086",
+    "group_name": "RS_NB1520339113_NB1627567566_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520339113_NB1627567566_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_087",
+    "group_name": "RS_NB1520331156_NB1520305531_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520331156_NB1520305531_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_088",
+    "group_name": "RS_NB1520366008_NB1598650164_1 + RS_NB1598650164_NB1520366008_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520366008_NB1598650164_1",
+      "RS_NB1598650164_NB1520366008_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_089",
+    "group_name": "RS_NB1520390298_NB1520390441_1 + RS_NB1520390441_NB1520390298_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520390298_NB1520390441_1",
+      "RS_NB1520390441_NB1520390298_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_090",
+    "group_name": "RS_NB1520390164_NB1520390083_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520390164_NB1520390083_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_091",
+    "group_name": "RS_NB1520390298_NB1555264593_1 + RS_NB1555264593_NB1520390298_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520390298_NB1555264593_1",
+      "RS_NB1555264593_NB1520390298_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_092",
+    "group_name": "RS_NB1520294637_NB1557733438_1 + RS_NB1557733437_NB1520294637_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520294637_NB1557733438_1",
+      "RS_NB1557733437_NB1520294637_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_093",
+    "group_name": "RS_NB1520294332_NB1520294892_1 + RS_NB1520294878_NB1520295131_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520294332_NB1520294892_1",
+      "RS_NB1520294878_NB1520295131_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_094",
+    "group_name": "RS_NB1520341566_NB1579499756_1 + RS_NB1520341736_NB1530845172_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520341566_NB1579499756_1",
+      "RS_NB1520341736_NB1530845172_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_095",
+    "group_name": "RS_NB1520340288_NB1520340738_1 + RS_NB1520343327_NB1520341970_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520340288_NB1520340738_1",
+      "RS_NB1520343327_NB1520341970_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_096",
+    "group_name": "RS_NB1520342816_NB1520342799_1 + RS_NB1579498576_NB1556092762_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520342816_NB1520342799_1",
+      "RS_NB1579498576_NB1556092762_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_097",
+    "group_name": "RS_NB1529632222_NB1530377681_1 + RS_NB1530377681_NB1529632222_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1529632222_NB1530377681_1",
+      "RS_NB1530377681_NB1529632222_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_098",
+    "group_name": "RS_NB1530718376_NB1520293288_1 + RS_NB1617295687_NB1530767933_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1530718376_NB1520293288_1",
+      "RS_NB1617295687_NB1530767933_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_099",
+    "group_name": "RS_NB1587805309_NB1602338698_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1587805309_NB1602338698_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_100",
+    "group_name": "RS_NB1520513652_NB1520513733_1 + RS_NB1520515333_NB1520515270_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520513652_NB1520513733_1",
+      "RS_NB1520515333_NB1520515270_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_101",
+    "group_name": "RS_NB1554984103_NB1613628263_1 + RS_NB1607311671_NB1554984103_1 + RS_NB1613107509_NB1607311676_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1554984103_NB1613628263_1",
+      "RS_NB1607311671_NB1554984103_1",
+      "RS_NB1613107509_NB1607311676_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_102",
+    "group_name": "RS_NB1520312760_NB1530931567_1 + RS_NB1530931567_NB1520312760_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520312760_NB1530931567_1",
+      "RS_NB1530931567_NB1520312760_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_103",
+    "group_name": "RS_NB1520388484_NB1520388282_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520388484_NB1520388282_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_104",
+    "group_name": "RS_NB1520359944_NB1531365125_1 + RS_NB1531365125_NB1520359944_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520359944_NB1531365125_1",
+      "RS_NB1531365125_NB1520359944_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_105",
+    "group_name": "RS_NB1520305281_NB1520394805_1 + RS_NB1520394805_NB1520305281_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520305281_NB1520394805_1",
+      "RS_NB1520394805_NB1520305281_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_106",
+    "group_name": "RS_NB1520298137_NB1604047766_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520298137_NB1604047766_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_107",
+    "group_name": "RS_NB1529694215_NB1520294785_1 + RS_NB1520294785_NB1530916819_1 + RS_NB1530916819_NB1555266408_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1529694215_NB1520294785_1",
+      "RS_NB1520294785_NB1530916819_1",
+      "RS_NB1530916819_NB1555266408_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_108",
+    "group_name": "RS_NB1520394471_NB1520394649_1 + RS_NB1520394649_NB1520394471_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520394471_NB1520394649_1",
+      "RS_NB1520394649_NB1520394471_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_109",
+    "group_name": "RS_NB1598400079_NB1599912050_1 + RS_NB1599912046_NB1598400085_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1598400079_NB1599912050_1",
+      "RS_NB1599912046_NB1598400085_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_110",
+    "group_name": "RS_NB1520401769_NB1520401815_1 + RS_NB1606110802_NB1599632392_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520401769_NB1520401815_1",
+      "RS_NB1606110802_NB1599632392_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_111",
+    "group_name": "RS_NB1520352528_NB1574835990_1 + RS_NB1574835990_NB1520352528_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520352528_NB1574835990_1",
+      "RS_NB1574835990_NB1520352528_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_112",
+    "group_name": "RS_NB1520352621_NB1520352249_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520352621_NB1520352249_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_113",
+    "group_name": "RS_NB1520273214_NB1520273221_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520273214_NB1520273221_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_114",
+    "group_name": "RS_NB1581581970_NB1520324602_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1581581970_NB1520324602_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_115",
+    "group_name": "RS_NB1581581970_NB1581574971_1 + RS_NB1581122532_NB1581581970_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1581581970_NB1581574971_1",
+      "RS_NB1581122532_NB1581581970_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_116",
+    "group_name": "RS_NB1520395237_NB1628615033_1 + RS_NB1617695308_NB1520396558_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520395237_NB1628615033_1",
+      "RS_NB1617695308_NB1520396558_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_117",
+    "group_name": "RS_NB1520395031_NB1530656298_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520395031_NB1530656298_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_118",
+    "group_name": "RS_NB1577114931_NB1578994211_1 + RS_NB1578994211_NB1577114931_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1577114931_NB1578994211_1",
+      "RS_NB1578994211_NB1577114931_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_119",
+    "group_name": "RS_NB1520370453_NB1557733165_1 + RS_NB1557733165_NB1520370453_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520370453_NB1557733165_1",
+      "RS_NB1557733165_NB1520370453_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_120",
+    "group_name": "RS_NB1520368780_NB1520367854_1 + RS_NB1520367854_NB1520368780_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520368780_NB1520367854_1",
+      "RS_NB1520367854_NB1520368780_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_121",
+    "group_name": "RS_NB1520319615_NB1520323254_1 + RS_NB1520323399_NB1520319723_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520319615_NB1520323254_1",
+      "RS_NB1520323399_NB1520319723_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_122",
+    "group_name": "RS_NB1520488426_NB1573544501_1 + RS_NB1520484889_NB1520479548_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520488426_NB1573544501_1",
+      "RS_NB1520484889_NB1520479548_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_123",
+    "group_name": "RS_NB1530610356_NB1520406487_1 + RS_NB1520416783_NB1520417427_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1530610356_NB1520406487_1",
+      "RS_NB1520416783_NB1520417427_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_124",
+    "group_name": "RS_NB1520444025_NB1584332715_1 + RS_NB1520439731_NB1520435477_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520444025_NB1584332715_1",
+      "RS_NB1520439731_NB1520435477_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_125",
+    "group_name": "RS_NB1520439733_NB1598815700_1 + RS_NB1584332715_NB1579939537_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520439733_NB1598815700_1",
+      "RS_NB1584332715_NB1579939537_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_126",
+    "group_name": "RS_NB1520435448_NB1531300141_1 + RS_NB1520291163_NB1520439733_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520435448_NB1531300141_1",
+      "RS_NB1520291163_NB1520439733_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_127",
+    "group_name": "德贤路 + 德贤路辅路",
+    "roadnames": [
+      "德贤路",
+      "德贤路辅路"
+    ],
+    "roadseg_ids": []
+  },
+  {
+    "group_id": "manual_group_128",
+    "group_name": "RS_NB1520278353_NB1520278391_1 + RS_NB1520274235_NB1520278320_1 + RS_NB1520278391_NB1520278424_1 + RS_NB1520278424_NB1520278473_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520278353_NB1520278391_1",
+      "RS_NB1520274235_NB1520278320_1",
+      "RS_NB1520278391_NB1520278424_1",
+      "RS_NB1520278424_NB1520278473_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_129",
+    "group_name": "RS_NB1520278473_NB1520278675_1 + RS_NB1530630614_NB1520274235_1 + RS_NB1520278675_NB1520275986_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520278473_NB1520278675_1",
+      "RS_NB1530630614_NB1520274235_1",
+      "RS_NB1520278675_NB1520275986_1"
+    ]
+  },
+  {
+    "group_id": "manual_group_130",
+    "group_name": "RS_NB1520306108_NB1520309180_1 + RS_NB1578019081_NB1520306064_1",
+    "roadnames": [],
+    "roadseg_ids": [
+      "RS_NB1520306108_NB1520309180_1",
+      "RS_NB1578019081_NB1520306064_1"
+    ]
+  }
+]

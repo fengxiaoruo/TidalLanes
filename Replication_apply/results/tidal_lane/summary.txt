@@ -1,0 +1,71 @@
+TIDAL LANE COUNTERFACTUAL — SYMMETRIZE TOP-N ASYMMETRIC PAIRS (AM PEAK)
+Model parameters: theta=6.83, delta1=0.488, alpha=-0.12, beta=-0.1
+t_bar_hat inversion exponent: 0.2179
+Bidirectional pairs in data: 2258
+
+Policy logic:
+  For each selected pair (i,j): tau_sym = (tau_ij + tau_ji) / 2
+  xi_sym = lanes x (tau_sym/tau_ff)^(1/delta1)  [same lanes, target travel time]
+  t_bar_hat = (xi_sym/xi_asym)^(-(1+theta*lambda)/theta)
+  Congested direction: xi_sym < xi_asym => t_bar_hat > 1
+  Uncongested direction: xi_sym > xi_asym => t_bar_hat < 1
+
+============================================================
+Policy: Top-20  [converged (tol=1e-4, inner_update=0.3)]
+  Pairs symmetrized: 20  (skipped 2 not in AA node set for top-50)
+  Asymmetry ratio range: 4.08 - 14.76
+  Slow-dir tau range: 19.2 - 57.9 min
+  Fast-dir tau range: 3.0 - 8.4 min
+  tau_sym range: 11.9 - 32.4 min
+
+  chi_hat = 1.0000753531
+  (chi_hat - 1) x 10^6 = 75.3531  (welfare WORSENS)
+
+  l_r_hat (residents):
+    mean=1.00051834  std=3.027e-02
+    max gain: node 681 (sq_30_16) -> +93.1619%
+    max loss: node 583 (sq_26_50) -> -52.1227%
+
+  l_f_hat (workers):
+    mean=0.99996290  std=2.592e-02
+    max gain: node 583 (sq_26_50) -> +85.6717%
+    max loss: node 681 (sq_30_16) -> -41.8046%
+
+============================================================
+Policy: Top-50  [approx (tol=5e-4; run locally with tol=1e-4 for full accuracy)]
+  Pairs symmetrized: 50  (skipped 2 not in AA node set for top-50)
+  Asymmetry ratio range: 3.03 - 14.76
+  Slow-dir tau range: 13.7 - 57.9 min
+  Fast-dir tau range: 3.0 - 9.3 min
+  tau_sym range: 9.0 - 32.4 min
+
+  chi_hat = 1.0000464155
+  (chi_hat - 1) x 10^6 = 46.4155  (welfare WORSENS)
+
+  l_r_hat (residents):
+    mean=1.00151908  std=4.175e-02
+    max gain: node 139 (sq_14_10) -> +97.2634%
+    max loss: node 583 (sq_26_50) -> -52.1493%
+
+  l_f_hat (workers):
+    mean=0.99937437  std=3.135e-02
+    max gain: node 583 (sq_26_50) -> +85.7752%
+    max loss: node 139 (sq_14_10) -> -46.7330%
+
+============================================================
+COMPARISON
+  chi_hat top-20: 1.0000753531  (welfare change = +75.3531 x 10^-6)
+  chi_hat top-50: 1.0000464155  (welfare change = +46.4155 x 10^-6)
+  Incremental effect (pairs 21-50): -28.9376 x 10^-6
+  l_r_hat corr (top-20 vs top-50): 0.7262
+  l_f_hat corr (top-20 vs top-50): 0.8268
+
+INTERPRETATION:
+  Both policies worsen aggregate welfare (chi_hat > 1). The congestion-inversion
+  approach implies: in the symmetric world, the currently-congested direction
+  has fewer equilibrium vehicles (tau_sym < tau_obs), which in the commuting model
+  requires a higher iceberg cost (t_bar_hat > 1) to support that flow reduction.
+  Adding pairs 21-50 partially offsets this (-29 x 10^-6 incremental gain).
+  Population effects are large and heterogeneous (l_r std ~4%, l_f std ~3%).
+  An alternative specification (t_bar_hat from direct tau ratio) would give
+  the opposite sign: see AA_commuting_replication_adaptation_notes.

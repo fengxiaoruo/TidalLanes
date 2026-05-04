@@ -22,6 +22,13 @@ from shapely.geometry import Point, Polygon
 
 ROOT = Path(__file__).resolve().parents[2]
 BOUNDARY_PATH = ROOT / "raw_data" / "gis" / "map" / "北京市边界.shp"
+DEFAULT_STAGE05_RUNTIME = {
+    "boundary_path": str(BOUNDARY_PATH),
+    "square_cell_size_m": 3000.0,
+    "hex_resolution": 7,
+    "voronoi_min_seed_dist_m": 1500.0,
+}
+STAGE05_RUNTIME = DEFAULT_STAGE05_RUNTIME.copy()
 
 
 def parse_args():
@@ -32,14 +39,29 @@ def parse_args():
     return parser.parse_args()
 
 
-def save_config_snapshot(version_root: Path, config_path: str | None):
+def load_stage05_runtime(config_path: str | None) -> dict:
+    runtime = DEFAULT_STAGE05_RUNTIME.copy()
+    if not config_path:
+        return runtime
+    path = Path(config_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Stage05 config not found: {path}")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    stage_payload = payload.get("stage05", payload)
+    for key in runtime:
+        if key in stage_payload:
+            runtime[key] = stage_payload[key]
+    return runtime
+
+
+def save_config_snapshot(version_root: Path, config_path: str | None, boundary_path: Path):
     payload = {
         "stage": "stage05_build_grids",
         "config_path": config_path,
-        "boundary_path": str(BOUNDARY_PATH),
-        "square_cell_size_m": 3000,
-        "hex_resolution": 7,
-        "voronoi_min_seed_dist_m": 1500.0,
+        "boundary_path": str(boundary_path),
+        "square_cell_size_m": float(STAGE05_RUNTIME["square_cell_size_m"]),
+        "hex_resolution": int(STAGE05_RUNTIME["hex_resolution"]),
+        "voronoi_min_seed_dist_m": float(STAGE05_RUNTIME["voronoi_min_seed_dist_m"]),
     }
     (version_root / "config_snapshot.stage05.json").write_text(
         json.dumps(payload, ensure_ascii=True, indent=2),
@@ -54,14 +76,19 @@ def load_stage01_centerline(version_root: Path):
     cl_dir = gpd.read_parquet(path)
     if cl_dir.crs is None:
         raise ValueError("centerline_dir_master has no CRS.")
+    if "keep_baseline" not in cl_dir.columns:
+        raise ValueError("centerline_dir_master is missing keep_baseline.")
+    cl_dir = cl_dir.loc[cl_dir["keep_baseline"].fillna(False)].copy()
+    if cl_dir.empty:
+        raise ValueError("No directed centerlines remain after keep_baseline filtering.")
     return cl_dir
 
 
-def build_study_area(cl_dir: gpd.GeoDataFrame):
+def build_study_area(cl_dir: gpd.GeoDataFrame, boundary_path: Path):
     target_crs = "EPSG:3857"
     cl_dir_proj = cl_dir.to_crs(target_crs)
-    if BOUNDARY_PATH.exists():
-        boundary = gpd.read_file(BOUNDARY_PATH)
+    if boundary_path.exists():
+        boundary = gpd.read_file(boundary_path)
         if boundary.crs is None:
             boundary = boundary.set_crs("EPSG:4326")
         boundary_proj = boundary.to_crs(target_crs)
@@ -141,9 +168,9 @@ def create_hex_grid_h3(boundary_gdf, resolution=7, target_crs="EPSG:3857"):
     return hex_gdf_clipped
 
 
-def build_voronoi_grid(cl_dir_proj, study_area_proj):
+def build_voronoi_grid(cl_dir_proj, study_area_proj, min_seed_dist_m: float):
     SNAP_TOL = 5.0
-    MIN_SEED_DIST = 1500.0
+    MIN_SEED_DIST = float(min_seed_dist_m)
     DEG_THRESHOLD = 2
     BBOX_PAD = 20000.0
     A_MAX_KM2 = 200.0
@@ -380,19 +407,36 @@ def run(config_path: str | None, version_id: str, output_dir: str):
     data_dir.mkdir(parents=True, exist_ok=True)
     metrics_dir.mkdir(parents=True, exist_ok=True)
 
-    save_config_snapshot(version_root, config_path)
+    runtime = load_stage05_runtime(config_path)
+    global STAGE05_RUNTIME
+    STAGE05_RUNTIME = runtime
+    boundary_path = Path(runtime["boundary_path"])
+    save_config_snapshot(version_root, config_path, boundary_path)
     cl_dir = load_stage01_centerline(version_root)
-    cl_dir_proj, study_area_proj = build_study_area(cl_dir)
+    cl_dir_proj, study_area_proj = build_study_area(cl_dir, boundary_path)
+    print(f"[stage05] runtime={runtime}")
 
-    square = create_square_grid(study_area_proj.bounds, cell_size_m=3000, crs="EPSG:3857")
+    square = create_square_grid(
+        study_area_proj.bounds,
+        cell_size_m=float(runtime["square_cell_size_m"]),
+        crs="EPSG:3857",
+    )
     square = gpd.clip(square, gpd.GeoSeries([study_area_proj], crs="EPSG:3857"))
     square = square[square.geometry.area > 0].copy()
     square["area_km2"] = square.geometry.area / 1e6
     square = square.to_crs("EPSG:4326")
 
     boundary_gdf_proj = gpd.GeoDataFrame(geometry=[study_area_proj], crs="EPSG:3857")
-    hex_grid = create_hex_grid_h3(boundary_gdf_proj, resolution=7, target_crs="EPSG:3857")
-    voronoi = build_voronoi_grid(cl_dir_proj, study_area_proj)
+    hex_grid = create_hex_grid_h3(
+        boundary_gdf_proj,
+        resolution=int(runtime["hex_resolution"]),
+        target_crs="EPSG:3857",
+    )
+    voronoi = build_voronoi_grid(
+        cl_dir_proj,
+        study_area_proj,
+        min_seed_dist_m=float(runtime["voronoi_min_seed_dist_m"]),
+    )
 
     outputs = {
         "grid_square_master.parquet": square,

@@ -1,0 +1,2 @@
+chi_hat,welfare_gain_ppm,treated_pairs,directed_treated_links,asym_ratio_min,asym_ratio_median,asym_ratio_max,slow_cost_reduction_pct_mean,fast_cost_increase_pct_mean,resident_pct_p1,resident_pct_p99,jobs_pct_p1,jobs_pct_p99
+0.9998669097242988,133.09027570118647,100,200,3.240573960772498,4.60218992112041,25.172029834179614,10.59297956392787,20.691723223667424,-0.36635253300936177,0.29019395361707706,-0.22920556739908318,0.2577465247586378

@@ -1,0 +1,26 @@
+{
+  "source_version": "manual_centerline_rules_v11",
+  "edge_cost_source_version": "raw_connected_v1_grid_travel_time_edgeproj_v2",
+  "lane_source_version": "raw_connected_v1_grid_travel_time_edgeproj_v2",
+  "grid_type": "square",
+  "traffic_formula": "lanes * (tau_obs/tau_ff)^(1/delta1)",
+  "tau_obs_source": "raw_connected_travel_time_min from edgeproj_v2",
+  "tau_ff_source": "raw_connected_tau_ff_min from the same edgeproj_v2 path using 22:00-05:00 speed",
+  "delta1": 0.488,
+  "exponent_1_over_delta1": 2.0491803278688523,
+  "lanes_fallback": 2.0,
+  "lane_priority": [
+    "lane_est_path_raw_edgeproj_len_weighted",
+    "lane_est_path_raw_edgeproj_bottleneck",
+    "2.0"
+  ],
+  "asymmetry": "preserved — each directional AM edge computed independently",
+  "node_rows": 2723,
+  "edge_rows": 3666,
+  "od_rows": 377708,
+  "traffic_min": 2.015394312047801,
+  "traffic_mean": 5.875414842526166,
+  "traffic_max": 319.082252461292,
+  "filter_rule": "keep keep_for_model grids that are active in at least one of: positive residents/jobs, positive reachable_AM commuters_road, or AM grid-edge incidence.",
+  "note": "Coordinates in node_lr_lf_seattle.csv are placeholder zeros; v2 uses paper's congestion inversion formula for traffic."
+}

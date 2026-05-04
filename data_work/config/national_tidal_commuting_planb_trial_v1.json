@@ -1,0 +1,20 @@
+{
+  "version_id": "national_tidal_commuting_planb_trial_v1",
+  "source": "per_city_csv",
+  "output_dir": "data_work/outputs",
+  "top_n_pairs": 50,
+  "max_routes_per_request": 20,
+  "cities": [
+    {
+      "city_id": "beijing",
+      "city_label": "Beijing",
+      "commute_path": "raw_data/commute_202211.csv"
+    },
+    {
+      "city_id": "shenzhen",
+      "city_label": "Shenzhen",
+      "commute_path": "raw_data/commute_shenzhen_202411_for_stage07.csv"
+    }
+  ]
+}
+

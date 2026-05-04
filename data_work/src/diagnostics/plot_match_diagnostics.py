@@ -3,6 +3,7 @@ Plot match diagnostics for a versioned run.
 """
 
 import argparse
+import json
 from pathlib import Path
 
 import geopandas as gpd
@@ -29,6 +30,29 @@ def parse_args():
     return parser.parse_args()
 
 
+def resolve_runtime(version_root: Path):
+    raw_path = RAW_PATH
+    center_lonlat = TIANANMEN_LONLAT
+    snap_path = version_root / "config_snapshot.stage01.json"
+    if snap_path.exists():
+        payload = json.loads(snap_path.read_text(encoding="utf-8"))
+        raw_cfg = payload.get("raw_path")
+        if raw_cfg:
+            p = Path(raw_cfg)
+            if not p.is_absolute():
+                p = Path.cwd() / p
+            if p.exists():
+                raw_path = p
+        opts = payload.get("stage01_options", {})
+        center_cfg = opts.get("center_lonlat")
+        if center_cfg is None:
+            # backward/alternate support if center was saved at top level in config
+            center_cfg = payload.get("center_lonlat")
+        if isinstance(center_cfg, (list, tuple)) and len(center_cfg) == 2:
+            center_lonlat = (float(center_cfg[0]), float(center_cfg[1]))
+    return raw_path, center_lonlat
+
+
 def ensure_3857(gdf):
     if gdf.crs is None:
         raise ValueError("GeoDataFrame has no CRS")
@@ -37,7 +61,8 @@ def ensure_3857(gdf):
 
 def load_inputs(version_root: Path):
     data_dir = version_root / "data"
-    raw = ensure_3857(gpd.read_file(RAW_PATH))
+    raw_path, center_lonlat = resolve_runtime(version_root)
+    raw = ensure_3857(gpd.read_file(raw_path))
     raw = raw.reset_index(drop=True)
     if "raw_edge_id" not in raw.columns:
         raw["raw_edge_id"] = raw.index.astype(int)
@@ -45,7 +70,7 @@ def load_inputs(version_root: Path):
     cl_dir = ensure_3857(gpd.read_parquet(data_dir / "centerline_dir_master.parquet"))
     raw_split = ensure_3857(gpd.read_parquet(data_dir / "raw_split_centerline.parquet"))
     raw_split = harmonize_raw_split_columns(raw_split)
-    return raw, centerline, cl_dir, raw_split
+    return raw, centerline, cl_dir, raw_split, center_lonlat
 
 
 def harmonize_raw_split_columns(raw_split: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -71,9 +96,15 @@ def harmonize_raw_split_columns(raw_split: gpd.GeoDataFrame) -> gpd.GeoDataFrame
     return out
 
 
-def roi_gdf(crs):
-    center = gpd.GeoSeries.from_xy([TIANANMEN_LONLAT[0]], [TIANANMEN_LONLAT[1]], crs="EPSG:4326").to_crs(crs).iloc[0]
+def roi_gdf(crs, center_lonlat):
+    center = gpd.GeoSeries.from_xy([center_lonlat[0]], [center_lonlat[1]], crs="EPSG:4326").to_crs(crs).iloc[0]
     return gpd.GeoDataFrame(geometry=[center.buffer(RADIUS_M)], crs=crs)
+
+
+def roi_bounds(crs, center_lonlat):
+    roi = roi_gdf(crs, center_lonlat)
+    bounds = roi.total_bounds
+    return roi, bounds
 
 
 def save_simple_map(path: Path, gdf_lines=None, gdf_polys=None, title="", color=MAP_BLUE, draw_nodes=False):
@@ -286,12 +317,61 @@ def plot_undirected_coverage_4classes(path: Path, raw_split, centerline, cl_dir)
     plt.close(fig)
 
 
+def plot_undirected_vs_baseline_maps(path: Path, centerline: gpd.GeoDataFrame):
+    all_undir = centerline[["cline_id", "keep_baseline", "geometry"]].copy()
+    baseline = all_undir[all_undir["keep_baseline"].fillna(False)].copy()
+
+    bounds = all_undir.total_bounds
+    x_pad = (bounds[2] - bounds[0]) * 0.03
+    y_pad = (bounds[3] - bounds[1]) * 0.03
+
+    fig, axes = plt.subplots(1, 2, figsize=(13.5, 6.8), dpi=260)
+    panels = [
+        (axes[0], all_undir, "Undirected centerline (all)", "#6b7280"),
+        (axes[1], baseline, "Undirected centerline (baseline-kept)", "#1f77b4"),
+    ]
+    for ax, gdf, title, color in panels:
+        gdf.plot(ax=ax, color=color, linewidth=0.28, alpha=0.90, rasterized=True)
+        ax.set_xlim(bounds[0] - x_pad, bounds[2] + x_pad)
+        ax.set_ylim(bounds[1] - y_pad, bounds[3] + y_pad)
+        ax.set_title(title)
+        ax.set_axis_off()
+
+    fig.tight_layout(w_pad=1.1)
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_undirected_vs_baseline_maps_roi(path: Path, centerline: gpd.GeoDataFrame, roi: gpd.GeoDataFrame, bounds):
+    all_undir = gpd.clip(centerline[["cline_id", "keep_baseline", "geometry"]], roi).copy()
+    baseline = all_undir[all_undir["keep_baseline"].fillna(False)].copy()
+
+    fig, axes = plt.subplots(1, 2, figsize=(13.5, 6.8), dpi=260)
+    panels = [
+        (axes[0], all_undir, "Undirected centerline (all, center 15 km)", "#6b7280"),
+        (axes[1], baseline, "Undirected centerline (baseline-kept, center 15 km)", "#1f77b4"),
+    ]
+    for ax, gdf, title, color in panels:
+        if len(gdf):
+            gdf.plot(ax=ax, color=color, linewidth=0.55, alpha=0.95, rasterized=True)
+        ax.set_xlim(bounds[0], bounds[2])
+        ax.set_ylim(bounds[1], bounds[3])
+        ax.set_title(title)
+        ax.set_axis_off()
+
+    fig.tight_layout(w_pad=1.1)
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
+
+
 def run(version_id: str, output_dir: str):
     version_root = Path(output_dir) / version_id
     figures_dir = version_root / "figures"
+    paper_appendix_dir = figures_dir / "paper_appendix"
     figures_dir.mkdir(parents=True, exist_ok=True)
-    raw, centerline, cl_dir, raw_split = load_inputs(version_root)
-    roi = roi_gdf(raw.crs)
+    paper_appendix_dir.mkdir(parents=True, exist_ok=True)
+    raw, centerline, cl_dir, raw_split, center_lonlat = load_inputs(version_root)
+    roi, roi_bounds_15km = roi_bounds(raw.crs, center_lonlat)
 
     save_simple_map(figures_dir / "map_raw_roads_15km.png", gdf_lines=gpd.clip(raw[["raw_edge_id", "geometry"]], roi), title="RAW Roads (15km)", draw_nodes=True)
     road_surface = unary_union(raw.geometry.buffer(BUF_WIDTH))
@@ -302,6 +382,16 @@ def run(version_id: str, output_dir: str):
     plot_split_match_map_full_extent(figures_dir / "map_raw_split_matched_vs_unmatched.png", raw_split)
     plot_split_match_map(figures_dir / "map_raw_split_matched_vs_unmatched_15km.png", raw_split, roi)
     plot_undirected_coverage_4classes(figures_dir / "map_undirected_centerline_coverage_4classes.png", raw_split, centerline, cl_dir)
+    plot_undirected_vs_baseline_maps(
+        paper_appendix_dir / "fig_undirected_vs_baseline_centerline_maps.png",
+        centerline,
+    )
+    plot_undirected_vs_baseline_maps_roi(
+        paper_appendix_dir / "fig_undirected_vs_baseline_centerline_maps_tiananmen_15km.png",
+        centerline,
+        roi,
+        roi_bounds_15km,
+    )
     plot_n_splits_hist(figures_dir / "hist_n_splits_distribution.png", raw_split)
     plot_match_quality(figures_dir / "match_quality_centerline.png", raw_split, cl_dir)
     print(f"[plot_match_diagnostics] saved figures to {figures_dir}")

@@ -1,0 +1,1050 @@
+%====================================================================
+%  Directional Congestion and Tidal Lanes
+%
+%  A self-contained statement of the directional quantitative spatial
+%  commuting model: setup, equilibrium definition, master inventory of
+%  variables/parameters/data sources, and the estimation pipeline
+%  (lambda from a directed speed-flow regression; inversion of
+%  fundamentals; nested-fixed-point exact-hat solver for counterfactuals).
+%====================================================================
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx,booktabs,tabularx,array,setspace,float,enumitem}
+\usepackage{longtable}
+\usepackage{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\setstretch{1.15}
+\setlength{\parindent}{1.5em}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\newcommand{\N}{\mathcal N}
+\newcommand{\E}{\mathcal E}
+\newcommand{\R}{\mathcal R}
+\newcommand{\Lbar}{\bar L}
+\newcommand{\Wbar}{\bar W}
+\newcommand{\ubar}{\bar u}
+\newcommand{\Abar}{\bar A}
+\newcommand{\tbar}{\bar t}
+\newcommand{\tkl}{t_{kl}}
+\newcommand{\tijk}{\tau_{ij}}
+\newcommand{\obs}{\mathrm{obs}}
+\newcommand{\cf}{\mathrm{cf}}
+
+\title{Directional Congestion and Tidal Lanes:\\
+Model Part}
+\author{Yige Duan \and Xiaoruo Feng \and Yizhen Gu}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+This paper develops a quantitative spatial commuting model in which every primitive of the road network is directed. Lane capacities, free-flow speeds, link travel times, and bilateral commuting cost indices are allowed to differ between $(k,l)$ and $(l,k)$; workers choose a residence, a workplace, and a route under Fréchet preferences; and equilibrium delivers gravity in commuting flows, gravity in directed link traffic, and a closed-form welfare scale. Three features distinguish this paper. The first is directional speed asymmetry at the segment level: observed peak-period imbalances between the two directions of a corridor enter the cost structure directly, rather than being subsumed in a symmetric travel-time index. The second is the policy experiment: tidal-lane reallocation reassigns lane capacity between directions within existing road width, requiring neither new land supply nor substantial physical construction, making it among the lowest-cost levers available to urban congestion management. The third is the data input: granular, high-frequency segment-level speed observations identify the direction-specific congestion wedge on each corridor and supply the directed cost primitives the model requires.
+\end{abstract}
+
+\tableofcontents
+\clearpage
+
+%====================================================================
+\section{Setup}\label{sec:setup}
+%====================================================================
+
+\subsection{Locations and directed network}
+
+The city is partitioned into $N$ spatial cells $\N=\{1,\dots,N\}$,
+each indexed by its centroid.  The road network is a directed graph
+$(\N,\E)$ with edge set $\E\subseteq\N\times\N$.  A directed edge
+$(k,l)\in\E$ records an admissible move from cell $k$ to cell $l$.
+$(k,l)\in\E$ does not imply $(l,k)\in\E$, and even when both edges
+exist the two directions are distinct objects with distinct
+primitives.
+
+\subsection{Directed link primitives}
+
+Each directed link $(k,l)\in\E$ carries three primitives:
+\begin{itemize}[leftmargin=2em,itemsep=0.2em]
+  \item physical length $\ell_{kl}>0$ (centroid-to-centroid);
+  \item directed lane capacity $n_{kl}>0$;
+  \item free-flow speed $v^{0}_{kl}>0$, with associated free-flow
+        travel time $\tbar_{kl}\equiv\ell_{kl}/v^{0}_{kl}$.
+\end{itemize}
+Realised (congested) directed travel time $\tkl$ is endogenous and
+determined by the congestion technology in
+\S\ref{sec:objects}.  Directionality is permitted in every primitive:
+$\ell_{kl}\ne\ell_{lk}$, $n_{kl}\ne n_{lk}$, $v^{0}_{kl}\ne v^{0}_{lk}$,
+$\tkl\ne t_{lk}$ are all admitted.
+
+\subsection{Iceberg cost convention}\label{ssec:iceberg}
+
+The model uses a dimensionless iceberg link cost $\tkl\ge 1$ with the
+\citet{AllenArkolakis2022} micro-foundation
+\begin{equation}
+  \tkl\;=\;\bigl(\ell_{kl}/v_{kl}\bigr)^{1/\theta},
+  \qquad
+  v_{kl}\;=\;v^{0}_{kl}\bigl(n_{kl}/\xi_{kl}\bigr)^{\lambda},
+  \label{eq:iceberg}
+\end{equation}
+where $v_{kl}$ is the realised (congested) directed speed and
+$\xi_{kl}$ is endogenous directed link traffic.  The iceberg cost
+$\tkl$ enters utility multiplicatively as
+$\prod_m t_{r_{m-1},r_m}$ and the kernel of the route system is
+$\tkl^{-\theta}$.  Working with $\tkl$ rather than physical minutes
+guarantees scale invariance of the equilibrium under a change of time
+units; physical minutes enter only through the empirical free-flow
+and congested speeds, $v^{0}_{kl}$ and $v_{kl}$.
+
+\subsection{Population and fundamentals}
+
+A unit mass $\Lbar$ of workers is allocated across residences
+$\{L_i^R\}$ and workplaces $\{L_j^F\}$ with
+$\sum_i L_i^R=\sum_j L_j^F=\Lbar$.  Every cell is endowed with a
+baseline residential amenity $\ubar_i>0$ and a baseline workplace
+productivity $\Abar_j>0$.  Endogenous amenity and productivity load
+the local scale of activity through
+\begin{equation}
+  u_i\;=\;\ubar_i\bigl(L_i^R\bigr)^{\beta},
+  \qquad
+  A_j\;=\;\Abar_j\bigl(L_j^F\bigr)^{\alpha},
+  \qquad \alpha>0,\ \beta<0.
+  \label{eq:fundamentals}
+\end{equation}
+Firms operate under perfect competition with labour as the only
+input, so the market-clearing wage at workplace $j$ is
+\begin{equation}
+  w_j\;=\;A_j\;=\;\Abar_j\bigl(L_j^F\bigr)^{\alpha}.
+  \label{eq:wage}
+\end{equation}
+The composite amenity $u_i$ absorbs the equilibrium effect of
+housing-market clearing; goods trade and non-traded amenities are
+not modelled separately, consistent with the Allen--Arkolakis
+reduced-form parameterisation.
+
+\subsection{Parameters}
+
+The model is closed by four scalar parameters:
+\begin{itemize}[leftmargin=2em,itemsep=0.2em]
+  \item $\theta>0$, the Fr\'echet shape parameter governing route and
+        residence--workplace dispersion;
+  \item $\alpha>0$, the production externality (agglomeration)
+        elasticity in \eqref{eq:fundamentals};
+  \item $\beta<0$, the residential externality (congestion)
+        elasticity in \eqref{eq:fundamentals};
+  \item $\lambda\ge 0$, the congestion elasticity of speed with
+        respect to traffic per lane in \eqref{eq:iceberg}.
+\end{itemize}
+$(\theta,\alpha,\beta)$ are externally calibrated; $\lambda$ is
+internally estimated from a directed speed--flow regression
+(\S\ref{ssec:lambda_est}).
+
+%====================================================================
+\section{Equilibrium objects}\label{sec:objects}
+%====================================================================
+
+This section assembles the equations used in the equilibrium
+definition.  Workers choose a residence, a workplace, and a route;
+firms hire under perfect competition; the network technology maps
+directed link traffic into directed link costs.  Each object is
+introduced in turn.
+
+\paragraph{Indirect utility.}
+A worker $\nu$ chooses a residence $i$, a workplace $j$, and a route
+$r=(r_0=i,r_1,\dots,r_K=j)$ with $(r_{m-1},r_m)\in\E$:
+\begin{equation}
+  V_{ij,r}(\nu)
+  \;=\;
+  \frac{u_i\,w_j}{\prod_{m=1}^{K(r)}t_{r_{m-1},r_m}}\,
+  \varepsilon_{ij,r}(\nu),
+  \qquad
+  \varepsilon_{ij,r}\overset{\mathrm{iid}}{\sim}\mathrm{Fr\acute echet}(\theta).
+  \label{eq:utility}
+\end{equation}
+
+\paragraph{Bilateral commuting cost index.}
+Sum over feasible routes:
+\begin{equation}
+  \tijk^{-\theta}
+  \;\equiv\;
+  \sum_{r\in\R_{ij}}\prod_{m=1}^{K(r)}t_{r_{m-1},r_m}^{-\theta}.
+  \label{eq:tau_def}
+\end{equation}
+Collect link costs in the directed weighted adjacency matrix
+$A=[a_{kl}]$ with $a_{kl}=\tkl^{-\theta}\mathbf 1\{(k,l)\in\E\}$.
+Under the spectral-radius assumption below, the series converges and
+\begin{equation}
+  \tijk^{-\theta}\;=\;\bigl[(I-A)^{-1}\bigr]_{ij}.
+  \label{eq:tau_series}
+\end{equation}
+The bilateral cost index is generically asymmetric,
+$\tijk\ne\tau_{ji}$.
+
+\begin{assumption}[Spectral radius]\label{ass:specrad}
+$\rho(A)<1$, where $\rho(\cdot)$ is the spectral radius.
+\end{assumption}
+
+\paragraph{Aggregate welfare scale.}
+Define
+\begin{equation}
+  \Wbar\;\equiv\;
+  \Bigl[\sum_{(i,j)\in\N^2}\tijk^{-\theta}\,u_i^{\theta}\,w_j^{\theta}\Bigr]^{1/\theta}.
+  \label{eq:Wbar_def}
+\end{equation}
+Ex-ante expected welfare is $\mathbb W=\Gamma(1-1/\theta)\Wbar$.
+
+\paragraph{Gravity equation.}
+The bilateral commuting flow is
+\begin{equation}
+  L_{ij}\;=\;\Lbar\cdot
+  \frac{\tijk^{-\theta}\,u_i^{\theta}\,w_j^{\theta}}{\Wbar^{\theta}},
+  \qquad
+  L_i^R=\sum_j L_{ij},\quad L_j^F=\sum_i L_{ij}.
+  \label{eq:gravity}
+\end{equation}
+
+\paragraph{Market-access indices.}
+Define
+\begin{equation}
+  \Pi_i^{-\theta}\;\equiv\;\sum_{j}\tijk^{-\theta}\,L_j^F\,P_j^{\theta},
+  \qquad
+  P_j^{-\theta}\;\equiv\;\sum_{i}\tijk^{-\theta}\,L_i^R\,\Pi_i^{\theta}.
+  \label{eq:MA_def}
+\end{equation}
+Substituting into \eqref{eq:gravity} delivers the equivalent
+market-access form of gravity,
+\begin{equation}
+  L_{ij}\;=\;\tijk^{-\theta}\cdot
+  \frac{L_i^R}{\Pi_i^{-\theta}}\cdot
+  \frac{L_j^F}{P_j^{-\theta}}.
+  \label{eq:gravity_MA}
+\end{equation}
+Because $\tijk$ is directional, $\Pi_i\ne P_i$ in general.
+
+\paragraph{Link-traffic gravity.}
+Directed link traffic $\xi_{kl}$ is the expected number of
+traversals of edge $(k,l)$ summed over commuters:
+\begin{equation}
+  \xi_{kl}\;=\;\tkl^{-\theta}\,P_k^{-\theta}\,\Pi_l^{-\theta}.
+  \label{eq:xi_gravity}
+\end{equation}
+Each component is directional, so $\xi_{kl}\ne\xi_{lk}$ in general.
+
+\paragraph{Congestion technology.}
+The iceberg cost in \eqref{eq:iceberg}, after substitution of
+$v_{kl}=v^{0}_{kl}(n_{kl}/\xi_{kl})^{\lambda}$, takes the compact
+form
+\begin{equation}
+  \tkl
+  \;=\;
+  \tbar_{kl}^{1/\theta}\,
+  \bigl(\xi_{kl}/n_{kl}\bigr)^{\lambda/\theta}.
+  \label{eq:cong}
+\end{equation}
+Substituting \eqref{eq:xi_gravity} into \eqref{eq:cong} and solving
+for $\tkl$ delivers the reduced-form expression
+\begin{equation}
+  \tkl
+  \;=\;
+  \tbar_{kl}^{1/[\theta(1+\lambda)]}\cdot
+  n_{kl}^{-\lambda/[\theta(1+\lambda)]}\cdot
+  \bigl(P_k\Pi_l\bigr)^{-\lambda/(1+\lambda)}.
+  \label{eq:tkl_reduced}
+\end{equation}
+
+\paragraph{Tidal-lane channel.}
+A tidal-lane policy reallocates lanes on a target set
+$\E^{\star}\subseteq\E$ from off-peak to peak,
+\begin{equation}
+  n_{kl}^{\cf}=n_{kl}+\Delta_{kl},\qquad
+  n_{lk}^{\cf}=n_{lk}-\Delta_{kl},\qquad
+  (k,l)\in\E^{\star},
+\end{equation}
+preserving total corridor capacity $n_{kl}+n_{lk}$.  Because each
+direction enters \eqref{eq:cong} separately, $\tkl$ falls and
+$t_{lk}$ rises strictly on treated corridors; the induced changes in
+$\{\tijk,L_{ij},L^R,L^F\}$ are asymmetric across $(i,j)$.  Within an
+undirected model the policy is vacuous.
+
+\paragraph{Population shares.}
+Let $l_i^R\equiv L_i^R/\Lbar$ and $l_j^F\equiv L_j^F/\Lbar$.
+Combining \eqref{eq:fundamentals}, \eqref{eq:wage},
+\eqref{eq:gravity}, and the marginal-population identities yields
+\begin{align}
+  (l_i^R)^{1-\beta\theta}
+  &\;=\;\chi\sum_{j}\tijk^{-\theta}\,\ubar_i^{\theta}\,\Abar_j^{\theta}\,
+       (l_j^F)^{\alpha\theta},
+  \label{eq:eq_R}\\
+  (l_j^F)^{1-\alpha\theta}
+  &\;=\;\chi\sum_{i}\tijk^{-\theta}\,\ubar_i^{\theta}\,\Abar_j^{\theta}\,
+       (l_i^R)^{\beta\theta},
+  \label{eq:eq_F}
+\end{align}
+with the scalar $\chi\equiv\Lbar^{\theta(\alpha+\beta)}/\Wbar^{\theta}$
+pinned down by the normalisation
+$\prod_i\ubar_i=\prod_j\Abar_j=1$.
+
+%====================================================================
+\section{Definition of Equilibrium}\label{sec:eq}
+%====================================================================
+
+\begin{definition}[Equilibrium]\label{def:eq}
+Given primitives $\{(\ubar_i,\Abar_j)\}_{i,j\in\N}$ and
+$\{(\ell_{kl},v^{0}_{kl},n_{kl})\}_{(k,l)\in\E}$, parameters
+$(\theta,\alpha,\beta,\lambda)$, and total population $\Lbar$, an
+equilibrium is the tuple
+\[
+  \mathcal Q
+  \;\equiv\;
+  \bigl(
+    \{L_i^R\},\,\{L_j^F\},\,\{L_{ij}\},\,
+    \{\tkl\},\,\{\tijk\},\,\{\xi_{kl}\},\,
+    \{\Pi_i\},\,\{P_j\},\,\Wbar
+  \bigr)
+\]
+that satisfies, jointly,
+\begin{enumerate}[label=(\textbf{E\arabic*}),leftmargin=3em,itemsep=0.25em]
+\item \textbf{Bilateral cost index.} \eqref{eq:tau_series}:
+  $\tijk^{-\theta}=[(I-A)^{-1}]_{ij}$, with
+  $A_{kl}=\tkl^{-\theta}\mathbf 1\{(k,l)\in\E\}$.
+\item \textbf{Gravity flows.} \eqref{eq:gravity}:
+  $L_{ij}=\Lbar\,\tijk^{-\theta}u_i^{\theta}w_j^{\theta}/\Wbar^{\theta}$,
+  with $u_i,w_j$ from \eqref{eq:fundamentals}--\eqref{eq:wage} and
+  $\Wbar$ from \eqref{eq:Wbar_def}.
+\item \textbf{Market clearing.} $L_i^R=\sum_j L_{ij}$,
+  $L_j^F=\sum_i L_{ij}$, $\sum_i L_i^R=\sum_j L_j^F=\Lbar$.
+\item \textbf{Market-access indices.} \eqref{eq:MA_def} for
+  $(\Pi_i,P_j)$.
+\item \textbf{Link-traffic gravity.} \eqref{eq:xi_gravity}:
+  $\xi_{kl}=\tkl^{-\theta}P_k^{-\theta}\Pi_l^{-\theta}$.
+\item \textbf{Congestion technology.} \eqref{eq:cong}:
+  $\tkl=\tbar_{kl}^{1/\theta}(\xi_{kl}/n_{kl})^{\lambda/\theta}$.
+\item \textbf{Spectral-radius condition.} Assumption~\ref{ass:specrad}.
+\end{enumerate}
+Equivalently, equilibrium share allocations $(l^R,l^F)$ solve the
+fixed-point system
+\eqref{eq:eq_R}--\eqref{eq:eq_F} jointly with
+\eqref{eq:tkl_reduced}.
+\end{definition}
+
+\begin{remark}[Variable count and equation count]
+Conditions (E1)--(E6) deliver
+$|\N|^2$ equations for $\{\tijk\}$,
+$|\N|^2$ equations for $\{L_{ij}\}$,
+$2|\N|$ for $\{L_i^R,L_j^F\}$,
+$2|\N|$ for $\{\Pi_i,P_j\}$,
+$|\E|$ for $\{\xi_{kl}\}$, and
+$|\E|$ for $\{\tkl\}$, matching the dimension of the unknowns;
+$\Wbar$ is fixed by either of the welfare identities
+$\Wbar^{\theta}=\sum_i u_i^{\theta}\Pi_i^{-\theta}=\sum_j
+w_j^{\theta}P_j^{-\theta}$ from \eqref{eq:Wbar_def}.
+\end{remark}
+
+\paragraph{Existence and uniqueness.}
+Existence under Assumption~\ref{ass:specrad} and $\lambda\ge 0$
+follows from the Brouwer-based fixed-point argument in Proposition~1
+of \citet{AllenArkolakis2022}.  Their Proposition~1(b) supplies a
+sufficient uniqueness condition,
+\begin{equation}
+  \alpha\;\le\;\tfrac{1}{2}\bigl(1/\theta-\lambda\bigr),
+  \qquad
+  \beta\;\le\;\tfrac{1}{2}\bigl(1/\theta-\lambda\bigr).
+  \label{eq:AAunique}
+\end{equation}
+Under our sign restrictions $\alpha>0,\beta<0$ the right-hand
+inequality is implied, and the left-hand inequality is binding.  At
+the baseline calibration $(\theta,\alpha)=(6.83,0.06)$,
+\eqref{eq:AAunique} requires $\lambda\le 1/\theta-2\alpha\approx
+0.026$, a value below the central estimate of $\lambda$ (see
+\S\ref{ssec:lambda_est}).  Where \eqref{eq:AAunique} fails, no
+formal claim of uniqueness is made.  Three numerical diagnostics are
+reported instead on every grid point in the counterfactual output:
+multi-start invariance of \textsc{HatSolve}, the Jacobian spectral
+radius at the converged solution, and smoothness of the equilibrium
+in the underlying parameters.
+
+\paragraph{Welfare representation.}
+Two equivalent forms hold at any equilibrium:
+\begin{equation}
+  \Wbar^{\theta}
+  \;=\;\sum_i u_i^{\theta}\Pi_i^{-\theta}
+  \;=\;\sum_j w_j^{\theta}P_j^{-\theta}.
+  \label{eq:welfare_MA}
+\end{equation}
+Equation \eqref{eq:welfare_MA} is the only welfare object the model
+identifies; counterfactual welfare changes are constructed from
+exact-hat algebra (\S\ref{ssec:hat}) and reported as the time-equivalent
+variation $\hat{\mathbb W}$.  No separate housing-market or goods-market
+welfare component is computed.
+
+%====================================================================
+\section{Variables, parameters, and data sources}\label{sec:inventory}
+%====================================================================
+
+This section is the backbone of the implementation: every model
+object is classified by (i) role (data primitive, parameter,
+inverted fundamental, endogenous equilibrium variable), (ii) source
+(direct construction from data, external calibration, internal
+estimation, equilibrium inversion, equilibrium computation), and
+(iii) whether it is held fixed in counterfactual analysis (a
+\emph{state} variable in the policy sense).
+
+\subsection{Classification convention}\label{ssec:classification}
+
+\begin{itemize}[leftmargin=2em,itemsep=0.2em]
+\item \textbf{Data primitive (P)}: constructed directly from raw
+  data; held fixed in baseline and varies only by assumption in
+  counterfactuals.  Examples: $\ell_{kl}$, $n_{kl}$.
+\item \textbf{External parameter (X)}: a scalar borrowed from the
+  literature with documented external estimates; not re-estimated on
+  our data in the baseline.  Examples: $\theta$, $\alpha$, $\beta$.
+\item \textbf{Internally estimated parameter (I)}: a scalar
+  identified from a moment in the data.  Example: $\lambda$.
+\item \textbf{Inverted fundamental (V)}: a vector recovered from
+  the equilibrium system to rationalise the observed allocation
+  given the data and parameters.  Examples: $\ubar_i,\Abar_j$.
+\item \textbf{Endogenous equilibrium variable (Q)}: a vector
+  determined by Definition~\ref{def:eq} given primitives,
+  parameters, and inverted fundamentals.  Examples: $L_{ij},\tijk,
+  \xi_{kl},\tkl,\Pi_i,P_j,\Wbar$.
+\item \textbf{Counterfactual policy lever ($\Delta$)}: a primitive
+  perturbed by assumption in a counterfactual.  Example: $n_{kl}^{\cf}$.
+\end{itemize}
+The state space of the policy problem is the data primitives plus
+the inverted fundamentals: $(\ell,n,v^0,\ubar,\Abar)$ and the
+parameters $(\theta,\alpha,\beta,\lambda)$.  Endogenous equilibrium
+variables are recomputed at every counterfactual policy.
+
+\subsection{Master inventory}\label{ssec:inventory}
+
+Table~\ref{tab:inventory} lists every model object that appears in
+Definition~\ref{def:eq}, along with its empirical realisation and
+its data or estimation source.
+
+\begin{small}
+\begin{longtable}{p{2.0cm}p{4.4cm}cp{6.3cm}}
+\caption{Model variables, parameters, and data sources.}
+\label{tab:inventory}\\
+\toprule
+Symbol & Object & Type & Source / construction \\
+\midrule
+\endfirsthead
+\multicolumn{4}{l}{\emph{(continued)}}\\
+\toprule
+Symbol & Object & Type & Source / construction \\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{\emph{(continued on next page)}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+\multicolumn{4}{l}{\textbf{A. Spatial primitives}}\\
+$i,j\in\N$ & Spatial cell (node) & P & Square baseline (3{,}357 cells, mean area 8.38\,km$^2$); H3 hex (4{,}604 cells, 6.10\,km$^2$) and network-adapted Voronoi (1{,}213 cells, 23.20\,km$^2$) as robustness.\\
+$(k,l)\in\E$ & Directed grid edge & P & Adjacency in the largest weakly connected component supported by the grid travel-cost map of \S\ref{ssec:rawgrid_step}.\\
+$\ell_{kl}$ & Directed grid length & P & Centroid-to-access-point distance plus on-network road-path length; pair-specific shortest path on the directed road graph (edge-projected version, \S\ref{ssec:rawgrid_step}).\\
+$n_{kl}$ & Directed lane count & P / $\Delta$ & Length-weighted lane proxy from a roadtype-to-lanes lookup on matched centerlines (mean 3.13, median 3.32, length coverage 92.0\%); perturbed in counterfactuals.\\
+$v^{0}_{kl}$ & Free-flow directed speed & P & Time-weighted harmonic mean of matched-centerline speeds in 22:00--05:00 (citywide mean 38.46\,km/h).\\
+$v^{\obs}_{kl}$ & Observed congested speed & P & Same aggregator at the AM peak 07:00--09:00 (mean 35.19\,km/h); PM peak 17:00--19:00 (33.33\,km/h) used as the second period.\\
+$\tbar_{kl}$ & Free-flow time & P & $\ell_{kl}/v^{0}_{kl}$.\\
+$\tkl^{\obs}$ & Observed iceberg link cost & P & $(\ell_{kl}/v_{kl}^{\obs})^{1/\theta}$ with $v_{kl}^{\obs}$ length-weight projected from the matched centerlines onto the grid edge.\\
+\midrule
+\multicolumn{4}{l}{\textbf{B. Population primitives}}\\
+$L_{ij}^{\obs}$ & Bilateral commuting flow & P & 100\,m grid OD matrix point-in-polygon aggregated to the active tessellation; Beijing 2022 baseline (6.91M raw OD pairs over 453{,}391 unique 100\,m grids); Shenzhen 2024 (3.97M pairs over 110{,}339 grids) for replication.\\
+$L_i^{R,\obs}$ & Residence marginal & P & Row sum $\sum_j L_{ij}^{\obs}$.\\
+$L_j^{F,\obs}$ & Workplace marginal & P & Column sum $\sum_i L_{ij}^{\obs}$.\\
+$\Lbar$ & Total commuters & P & $\sum_i L_i^{R,\obs}=\sum_j L_j^{F,\obs}$ on the largest weakly connected component of $(\N,\E)$.\\
+\midrule
+\multicolumn{4}{l}{\textbf{C. Parameters}}\\
+$\theta$ & Fr\'echet shape & X & Calibrated to $6.83$ from \citet{Ahlfeldt2015}; gravity grid-search of \S\ref{ssec:theta_check} reported as a robustness diagnostic.\\
+$\alpha$ & Production externality elasticity & X & Calibrated to $0.06$, central estimate of \citet{CombesGobillon2015}; grid $\{0.04,0.06,0.08\}$.\\
+$\beta$ & Residential externality elasticity & X & Calibrated to $-0.30$ following \citet{AllenArkolakis2014,MonteReddingRossiHansberg2018,HeblichReddingSturm2020}; grid $\{-0.50,-0.30,-0.20\}$.\\
+$\lambda$ & Congestion elasticity & I & Internally estimated by IV speed--flow regression \eqref{eq:lambda_regression}; counterfactual robustness over $\lambda\in\{0.1,0.3,0.6,1.0\}$.\\
+\midrule
+\multicolumn{4}{l}{\textbf{D. Inverted fundamentals}}\\
+$\ubar_i$ & Baseline residential amenity & V & Recovered from \eqref{eq:invert_R}--\eqref{eq:invert_F} given $(\theta,\alpha,\beta)$, $(L_i^{R,\obs},L_j^{F,\obs})$, and $\tijk^{\obs}$.\\
+$\Abar_j$ & Baseline workplace productivity & V & Recovered jointly with $\ubar_i$, normalised so that $\prod_i\ubar_i=\prod_j\Abar_j=1$.\\
+\midrule
+\multicolumn{4}{l}{\textbf{E. Endogenous equilibrium variables}}\\
+$L_i^R, L_j^F$ & Residence / workplace populations & Q & Solve \eqref{eq:eq_R}--\eqref{eq:eq_F}; equal to $L_i^{R,\obs},L_j^{F,\obs}$ at baseline by Assumption~\ref{ass:obs_eq}.\\
+$L_{ij}$ & Bilateral commuting flow & Q & \eqref{eq:gravity}; equals $L_{ij}^{\obs}$ at baseline by Assumption~\ref{ass:obs_eq}.\\
+$u_i,w_j$ & Composite amenity / wage & Q & \eqref{eq:fundamentals}--\eqref{eq:wage}.\\
+$\tijk$ & Bilateral cost index & Q & \eqref{eq:tau_series}; baseline $\tijk^{\obs}$ uses $A^{\obs}_{kl}=(\tkl^{\obs})^{-\theta}$ with $\tkl^{\obs}$ converted to iceberg form via \eqref{eq:iceberg}.\\
+$\xi_{kl}$ & Directed link traffic & Q & \eqref{eq:xi_gravity} at the equilibrium $(P_k,\Pi_l,\tkl)$; baseline empirical analogue $\hat\xi_{kl}^{\obs}$ in \S\ref{ssec:link_traffic_obs}.\\
+$\Pi_i, P_j$ & Resident / firm market access & Q & Linear system \eqref{eq:MA_def}.\\
+$\tkl$ & Directed iceberg link cost & Q & \eqref{eq:cong}; baseline $\tkl^{\obs}$ converted from $v_{kl}^{\obs}$ via the iceberg micro-foundation \eqref{eq:iceberg}.\\
+$\Wbar$ & Aggregate welfare scale & Q & \eqref{eq:Wbar_def} or \eqref{eq:welfare_MA}; counterfactual $\hat{\Wbar}$ in \eqref{eq:hat_W}.\\
+\end{longtable}
+\end{small}
+
+\subsection{Where each parameter is identified}\label{ssec:identification_map}
+
+\begin{itemize}[leftmargin=2em,itemsep=0.2em]
+\item $\theta$ enters the model in three places: (i) the kernel
+  $\tkl^{-\theta}$ of the cost-index series, (ii) the iceberg
+  conversion exponent in \eqref{eq:iceberg}, and (iii) the
+  externality bands $\theta\alpha,\theta\beta$.  External calibration
+  is the baseline because the gravity-based internal estimator
+  \eqref{eq:gravity_log} requires inversion of $\tijk(\theta)$ at
+  every grid point and is reported as a robustness check rather than
+  as the identifying moment.
+\item $\alpha$ and $\beta$ enter only the share equations
+  \eqref{eq:eq_R}--\eqref{eq:eq_F} through the externality powers
+  $L^{F,\alpha\theta}$ and $L^{R,\beta\theta}$.  In a single
+  cross-section without an exogenous shifter of $L^R$ or $L^F$ they
+  are not separately identified from $(\ubar_i,\Abar_j)$; external
+  calibration is the only credible route.
+\item $\lambda$ has a single identifying moment in the data, the
+  speed--flow regression \eqref{eq:lambda_regression}.  This is the
+  one parameter the paper estimates internally.
+\item $(\ubar_i,\Abar_j)$ are exactly identified by the marginal
+  populations $(L_i^{R,\obs},L_j^{F,\obs})$ and the bilateral cost
+  index $\tijk^{\obs}$ under Assumption~\ref{ass:obs_eq}.  This is
+  the inversion step.
+\end{itemize}
+
+\subsection{Welfare measurement: reduced form, not full estimation}
+\label{ssec:welfare_strategy}
+
+The model identifies a single welfare scalar $\Wbar$ via
+\eqref{eq:welfare_MA}, equivalently
+$\mathbb W=\Gamma(1-1/\theta)\Wbar$.  Welfare changes in
+counterfactuals are reported as $\hat{\mathbb W}=\hat{\Wbar}$,
+computed in closed form from the exact-hat formula
+\eqref{eq:hat_W}.  Three consequences follow.
+\begin{enumerate}[label=(\roman*),leftmargin=2em,itemsep=0.2em]
+\item No housing-market or goods-market block is estimated
+  separately; the composite amenity $u_i$ absorbs the equilibrium
+  effect of housing-market clearing under the AA-class
+  parameterisation.
+\item Welfare changes are interpreted in time-equivalent variation:
+  a counterfactual with $\hat{\mathbb W}=1.02$ is equivalent in
+  welfare terms to a uniform 1.96\% reduction in every bilateral
+  commuting time.
+\item No estimate of the marginal value of time, of housing supply
+  elasticity, or of the elasticity of substitution across goods is
+  required; the welfare aggregator is fully pinned down by
+  $(\theta,\alpha,\beta,\lambda)$ and the baseline shares.
+\end{enumerate}
+
+%====================================================================
+\section{Estimation and Algorithms}\label{sec:est}
+%====================================================================
+
+The empirical pipeline executes in five steps:
+\begin{enumerate}[label=\textbf{Step \arabic*.},leftmargin=3.5em,itemsep=0.2em]
+\item Construct the directed primitives
+  $(\ell_{kl},v^{0}_{kl},v_{kl}^{\obs},n_{kl})$ and the population
+  primitives $(L_{ij}^{\obs},L_i^{R,\obs},L_j^{F,\obs},\Lbar)$
+  (\S\ref{ssec:data_construction}).
+\item Calibrate $(\theta,\alpha,\beta)$ externally
+  (\S\ref{ssec:calibration}).
+\item Estimate $\lambda$ from the IV speed--flow regression
+  (\S\ref{ssec:lambda_est}).
+\item Invert $(\ubar_i,\Abar_j)$ from the equilibrium system at the
+  observed allocation (\S\ref{ssec:invert}).
+\item Solve counterfactuals via the nested-fixed-point exact-hat
+  algorithm and read off $\hat{\mathbb W}$ (\S\ref{ssec:hat}).
+\end{enumerate}
+Each step is described below as inputs $\to$ algorithm $\to$ outputs.
+
+\subsection{Step 1: Constructing data inputs}\label{ssec:data_construction}
+
+The data primitives in Table~\ref{tab:inventory} are built from two
+raw inputs through a six-stage pipeline.  This subsection states the
+construction for the directed grid network and the population
+matrix.
+
+\paragraph{Raw inputs.}
+The first input is a 100\,m grid origin--destination commuting
+matrix.  Beijing 2022 contains 6{,}909{,}608 OD pairs over
+453{,}391 unique 100\,m grids; Shenzhen 2024 contains 3{,}970{,}569
+OD pairs over 110{,}339 grids.  The matrix records counts of
+home--work commuters between grid pairs.  The second input is a
+directed segment-level speed panel observed at 10-minute frequency
+on the same cities, with raw fields \texttt{cityname},
+\texttt{roadseg\_id}, \texttt{roadname}, \texttt{roadtype},
+\texttt{semantic}, \texttt{location}, and \texttt{geometry}.  In the
+retained Beijing run the panel contributes 23.29M raw speed
+observations after quality control.
+
+\paragraph{Raw-to-centerline matching.}
+The raw road map is collapsed to a single \emph{raw-centerline}
+system in two parts.  A manual corridor channel handles 963 raw
+edges (3.9\% of all raw edges, 20.4\% of total raw length) on long
+divided expressways, frontage roads, and grade-separated
+interchanges where mechanical skeletonisation is unreliable; the
+remaining edges enter a skeleton branch built with a 50\,m road
+buffer, a 5\,m raster, and 50\,m short-branch pruning.  Each
+undirected skeleton centerline is duplicated into two directions.
+Every raw sub-segment is then matched to a directed centerline
+candidate within a 60/180/600\,m search radius using
+\[
+  \mathrm{score}(r,c)\;=\;d_{\mathrm{mean}}(r,c)+0.1\,\Delta\theta(r,c),
+\]
+and accepted only if $d_{\mathrm{mean}}(r,c)\le 180\,\text{m}$.
+After matching, 99.42\% of baseline-kept split segments and 95.59\%
+of all raw edges are matched, accounting for 98.73\% of total raw
+length.  The retained baseline directed network has 11{,}890
+directed centerlines spanning 19{,}391\,km.
+
+\paragraph{Directed centerline speeds.}
+For each baseline directed centerline $c$ and time bin $\tau$
+(weekday status by hour), the speed aggregator is the time-weighted
+harmonic mean
+\begin{equation}
+  \bar v_{c,\tau}^{\,\mathrm{time}}
+  \;=\;
+  \frac{\sum_{r\in\R(c,\tau)}\ell_r}
+       {\sum_{r\in\R(c,\tau)}\ell_r/v_r},
+  \label{eq:harmonic_speed}
+\end{equation}
+with $\R(c,\tau)$ the matched raw segments for $c$ in $\tau$.  The
+retained run yields 394{,}468 directed centerline-hour cells across
+8{,}349 unique directed centerlines (citywide weekday means: AM
+peak 35.19\,km/h, PM peak 33.33\,km/h, 22:00--05:00 free-flow
+window 38.46\,km/h).  The morning peak 07:00--09:00 is the baseline
+period; the evening peak 17:00--19:00 is retained for the
+second-period checks in CF1--CF4.
+
+\paragraph{Lane-count proxy.}
+A roadtype-to-lanes lookup is applied to the matched raw segments
+and length-weighted to the directed centerline.  Coverage on the
+baseline directed network is 70.6\% by count and 92.0\% by length,
+with mean lane estimate 3.13, median 3.32, and a mean
+opposite-direction lane ratio of 1.04 (86.2\% of corridors symmetric
+within $\pm 0.5$).
+
+\paragraph{Spatial tessellation $\N$.}
+Three grid systems discretise the study area.  The square baseline
+contains 3{,}357 cells with mean area 8.38\,km$^2$.  An H3 hexagonal
+grid (4{,}604 cells, 6.10\,km$^2$) and a network-adapted Voronoi
+tessellation (1{,}213 cells, 23.20\,km$^2$, generated from
+baseline-centerline node seeds under a 1.5\,km minimum-distance rule
+and a 200\,km$^2$ cell-area cap) are retained as robustness systems.
+The OD matrix is point-in-polygon assigned from 100\,m to the active
+tessellation,
+$L_{ij}^{\obs}=\sum_{(g,h)\in i\times j}L^{100\mathrm{m}}_{gh}$, and
+the reachability filter keeps every $(i,j)$ whose endpoints both lie
+in the largest weakly connected component of $(\N,\E)$.
+
+\paragraph{Grid-to-grid travel cost.}\label{ssec:rawgrid_step}
+The bilateral cost map between adjacent grid pairs is computed on
+the directed road graph rather than on the centerline backbone.
+Among three candidate constructions evaluated on AM adjacent square
+pairs --- the centerline benchmark, a node-attached version that
+snaps each grid centroid to the nearest road node, and an
+edge-projected version that projects each centroid onto a nearby
+directed road edge --- the operating construction is the
+edge-projected version: each grid centroid is projected onto a
+nearby directed road edge, virtual HOME and WORK nodes connect only
+to the active home and work cells, and the pair-specific shortest
+path through the restricted graph defines $\ell_{kl}$ and the
+on-network minute count.  Edge projection raises connected-pair
+coverage to 0.474 (square) / 0.494 (hex) / 0.875 (Voronoi) and
+keeps connector distances at 831\,m / 850\,m / 432\,m on the three
+grids.  The centerline benchmark is retained as a second metric,
+used in the asymmetry screen of \S\ref{ssec:scenarios} and in
+robustness diagnostics.
+
+\paragraph{Aggregating to directed grid links.}
+For each baseline directed centerline piece $p$ falling on grid edge
+$(k,l)$, the pipeline records the in-grid length $\ell_p$, the
+AM-peak harmonic-mean speed $v_p^{\obs}$, the 22:00--05:00 free-flow
+speed $v^{0}_{p}$, and the lane-count proxy $n_p$.  Aggregating to
+the directed grid link gives
+\begin{align}
+  \ell_{kl}
+    &\;=\;\sum_{p\in P(k,l)}\ell_{p},
+  \label{eq:agg_ell}\\
+  v_{kl}^{\obs}
+    &\;=\;\Bigl(\sum_{p\in P(k,l)}\ell_p\Bigr)\Big/
+       \Bigl(\sum_{p\in P(k,l)}\ell_p / v_p^{\obs}\Bigr),
+  \label{eq:agg_v}\\
+  v^{0}_{kl}
+    &\;=\;\Bigl(\sum_{p\in P(k,l)}\ell_p\Bigr)\Big/
+       \Bigl(\sum_{p\in P(k,l)}\ell_p / v^{0}_p\Bigr),\\
+  n_{kl}
+    &\;=\;\Bigl(\sum_{p\in P(k,l)}\ell_p\,n_p\Bigr)\Big/
+       \Bigl(\sum_{p\in P(k,l)}\ell_p\Bigr),
+\end{align}
+where $P(k,l)$ is the set of centerline pieces on grid edge $(k,l)$.
+The aggregator \eqref{eq:agg_v} matches \eqref{eq:harmonic_speed} at
+the centerline level.
+
+\paragraph{Iceberg link costs.}
+The iceberg link costs at baseline follow the convention of
+\S\ref{ssec:iceberg}:
+\begin{equation}
+  \tkl^{\obs}\;=\;(\ell_{kl}/v_{kl}^{\obs})^{1/\theta},
+  \qquad
+  \tbar_{kl}^{\,\mathrm{ice}}\;=\;(\ell_{kl}/v^{0}_{kl})^{1/\theta}.
+  \label{eq:tkl_obs_iceberg}
+\end{equation}
+The baseline cost index $\tijk^{\obs}$ follows from
+$A^{\obs}_{kl}=(\tkl^{\obs})^{-\theta}$ via \eqref{eq:tau_series}.
+Pieces missing a lane proxy or an AM speed observation, which are
+concentrated on short peripheral fragments rather than on the
+arterial backbone, inherit the centerline-mean lane count and the
+roadtype-conditional median speed; the affected directed grid links
+are flagged and dropped in robustness checks.
+
+\paragraph{Population primitives.}
+With $L_{ij}^{\obs}$ from the Stage 5 point-in-polygon assignment,
+\[
+  L_i^{R,\obs}=\sum_j L_{ij}^{\obs},
+  \qquad
+  L_j^{F,\obs}=\sum_i L_{ij}^{\obs},
+  \qquad
+  \Lbar=\sum_i L_i^{R,\obs}.
+\]
+
+\paragraph{Constructed link traffic $\hat\xi_{kl}^{\obs}$.}\label{ssec:link_traffic_obs}
+Directed flows are not directly observed.  Empirical link traffic is
+constructed by route assignment of $L_{ij}^{\obs}$ over $(\N,\E)$
+using the model-implied route probabilities
+\begin{equation}
+  \pi^{kl}_{ij}\;=\;\frac{\tau_{ik}^{-\theta}\,\tkl^{-\theta}\,\tau_{lj}^{-\theta}}
+                          {\tijk^{-\theta}},
+  \qquad
+  \hat\xi_{kl}^{\obs}\;=\;\sum_{i,j}L_{ij}^{\obs}\,\pi^{kl}_{ij},
+  \label{eq:hat_xi_obs}
+\end{equation}
+evaluated with the iceberg link costs $\tkl^{\obs}$ from
+\eqref{eq:tkl_obs_iceberg}.  If the observed allocation were an
+equilibrium, $\hat\xi_{kl}^{\obs}$ would coincide with
+\eqref{eq:xi_gravity}.
+
+\subsection{Step 2: External calibration of $(\theta,\alpha,\beta)$}
+\label{ssec:calibration}
+
+\begin{itemize}[leftmargin=2em,itemsep=0.2em]
+\item $\theta=6.83$ \citep{Ahlfeldt2015}.
+\item $\alpha=0.06$ \citep{CombesGobillon2015,CombesDurantonGobillon2008,AllenArkolakis2022}.
+\item $\beta=-0.30$ \citep{AllenArkolakis2014,MonteReddingRossiHansberg2018,HeblichReddingSturm2020}.
+\end{itemize}
+Robustness grids $\alpha\in\{0.04,0.06,0.08\}$ and
+$\beta\in\{-0.50,-0.30,-0.20\}$ are reported alongside the main
+estimates.  An internal check on $\theta$ via the gravity grid
+search of \S\ref{ssec:theta_check} is reported as a diagnostic.
+
+\subsection{Step 3: Estimating $\lambda$ from a directed
+speed--flow regression}\label{ssec:lambda_est}
+
+\paragraph{Estimating equation.}
+Substituting the iceberg micro-foundation \eqref{eq:iceberg} into
+its log form gives the identity
+$\ln v_{kl}=\ln v^{0}_{kl}-\lambda\ln(\xi_{kl}/n_{kl})$.  Relaxing
+the intercept to absorb link-type variation yields
+\begin{equation}
+  \boxed{\;
+  \ln v_{kl}^{\obs}
+  \;=\;
+  m_0
+  -\lambda\,\ln\!\bigl(\hat\xi_{kl}/n_{kl}\bigr)
+  +\eta_{\mathrm{bin}(kl)}
+  +\varepsilon_{kl}.
+  \;}
+  \label{eq:lambda_regression}
+\end{equation}
+$\eta_{\mathrm{bin}(kl)}$ absorbs systematic capacity differences
+across lane bins and roadtype classes; standard errors are clustered
+at the centerline parent.
+
+\paragraph{Constructing the regressor.}
+Under the naive assignment, $\hat\xi_{kl}$ uses $\tkl^{\obs}$ which
+is itself a function of the dependent variable $v_{kl}^{\obs}$.  To
+break the mechanical circularity, two non-IV variants are reported,
+together with the IV estimator that is the baseline:
+\begin{itemize}[leftmargin=2em,itemsep=0.15em]
+\item \emph{Free-flow regressor (a)}: replace $\{\tkl^{\obs}\}$ by
+  $\{\tbar_{kl}^{\,\mathrm{ice}}\}$ in $\pi^{kl}_{ij}$, so that
+  $\hat\xi_{kl}^{\mathrm{ff}}$ depends only on nighttime free-flow
+  costs.
+\item \emph{Leave-one-out regressor (b)}: recompute $\pi^{kl}_{ij}$
+  with link $(k,l)$ excluded from the cost index.
+\item \emph{Naive regressor (c)}: $\hat\xi_{kl}$ from
+  $\{\tkl^{\obs}\}$, reported only as a diagnostic of the
+  circularity bias.
+\end{itemize}
+
+\paragraph{IV strategy.}
+The baseline estimator instruments $\ln(\hat\xi_{kl}/n_{kl})$ with
+link-geography primitives that shift directed traffic per lane
+without affecting contemporaneous speed shocks.  Candidate
+instruments are
+(i) historical lane counts predating the current commuting pattern,
+(ii) link-to-CBD distance,
+(iii) the reverse-direction nighttime free-flow speed on the same
+corridor.  The first stage regresses $\ln(\hat\xi_{kl}/n_{kl})$ on
+$z_{kl}$ and the lane-bin fixed effects; the second stage uses the
+fitted value in \eqref{eq:lambda_regression}.  Identification rests
+on the exclusion restriction that $z_{kl}$ affects $\ln v_{kl}$ only
+through traffic per lane, conditional on the fixed effects.
+
+\paragraph{Output.}
+The pipeline returns $\hat\lambda^{\mathrm{IV}}$ together with the
+first-stage $F$, the over-identification statistic when more than
+one instrument is used, and the OLS variants (a)--(c) as
+comparison rows.  Counterfactual robustness is conducted at
+$\lambda\in\{0.1,0.3,0.6,1.0\}$ to bracket both the OLS range and
+the AA estimate converted to our iceberg convention.
+
+\subsection{Step 4: Inversion of $(\ubar_i,\Abar_j)$}\label{ssec:invert}
+
+\begin{assumption}[Observed allocation is an equilibrium]
+\label{ass:obs_eq}
+$(L_i^{R,\obs},L_j^{F,\obs})$ equals $(L_i^R,L_j^F)$ in
+Definition~\ref{def:eq} under primitives
+$(\ell_{kl},v_{kl}^{0},n_{kl})$, parameters
+$(\theta,\alpha,\beta,\lambda)$, and some baseline fundamentals
+$(\ubar_i,\Abar_j)$.  The bilateral cost index used in the inversion
+is $\tijk^{\obs}=[(I-A^{\obs})^{-1}]_{ij}^{-1/\theta}$ with
+$A^{\obs}_{kl}=(\tkl^{\obs})^{-\theta}$ from \eqref{eq:tkl_obs_iceberg}.
+\end{assumption}
+
+Under Assumption~\ref{ass:obs_eq}, the equilibrium system
+\eqref{eq:eq_R}--\eqref{eq:eq_F} evaluated at the data is
+\begin{align}
+  (l_i^{R,\obs})^{1-\beta\theta}
+  &\;=\;\chi\sum_{j}(\tijk^{\obs})^{-\theta}\,\ubar_i^{\theta}\,\Abar_j^{\theta}\,
+       (l_j^{F,\obs})^{\alpha\theta},
+  \label{eq:invert_R}\\
+  (l_j^{F,\obs})^{1-\alpha\theta}
+  &\;=\;\chi\sum_{i}(\tijk^{\obs})^{-\theta}\,\ubar_i^{\theta}\,\Abar_j^{\theta}\,
+       (l_i^{R,\obs})^{\beta\theta}.
+  \label{eq:invert_F}
+\end{align}
+
+\paragraph{Algorithm \textsc{Invert} (iterative fixed point).}
+
+\begin{enumerate}[leftmargin=2em,itemsep=0.2em]
+\item \textbf{Initialise.} $\ubar_i^{(0)}=1$, $\Abar_j^{(0)}=1$,
+  $\chi^{(0)}=1$.
+\item \textbf{Bilateral cost index.} Compute $\tijk^{\obs}$ once
+  from $A^{\obs}_{kl}=(\tkl^{\obs})^{-\theta}$ via a single sparse
+  $(I-A^{\obs})^{-1}$ solve.
+\item \textbf{Update $\ubar$.} For each $i$,
+\begin{equation}
+  \ubar_i^{(k+1),\theta}
+  \;=\;
+  \frac{(l_i^{R,\obs})^{1-\beta\theta}}
+       {\chi^{(k)}\sum_{j}(\tijk^{\obs})^{-\theta}\,
+                    \Abar_j^{(k),\theta}\,(l_j^{F,\obs})^{\alpha\theta}}.
+\end{equation}
+\item \textbf{Update $\Abar$.} For each $j$,
+\begin{equation}
+  \Abar_j^{(k+1),\theta}
+  \;=\;
+  \frac{(l_j^{F,\obs})^{1-\alpha\theta}}
+       {\chi^{(k)}\sum_{i}(\tijk^{\obs})^{-\theta}\,
+                    \ubar_i^{(k+1),\theta}\,(l_i^{R,\obs})^{\beta\theta}}.
+\end{equation}
+\item \textbf{Normalise.} Rescale so that
+  $\prod_i\ubar_i^{(k+1)}=\prod_j\Abar_j^{(k+1)}=1$;
+  update $\chi^{(k+1)}$ from $\chi=\Lbar^{\theta(\alpha+\beta)}/
+  \Wbar^{\theta}$.
+\item \textbf{Convergence.} Stop when
+  $\max_i|\ubar_i^{(k+1)}/\ubar_i^{(k)}-1|<10^{-8}$ and
+  $\max_j|\Abar_j^{(k+1)}/\Abar_j^{(k)}-1|<10^{-8}$.
+\end{enumerate}
+
+\paragraph{Output.}
+$(\ubar_i^{\star},\Abar_j^{\star})_{i,j\in\N}$ and the baseline
+welfare scalar $\Wbar^{\star}$ from \eqref{eq:welfare_MA}; together
+with the data primitives these fully pin down the baseline
+equilibrium and are held fixed in counterfactual analysis.
+
+\paragraph{Well-posedness.}
+Under \eqref{eq:AAunique} and Assumption~\ref{ass:specrad}
+\textsc{Invert} admits a unique strictly positive fixed point.
+Outside this region, the three numerical diagnostics introduced
+after Definition~\ref{def:eq} (multi-start invariance, Jacobian
+spectral radius below one at the converged solution, and smoothness
+in parameters) are reported on every grid point.
+
+\subsection{Step 5: Counterfactual exact-hat solver}\label{ssec:hat}
+
+For any endogenous $x$, write $\hat x\equiv x^{\cf}/x$.  The policy
+shock is $\hat n_{kl}$; free-flow times do not change,
+$\hat{\tbar}_{kl}=1$.  The exact-hat system follows by dividing each
+equation in Definition~\ref{def:eq} by its baseline counterpart:
+\begin{align}
+  \hat\tkl^{\,1+\lambda}
+  &\;=\;\hat n_{kl}^{-\lambda}\,(\hat P_k\hat\Pi_l)^{-\lambda},
+  \label{eq:hat_tkl}\\
+  \hat\tijk^{-\theta}
+  &\;=\;
+  \frac{[(I-A^{\cf})^{-1}]_{ij}}{[(I-A^{\obs})^{-1}]_{ij}},
+  \quad A^{\cf}_{kl}=\tkl^{\obs,-\theta}\hat\tkl^{-\theta},
+  \label{eq:hat_tau}\\
+  \hat l_i^{R,1-\beta\theta}
+  &\;=\;\hat\chi\cdot
+    \frac{\sum_j (\tijk^{\obs})^{-\theta}\hat\tijk^{-\theta}
+                  \Abar_j^{\star,\theta}(l_j^{F,\obs})^{\alpha\theta}
+                  \hat l_j^{F,\alpha\theta}}
+         {\sum_j (\tijk^{\obs})^{-\theta}\Abar_j^{\star,\theta}
+                  (l_j^{F,\obs})^{\alpha\theta}},
+  \label{eq:hat_lR}\\
+  \hat l_j^{F,1-\alpha\theta}
+  &\;=\;\hat\chi\cdot
+    \frac{\sum_i (\tijk^{\obs})^{-\theta}\hat\tijk^{-\theta}
+                  \ubar_i^{\star,\theta}(l_i^{R,\obs})^{\beta\theta}
+                  \hat l_i^{R,\beta\theta}}
+         {\sum_i (\tijk^{\obs})^{-\theta}\ubar_i^{\star,\theta}
+                  (l_i^{R,\obs})^{\beta\theta}},
+  \label{eq:hat_lF}\\
+  \hat{\Wbar}^{\theta}
+  &\;=\;\sum_{(i,j)}\pi_{ij}^{\obs}\,
+        \hat l_i^{R,\beta\theta}\,\hat l_j^{F,\alpha\theta}\,
+        \hat\tijk^{-\theta},
+  \label{eq:hat_W}
+\end{align}
+with normalisations $\sum_i l_i^{R,\obs}\hat l_i^R=1$,
+$\sum_j l_j^{F,\obs}\hat l_j^F=1$, $\hat\chi=\hat{\Wbar}^{-\theta}$,
+and $\pi_{ij}^{\obs}=L_{ij}^{\obs}/\Lbar$.
+
+\paragraph{Algorithm \textsc{HatSolve} (nested fixed point).}
+
+\begin{enumerate}[leftmargin=2em,itemsep=0.2em]
+\item \textbf{Inputs.} Baseline objects
+  $\bigl(\tkl^{\obs},L_i^{R,\obs},L_j^{F,\obs},\tijk^{\obs},
+  P_k,\Pi_l,\ubar_i^{\star},\Abar_j^{\star}\bigr)$ and counterfactual
+  lane capacities $\{\hat n_{kl}\}$.
+\item \textbf{Initialise.} $\hat\tkl=1$, $\hat l_i^R=1$,
+  $\hat l_j^F=1$.
+\item \textbf{Outer step on $\hat\tkl$.}
+\begin{enumerate}[label=(\alph*),leftmargin=2em,itemsep=0.15em]
+\item Form $A^{\cf}_{kl}=\tkl^{\obs,-\theta}\hat\tkl^{-\theta}$ and
+  compute $\hat\tijk^{-\theta}$ from \eqref{eq:hat_tau} by a single
+  sparse $(I-A^{\cf})^{-1}$ solve.
+\item \textbf{Inner step on shares.} Iterate
+  \eqref{eq:hat_lR}--\eqref{eq:hat_lF} jointly, with
+  $\hat\chi=\hat{\Wbar}^{-\theta}$ from \eqref{eq:hat_W}, until
+  $\max_i|\Delta\hat l_i^R|+\max_j|\Delta\hat l_j^F|<10^{-8}$.
+\item Update market access: $\hat\Pi_i^{-\theta}$ and
+  $\hat P_j^{-\theta}$ from the hat versions of \eqref{eq:MA_def}.
+\item Update $\hat\tkl$ from \eqref{eq:hat_tkl}.
+\end{enumerate}
+\item \textbf{Convergence.} Stop the outer loop when
+  $\max_{kl}|\hat\tkl^{(k+1)}/\hat\tkl^{(k)}-1|<10^{-6}$.
+\item \textbf{Outputs.}
+  $(\hat\tkl,\hat\xi_{kl},\hat\tijk,\hat l_i^R,\hat l_j^F,\hat{\Wbar})$
+  and the welfare metric $\hat{\mathbb W}=\hat{\Wbar}$.
+\end{enumerate}
+
+\paragraph{Implementation notes.}
+The bilateral-cost step is the binding cost; the sparse
+$(I-A^{\cf})^{-1}$ solve is performed once per outer iteration.
+Damped updates $\hat\tkl^{(k+1)}=\hat\tkl^{(k),\,1-\rho}\cdot
+[\hat\tkl^{\mathrm{trial}}]^{\rho}$ with $\rho\in[0.3,0.7]$ stabilise
+convergence at high $\lambda$; Anderson acceleration on the inner
+share loop is reported as an option.  A levels
+counterpart of \textsc{HatSolve} (re-running the equilibrium at
+$(\ubar^{\star},\Abar^{\star})$ with counterfactual primitives) is
+maintained as a numerical consistency check.
+
+\subsection{Counterfactual scenarios}\label{ssec:scenarios}
+
+\begin{description}[leftmargin=2.5em,itemsep=0.25em]
+\item[CF1.] \emph{Symmetric vs.\ directional commuting costs.}
+  Replace $\tkl^{\obs}$ by the corridor-level average
+  $\tfrac12(\tkl^{\obs}+t_{lk}^{\obs})$, holding lane capacities and
+  fundamentals fixed.  Isolates the welfare contribution of observed
+  directionality.
+\item[CF2.] \emph{Tidal-lane reallocation.} Apply
+  $n_{kl}^{\cf}=n_{kl}+\Delta_{kl}$, $n_{lk}^{\cf}=n_{lk}-\Delta_{kl}$
+  on a target set $\E^{\star}$ obtained from a directional-asymmetry
+  screen on the centerline backbone.  For each centerline with valid
+  peak-period speeds in both directions, define
+  $\mathrm{ratio}_p=\min(v_{AB,p}/v_{BA,p},v_{BA,p}/v_{AB,p})$ and
+  classify the centerline as \emph{asymmetric in peak $p$} if
+  $\mathrm{ratio}_p<0.5$.  Three nested target sets are reported:
+  the strict tidal-candidate set ($|\E^{\star}|=14$ corridors that
+  also satisfy AM--PM reversal of the faster direction and
+  $\mathrm{ratio}_p<0.5$ in both peaks), the AM-asymmetric set
+  (405 corridors, 11.0\% of bidirectional centerlines), and the
+  PM-asymmetric set (361 corridors, 9.8\%).  Lane shifts
+  $\Delta_{kl}\in\{0.5,1,2\}$ preserve total corridor capacity
+  $n_{kl}+n_{lk}$.
+\item[CF3.] \emph{Uniform lane expansion.} Multiply $n_{kl}$ by a
+  factor in $\{1.10,1.25,1.50\}$ uniformly across links.  Benchmarks
+  CF2 against undifferentiated capacity addition.
+\item[CF4.] \emph{Welfare and distributional comparisons.} Across
+  CF1--CF3, report $\hat{\mathbb W}$, the cross-grid Gini of
+  $(\hat l_i^R,\hat l_j^F)$, and the share of grids with
+  $\hat l_i^R>1$.
+\end{description}
+The robustness array runs each scenario on the PM peak, the
+hexagonal grid, $\theta\in\{4,6.83,9\}$, and
+$\lambda\in\{0.1,0.3,0.6,1.0\}$.
+
+\subsection{Internal robustness check on $\theta$}\label{ssec:theta_check}
+
+For each $\theta\in\{3,4,\dots,12\}$ the procedure recomputes
+$\tijk^{\obs}(\theta)$ via \eqref{eq:tau_series} and runs the
+two-way fixed-effects gravity regression
+\begin{equation}
+  \ln L_{ij}^{\obs}\;=\;-\theta\,\ln\tijk(\theta)+\mu_i+\nu_j+\varepsilon_{ij}.
+  \label{eq:gravity_log}
+\end{equation}
+The internal-consistency estimator selects the $\theta$ at which the
+regression slope equals the imposed $\theta$.  The result is
+reported alongside the external calibration; the external calibration
+remains the baseline because \eqref{eq:gravity_log} relies on the
+same network costs that are themselves equilibrium objects.
+
+%====================================================================
+\begin{thebibliography}{10}
+%====================================================================
+\bibitem[Ahlfeldt et al.(2015)]{Ahlfeldt2015}
+Ahlfeldt, G., Redding, S. J., Sturm, D. M., Wolf, N. (2015). The
+economics of density: Evidence from the Berlin Wall.
+\emph{Econometrica}, 83(6), 2127--2189.
+
+\bibitem[Allen and Arkolakis(2014)]{AllenArkolakis2014}
+Allen, T., Arkolakis, C. (2014). Trade and the topography of the
+spatial economy. \emph{Quarterly Journal of Economics}, 129(3),
+1085--1140.
+
+\bibitem[Allen and Arkolakis(2022)]{AllenArkolakis2022}
+Allen, T., Arkolakis, C. (2022). The welfare effects of transportation
+infrastructure improvements. \emph{Review of Economic Studies},
+89(6), 2911--2957.
+
+\bibitem[Combes, Duranton, and Gobillon(2008)]{CombesDurantonGobillon2008}
+Combes, P.-P., Duranton, G., Gobillon, L. (2008). Spatial wage
+disparities: Sorting matters! \emph{Journal of Urban Economics},
+63(2), 723--742.
+
+\bibitem[Combes and Gobillon(2015)]{CombesGobillon2015}
+Combes, P.-P., Gobillon, L. (2015). The empirics of agglomeration
+economies. In \emph{Handbook of Regional and Urban Economics}, Vol.
+5A, ed.\ G.\ Duranton, J.\ V.\ Henderson, and W.\ Strange, 247--348.
+Elsevier.
+
+\bibitem[Duranton and Turner(2011)]{DurantonTurner2011}
+Duranton, G., Turner, M. A. (2011). The fundamental law of road
+congestion: Evidence from US cities. \emph{American Economic Review},
+101(6), 2616--2652.
+
+\bibitem[Heblich, Redding, and Sturm(2020)]{HeblichReddingSturm2020}
+Heblich, S., Redding, S. J., Sturm, D. M. (2020). The making of the
+modern metropolis: Evidence from London. \emph{Quarterly Journal of
+Economics}, 135(4), 2059--2133.
+
+\bibitem[Monte, Redding, and Rossi-Hansberg(2018)]{MonteReddingRossiHansberg2018}
+Monte, F., Redding, S. J., Rossi-Hansberg, E. (2018). Commuting,
+migration, and local employment elasticities. \emph{American Economic
+Review}, 108(12), 3855--3890.
+
+\end{thebibliography}
+
+\end{document}

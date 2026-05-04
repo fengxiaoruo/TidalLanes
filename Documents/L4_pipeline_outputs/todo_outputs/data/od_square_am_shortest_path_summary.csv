@@ -1,0 +1,2 @@
+grid_type,period,reachable_od_pairs,valid_cost_pairs,weighted_avg_travel_time_min,weighted_median_travel_time_min,weighted_avg_euclid_dist_km,weighted_avg_effective_speed_kmh
+square,AM,355648,350839,18.882306862771458,40.21073573089225,14.455998178062254,67.16577095703809

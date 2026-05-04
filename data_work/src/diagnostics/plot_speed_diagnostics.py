@@ -3,6 +3,7 @@ Plot speed diagnostics for a versioned run.
 """
 
 import argparse
+import json
 from pathlib import Path
 
 import numpy as np
@@ -21,8 +22,23 @@ def parse_args():
     return parser.parse_args()
 
 
-def load_speed_raw():
-    df = pd.read_csv(RAW_SPEED_PATH)
+def resolve_raw_speed_path(version_root: Path) -> Path:
+    snap = version_root / "config_snapshot.stage03.json"
+    if snap.exists():
+        payload = json.loads(snap.read_text(encoding="utf-8"))
+        cfg_path = payload.get("raw_speed_path")
+        if cfg_path:
+            p = Path(cfg_path)
+            if not p.is_absolute():
+                p = Path.cwd() / p
+            if p.exists():
+                return p
+    return RAW_SPEED_PATH
+
+
+def load_speed_raw(version_root: Path):
+    speed_path = resolve_raw_speed_path(version_root)
+    df = pd.read_csv(speed_path)
     df["speed"] = pd.to_numeric(df["speed"], errors="coerce")
     df["roadseg_id"] = df["roadseg_id"].astype("string")
     df["hour"] = pd.to_numeric(df["hour"], errors="coerce")
@@ -154,7 +170,7 @@ def run(version_id: str, output_dir: str):
     figures_dir = version_root / "figures"
     figures_dir.mkdir(parents=True, exist_ok=True)
 
-    raw_df = load_speed_raw()
+    raw_df = load_speed_raw(version_root)
     raw_segments, match, cl_speed = load_inputs(version_root)
     raw_obs = prepare_raw_obs(raw_df, raw_segments, match)
 

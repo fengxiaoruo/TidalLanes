@@ -19,6 +19,9 @@ Default expectations:
 - Avoid unnecessary complexity
 - Make pipeline inputs and outputs explicit
 - Preserve comparability across versions
+- Use `nextstep.md` as a short live plan only
+- Record completed work and locked decisions in `data_work/docs/WORK_LOG.md`
+- When updating project status, remove finished items from `nextstep.md` and append the result to the work log instead
 
 ## Common Commands
 

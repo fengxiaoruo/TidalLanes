@@ -26,13 +26,18 @@ class ModelInputs:
     od_pop_obs: np.ndarray
     edge_i: np.ndarray
     edge_j: np.ndarray
-    edge_t_obs_min: np.ndarray
-    edge_t_ff_min: np.ndarray
+    edge_tau_obs_min: np.ndarray
+    edge_tau_ff_min: np.ndarray
+    edge_t_obs_iceberg: np.ndarray
+    edge_t_ff_iceberg: np.ndarray
+    edge_tau_ff_imputed_flag: np.ndarray
     edge_len_km: np.ndarray
     edge_lane_obs: np.ndarray
+    edge_lane_quality_flag: np.ndarray
     edge_keys: list[tuple[int, int]]
     edge_grid_o: np.ndarray
     edge_grid_d: np.ndarray
+    iceberg_delta0: float
 
     @property
     def n_nodes(self) -> int:
@@ -41,6 +46,14 @@ class ModelInputs:
     @property
     def n_edges(self) -> int:
         return len(self.edge_i)
+
+    @property
+    def edge_t_obs_min(self) -> np.ndarray:
+        return self.edge_tau_obs_min
+
+    @property
+    def edge_t_ff_min(self) -> np.ndarray:
+        return self.edge_tau_ff_min
 
 
 @dataclass
@@ -71,6 +84,7 @@ class EquilibriumResult:
     welfare: float
     n_iter: int
     converged: bool
+    max_log_change: float
 
 
 def clone_model_with_od_subset(model: ModelInputs, keep_mask: np.ndarray) -> ModelInputs:
@@ -92,13 +106,18 @@ def clone_model_with_od_subset(model: ModelInputs, keep_mask: np.ndarray) -> Mod
         od_pop_obs=od_pop_obs.copy(),
         edge_i=model.edge_i.copy(),
         edge_j=model.edge_j.copy(),
-        edge_t_obs_min=model.edge_t_obs_min.copy(),
-        edge_t_ff_min=model.edge_t_ff_min.copy(),
+        edge_tau_obs_min=model.edge_tau_obs_min.copy(),
+        edge_tau_ff_min=model.edge_tau_ff_min.copy(),
+        edge_t_obs_iceberg=model.edge_t_obs_iceberg.copy(),
+        edge_t_ff_iceberg=model.edge_t_ff_iceberg.copy(),
+        edge_tau_ff_imputed_flag=model.edge_tau_ff_imputed_flag.copy(),
         edge_len_km=model.edge_len_km.copy(),
         edge_lane_obs=model.edge_lane_obs.copy(),
+        edge_lane_quality_flag=model.edge_lane_quality_flag.copy(),
         edge_keys=model.edge_keys.copy(),
         edge_grid_o=model.edge_grid_o.copy(),
         edge_grid_d=model.edge_grid_d.copy(),
+        iceberg_delta0=model.iceberg_delta0,
     )
 
 
@@ -118,15 +137,24 @@ def _geom_normalize(arr: np.ndarray) -> np.ndarray:
     return out / gmean
 
 
-def load_model_inputs(version_root: Path, grid_type: str = "square") -> ModelInputs:
+def transform_minutes_to_iceberg(tau_min: np.ndarray, delta0: float) -> np.ndarray:
+    tau_arr = np.asarray(tau_min, dtype=float)
+    out = np.full_like(tau_arr, np.inf, dtype=float)
+    keep = np.isfinite(tau_arr) & (tau_arr > 0)
+    out[keep] = np.exp(np.clip(delta0 * tau_arr[keep], a_min=None, a_max=50.0))
+    return out
+
+
+def load_model_inputs(
+    version_root: Path,
+    grid_type: str = "square",
+    iceberg_delta0: float = 0.15,
+) -> ModelInputs:
     data_dir = version_root / "data"
     nodes = pd.read_parquet(data_dir / f"qsm_input_nodes_{grid_type}.parquet")
     od = pd.read_parquet(data_dir / f"qsm_input_od_{grid_type}.parquet")
     edges = pd.read_parquet(data_dir / f"qsm_input_edges_{grid_type}.parquet")
-    links_long = pd.read_csv(data_dir / f"grid_links_{grid_type}_long.csv")
-    lane = pd.read_parquet(data_dir / "centerline_lane_master.parquet")[
-        ["cline_id", "dir", "lane_est_length_weighted"]
-    ].copy()
+    links_long_path = data_dir / f"grid_links_{grid_type}_long.csv"
 
     nodes["node_i"] = pd.to_numeric(nodes["node_i"], errors="coerce").astype(int)
     nodes = nodes.sort_values("node_i").reset_index(drop=True)
@@ -137,59 +165,63 @@ def load_model_inputs(version_root: Path, grid_type: str = "square") -> ModelInp
     total_pop = float(residents_obs.sum())
 
     od = od.copy()
-    od["home_i"] = pd.to_numeric(od["home_i"], errors="coerce").astype(int)
-    od["work_i"] = pd.to_numeric(od["work_i"], errors="coerce").astype(int)
-    od["pop"] = pd.to_numeric(od["pop"], errors="coerce").fillna(0.0)
-    od = od[od["pop"] > 0].copy()
-    od = od[od["home_i"].isin(old_to_new) & od["work_i"].isin(old_to_new)].copy()
-    od["home_i_new"] = od["home_i"].map(old_to_new).astype(int)
-    od["work_i_new"] = od["work_i"].map(old_to_new).astype(int)
+    od_origin_col = "origin_node" if "origin_node" in od.columns else "home_i"
+    od_dest_col = "destination_node" if "destination_node" in od.columns else "work_i"
+    od_pop_col = "commuters_road" if "commuters_road" in od.columns else "pop"
+    od[od_origin_col] = pd.to_numeric(od[od_origin_col], errors="coerce").astype(int)
+    od[od_dest_col] = pd.to_numeric(od[od_dest_col], errors="coerce").astype(int)
+    od[od_pop_col] = pd.to_numeric(od[od_pop_col], errors="coerce").fillna(0.0)
+    od = od[od[od_pop_col] > 0].copy()
+    od = od[od[od_origin_col].isin(old_to_new) & od[od_dest_col].isin(old_to_new)].copy()
+    od["home_i_new"] = od[od_origin_col].map(old_to_new).astype(int)
+    od["work_i_new"] = od[od_dest_col].map(old_to_new).astype(int)
 
-    links_long = links_long[links_long["period"] == "AM"].copy()
-    links_long["grid_o"] = links_long["grid_o"].astype(str)
-    links_long["grid_d"] = links_long["grid_d"].astype(str)
-    links_long["lane_est_length_weighted"] = pd.to_numeric(
-        links_long.merge(lane, on=["cline_id", "dir"], how="left")["lane_est_length_weighted"],
-        errors="coerce",
-    )
-    lane_mean = float(pd.to_numeric(lane["lane_est_length_weighted"], errors="coerce").dropna().mean())
+    lane_mean = float(pd.to_numeric(edges.get("lanes_directional"), errors="coerce").dropna().mean())
+    if (not np.isfinite(lane_mean) or lane_mean <= 0) and links_long_path.exists():
+        links_long = pd.read_csv(links_long_path)
+        links_long = links_long[links_long["period"] == "AM"].copy()
+        lane_mean = float(pd.to_numeric(links_long.get("lane_est_length_weighted"), errors="coerce").dropna().mean())
     if not np.isfinite(lane_mean) or lane_mean <= 0:
         lane_mean = 2.0
-    links_long["lane_est_length_weighted"] = links_long["lane_est_length_weighted"].fillna(lane_mean)
-    links_long["len_m"] = pd.to_numeric(links_long["len_m"], errors="coerce").fillna(0.0)
-    links_long["tt_s"] = pd.to_numeric(links_long["tt_s"], errors="coerce").fillna(0.0)
-    links_long = links_long[(links_long["len_m"] > 0) & (links_long["tt_s"] > 0)].copy()
-
-    edge_len = (
-        links_long.groupby(["grid_o", "grid_d"], as_index=False)["len_m"]
-        .sum()
-        .rename(columns={"len_m": "edge_len_m"})
-    )
-    edge_lane = (
-        links_long.assign(w_lane=links_long["len_m"] * links_long["lane_est_length_weighted"])
-        .groupby(["grid_o", "grid_d"], as_index=False)
-        .agg(edge_len_m=("len_m", "sum"), w_lane=("w_lane", "sum"))
-    )
-    edge_lane["edge_lane_obs"] = edge_lane["w_lane"] / np.clip(edge_lane["edge_len_m"], EPS, None)
-    edge_lane = edge_lane[["grid_o", "grid_d", "edge_lane_obs"]]
 
     edges = edges.copy()
     edges["grid_o"] = edges["grid_o"].astype(str)
     edges["grid_d"] = edges["grid_d"].astype(str)
     edges["i"] = pd.to_numeric(edges["i"], errors="coerce").astype(int)
     edges["j"] = pd.to_numeric(edges["j"], errors="coerce").astype(int)
-    edges["t_min"] = pd.to_numeric(edges["t_min"], errors="coerce")
-    edges["t_ff_min"] = pd.to_numeric(edges.get("t_ff_min"), errors="coerce")
-    edges = edges[np.isfinite(edges["t_min"]) & (edges["t_min"] > 0)].copy()
+    edges["tau_obs_min"] = pd.to_numeric(
+        edges["tau_obs_min"] if "tau_obs_min" in edges.columns else edges["t_min"],
+        errors="coerce",
+    )
+    ff_series = edges["tau_ff_min"] if "tau_ff_min" in edges.columns else edges.get("t_ff_min")
+    edges["tau_ff_min"] = pd.to_numeric(ff_series, errors="coerce")
+    edges["tau_ff_imputed_flag"] = pd.to_numeric(edges.get("tau_ff_imputed_flag"), errors="coerce").fillna(0).astype(int)
+    inferred_missing_ff = (~np.isfinite(edges["tau_ff_min"])) | (edges["tau_ff_min"] <= 0)
+    edges.loc[inferred_missing_ff, "tau_ff_min"] = edges.loc[inferred_missing_ff, "tau_obs_min"]
+    edges.loc[inferred_missing_ff, "tau_ff_imputed_flag"] = 1
+    edges = edges[np.isfinite(edges["tau_obs_min"]) & (edges["tau_obs_min"] > 0)].copy()
     edges = edges[edges["i"].isin(old_to_new) & edges["j"].isin(old_to_new)].copy()
     edges["i_new"] = edges["i"].map(old_to_new).astype(int)
     edges["j_new"] = edges["j"].map(old_to_new).astype(int)
-    edges = edges.merge(edge_len, on=["grid_o", "grid_d"], how="left")
-    edges = edges.merge(edge_lane, on=["grid_o", "grid_d"], how="left")
+    if "total_link_len_m" in edges.columns:
+        edges["edge_len_m"] = pd.to_numeric(edges["total_link_len_m"], errors="coerce")
+    else:
+        edges["edge_len_m"] = np.nan
     edges["edge_len_m"] = edges["edge_len_m"].fillna(1000.0)
-    edges["edge_lane_obs"] = edges["edge_lane_obs"].fillna(lane_mean)
-    edges["t_ff_min"] = edges["t_ff_min"].fillna(edges["t_min"])
-    edges.loc[~np.isfinite(edges["t_ff_min"]) | (edges["t_ff_min"] <= 0), "t_ff_min"] = edges["t_min"]
+    edges["edge_lane_obs"] = pd.to_numeric(edges.get("lanes_directional"), errors="coerce").fillna(lane_mean)
+    edges["edge_lane_quality_flag"] = edges.get("lane_quality_flag", "unknown")
+    edges["t_obs_iceberg"] = pd.to_numeric(edges.get("t_obs_iceberg"), errors="coerce")
+    edges["t_ff_iceberg"] = pd.to_numeric(edges.get("t_ff_iceberg"), errors="coerce")
+    missing_obs_iceberg = ~np.isfinite(edges["t_obs_iceberg"]) | (edges["t_obs_iceberg"] <= 0)
+    missing_ff_iceberg = ~np.isfinite(edges["t_ff_iceberg"]) | (edges["t_ff_iceberg"] <= 0)
+    edges.loc[missing_obs_iceberg, "t_obs_iceberg"] = transform_minutes_to_iceberg(
+        edges.loc[missing_obs_iceberg, "tau_obs_min"].to_numpy(dtype=float),
+        iceberg_delta0,
+    )
+    edges.loc[missing_ff_iceberg, "t_ff_iceberg"] = transform_minutes_to_iceberg(
+        edges.loc[missing_ff_iceberg, "tau_ff_min"].to_numpy(dtype=float),
+        iceberg_delta0,
+    )
 
     return ModelInputs(
         version_id=version_root.name,
@@ -200,16 +232,21 @@ def load_model_inputs(version_root: Path, grid_type: str = "square") -> ModelInp
         jobs_obs=jobs_obs,
         od_origin=od["home_i_new"].to_numpy(dtype=int),
         od_dest=od["work_i_new"].to_numpy(dtype=int),
-        od_pop_obs=od["pop"].to_numpy(dtype=float),
+        od_pop_obs=od[od_pop_col].to_numpy(dtype=float),
         edge_i=edges["i_new"].to_numpy(dtype=int),
         edge_j=edges["j_new"].to_numpy(dtype=int),
-        edge_t_obs_min=edges["t_min"].to_numpy(dtype=float),
-        edge_t_ff_min=edges["t_ff_min"].to_numpy(dtype=float),
+        edge_tau_obs_min=edges["tau_obs_min"].to_numpy(dtype=float),
+        edge_tau_ff_min=edges["tau_ff_min"].to_numpy(dtype=float),
+        edge_t_obs_iceberg=edges["t_obs_iceberg"].to_numpy(dtype=float),
+        edge_t_ff_iceberg=edges["t_ff_iceberg"].to_numpy(dtype=float),
+        edge_tau_ff_imputed_flag=edges["tau_ff_imputed_flag"].to_numpy(dtype=int),
         edge_len_km=(edges["edge_len_m"].to_numpy(dtype=float) / 1000.0),
         edge_lane_obs=edges["edge_lane_obs"].to_numpy(dtype=float),
+        edge_lane_quality_flag=edges["edge_lane_quality_flag"].astype(str).to_numpy(),
         edge_keys=list(zip(edges["i_new"].to_numpy(dtype=int), edges["j_new"].to_numpy(dtype=int))),
         edge_grid_o=edges["grid_o"].astype(str).to_numpy(),
         edge_grid_d=edges["grid_d"].astype(str).to_numpy(),
+        iceberg_delta0=float(iceberg_delta0),
     )
 
 
@@ -319,11 +356,11 @@ def compute_soft_shortest_path_assignment(
         origins_d = od_origin[dest_mask]
         z_origin = Z[origins_d]
         tau_invtheta_support[dest_mask] = np.where(origins_d == int(dest), intrazonal_tau_invtheta, z_origin)
-        tau_support[dest_mask] = np.where(
-            origins_d == int(dest),
-            intrazonal_cost,
-            np.where(z_origin > EPS, np.power(z_origin, -1.0 / theta_route), np.inf),
-        )
+        tau_dest = np.full(len(origins_d), np.inf, dtype=float)
+        tau_dest[origins_d == int(dest)] = intrazonal_cost
+        valid_z = (origins_d != int(dest)) & (z_origin > EPS)
+        tau_dest[valid_z] = np.power(z_origin[valid_z], -1.0 / theta_route)
+        tau_support[dest_mask] = tau_dest
 
         if edge_flow is None:
             continue
@@ -541,7 +578,7 @@ def solve_congested_equilibrium(
         model.n_nodes,
         model.edge_i,
         model.edge_j,
-        model.edge_t_obs_min,
+        model.edge_tau_obs_min,
         model.od_origin,
         model.od_dest,
         theta_route=params.theta,
@@ -550,11 +587,12 @@ def solve_congested_equilibrium(
     if edge_flow_obs is None:
         edge_flow_obs = np.zeros(model.n_edges, dtype=float)
 
-    edge_t = model.edge_t_obs_min.copy()
+    edge_t = model.edge_tau_obs_min.copy()
     residents_init = model.residents_obs.copy()
     jobs_init = model.jobs_obs.copy()
     converged = False
     out = None
+    last_delta = np.nan
 
     for outer_iter in range(1, max_iter + 1):
         tau_min, tau_invtheta, _ = compute_soft_shortest_path_assignment(
@@ -593,9 +631,11 @@ def solve_congested_equilibrium(
         if edge_flow is None:
             edge_flow = np.zeros(model.n_edges, dtype=float)
         density_cf = np.clip(edge_flow / np.clip(edge_lane_cf, 0.25, None), EPS, None)
-        edge_t_new = model.edge_t_ff_min * np.power(density_cf, params.lambda_congestion)
+        congestion_multiplier = np.maximum(1.0, np.power(density_cf, params.lambda_congestion))
+        edge_t_new = model.edge_tau_ff_min * congestion_multiplier
         edge_t_upd = damping * edge_t_new + (1.0 - damping) * edge_t
         delta = float(np.max(np.abs(np.log(np.clip(edge_t_upd, EPS, None)) - np.log(np.clip(edge_t, EPS, None)))))
+        last_delta = delta
         edge_t = edge_t_upd
         residents_init = residents
         jobs_init = jobs
@@ -610,6 +650,7 @@ def solve_congested_equilibrium(
             welfare=welfare,
             n_iter=outer_iter,
             converged=bool(inner_conv),
+            max_log_change=delta,
         )
         if delta < tol:
             converged = True
@@ -619,6 +660,7 @@ def solve_congested_equilibrium(
         raise RuntimeError("Equilibrium solver did not produce an output.")
     out.converged = converged and out.converged
     out.n_iter = outer_iter
+    out.max_log_change = last_delta
     return out
 
 
@@ -627,14 +669,14 @@ def pick_top_congested_edges(
     baseline_eq: EquilibriumResult,
     top_n: int,
 ) -> np.ndarray:
-    score = baseline_eq.edge_flow * model.edge_t_obs_min / np.clip(model.edge_lane_obs, 0.5, None)
+    score = baseline_eq.edge_flow * model.edge_tau_obs_min / np.clip(model.edge_lane_obs, 0.5, None)
     order = np.argsort(-score)
     return order[:top_n]
 
 
 def build_symmetric_edge_times(model: ModelInputs) -> np.ndarray:
     pair_to_idx = build_edge_lookup(model.edge_i, model.edge_j)
-    t_sym = model.edge_t_obs_min.copy()
+    t_sym = model.edge_tau_obs_min.copy()
     visited: set[int] = set()
     for idx, (i, j) in enumerate(zip(model.edge_i, model.edge_j)):
         if idx in visited:
@@ -642,7 +684,7 @@ def build_symmetric_edge_times(model: ModelInputs) -> np.ndarray:
         rev = pair_to_idx.get((int(j), int(i)))
         if rev is None:
             continue
-        avg = 0.5 * (model.edge_t_obs_min[idx] + model.edge_t_obs_min[rev])
+        avg = 0.5 * (model.edge_tau_obs_min[idx] + model.edge_tau_obs_min[rev])
         t_sym[idx] = avg
         t_sym[rev] = avg
         visited.add(idx)
@@ -728,6 +770,9 @@ def summarise_equilibrium(
                 "weighted_avg_edge_flow": float(np.mean(eq.edge_flow)),
                 "solver_iterations": int(eq.n_iter),
                 "converged": bool(eq.converged),
+                "solver_max_log_change": eq.max_log_change,
+                "edge_tau_ff_imputed_share": float(np.mean(model.edge_tau_ff_imputed_flag)),
+                "edge_missing_lane_share": float(np.mean(model.edge_lane_quality_flag == "missing")),
             }
         ]
     )
@@ -749,8 +794,10 @@ def save_calibration_bundle(
             "theta_source": params.theta_source,
             "lambda_source": params.lambda_source,
         },
-        "theta_fit": theta_fit,
-        "lambda_fit": lambda_fit,
+        "theta_diagnostic": theta_fit,
+        "lambda_diagnostic": lambda_fit,
+        "theta_used": params.theta,
+        "lambda_used": params.lambda_congestion,
     }
     (output_dir / "calibration_summary.json").write_text(
         json.dumps(payload, ensure_ascii=True, indent=2),

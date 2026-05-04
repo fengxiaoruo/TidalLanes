@@ -23,12 +23,13 @@ from src.model.spatial_equilibrium import (
     reallocate_tidal_lanes,
     solve_congested_equilibrium,
     summarise_equilibrium,
+    transform_minutes_to_iceberg,
 )
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run structural counterfactual suite.")
-    parser.add_argument("--version-id", default="raw_rebuild_validation")
+    parser.add_argument("--version-id", default="manual_centerline_rules_v11")
     parser.add_argument("--output-dir", default="data_work/outputs")
     parser.add_argument("--grid-type", default="square", choices=["square", "hex", "voronoi"])
     parser.add_argument("--theta", type=float, default=6.83)
@@ -40,6 +41,7 @@ def parse_args():
     parser.add_argument("--model-output-subdir", default="model_square_suite")
     parser.add_argument("--max-iter", type=int, default=60)
     parser.add_argument("--damping", type=float, default=0.35)
+    parser.add_argument("--iceberg-delta0", type=float, default=None)
     return parser.parse_args()
 
 
@@ -53,12 +55,13 @@ def main():
     model_root = version_root / args.model_output_subdir
     model_root.mkdir(parents=True, exist_ok=True)
 
-    model_full = load_model_inputs(version_root, grid_type=args.grid_type)
+    iceberg_delta0 = float(args.iceberg_delta0) if args.iceberg_delta0 is not None else (1.0 / args.theta)
+    model_full = load_model_inputs(version_root, grid_type=args.grid_type, iceberg_delta0=iceberg_delta0)
     tau_obs, tau_invtheta_obs, _ = compute_soft_shortest_path_assignment(
         model_full.n_nodes,
         model_full.edge_i,
         model_full.edge_j,
-        model_full.edge_t_obs_min,
+        model_full.edge_tau_obs_min,
         model_full.od_origin,
         model_full.od_dest,
         theta_route=args.theta,
@@ -69,7 +72,7 @@ def main():
         model.n_nodes,
         model.edge_i,
         model.edge_j,
-        model.edge_t_obs_min,
+        model.edge_tau_obs_min,
         model.od_origin,
         model.od_dest,
         theta_route=args.theta,
@@ -108,7 +111,9 @@ def main():
         rows.append(summarise_equilibrium(model, baseline, f"baseline_lambda_{lam:.2f}").iloc[0].to_dict())
 
         sym_model = clone_model_with_od_subset(model, np.ones(len(model.od_origin), dtype=bool))
-        sym_model.edge_t_obs_min = build_symmetric_edge_times(model)
+        sym_tau = build_symmetric_edge_times(model)
+        sym_model.edge_tau_obs_min = sym_tau
+        sym_model.edge_t_obs_iceberg = transform_minutes_to_iceberg(sym_tau, sym_model.iceberg_delta0)
         symmetric = solve_congested_equilibrium(
             sym_model,
             params,

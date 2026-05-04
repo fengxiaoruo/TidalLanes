@@ -1,0 +1,1 @@
+你现在进入 TidalLanes 项目。先按最小必要原则读取项目根目录下的 AGENTS.md、nextstep.md 和 data_work/docs/WORK_LOG.md，再根据当前任务决定是否继续读 data_work/AGENTS.md 或 writing.md。先用很短的话对齐你理解的当前项目状态、当前任务和下一步，然后直接开始工作。除非必要，不要做大范围无关阅读。

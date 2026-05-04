@@ -79,6 +79,10 @@ def build_pairs(gdf: gpd.GeoDataFrame, speed_col: str) -> pd.DataFrame:
 
     sp = tmp.pivot_table(index="cline_id", columns="dir", values=speed_col, aggfunc="mean")
     sp = sp.rename(columns={"AB": "speed_AB", "BA": "speed_BA"}).reset_index()
+    if "speed_AB" not in sp.columns:
+        sp["speed_AB"] = np.nan
+    if "speed_BA" not in sp.columns:
+        sp["speed_BA"] = np.nan
 
     ge = tmp.pivot_table(index="cline_id", columns="dir", values="geometry", aggfunc="first").reset_index()
     ge = ge.rename(columns={"AB": "geom_AB", "BA": "geom_BA"})

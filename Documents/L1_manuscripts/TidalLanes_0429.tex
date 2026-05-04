@@ -1,0 +1,884 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry} % narrower margins
+\usepackage[UTF8,fontset=fandol]{ctex}  
+\renewcommand{\figurename}{Figure}
+\renewcommand{\tablename}{Table}
+\usepackage{amsmath, amssymb, graphicx, setspace, natbib}
+\usepackage{booktabs,tabularx}
+\usepackage{multirow}
+\usepackage{comment}
+\usepackage{enumitem}
+\usepackage{array}
+
+\title{Tidal Lanes}
+\author{Xiaoruo Feng}
+\date{April 2026}
+
+
+\begin{document}
+	\maketitle
+	
+	\section{Introduction}
+	\begin{itemize}
+		\item Motivation: asymmetric traffic flows (tidal lanes) versus symmetric assumptions in standard spatial models.
+		\item Contribution: extend Allen \& Arkolakis (2022) to incorporate directional, grid-level road networks.
+		\item Data advantage: high-frequency road segment speed data (10-minute interval) combined with commuting-flow matrices (Beijing and Shenzhen).
+	\end{itemize}
+	
+		\section{Data}
+		\subsection{Commuting-Flow Data}
+		
+		\begin{itemize}
+			\item \textbf{Beijing:} 2022 100-meter grid OD data
+			\begin{itemize}
+				\item Observations: 6,909,608 (O-D pairs). Among them, there are 355,190 unique origin grid IDs, 394,500 unique destination grid IDs, and a total of 453,391 unique grids.
+				\item Size: 100-meter grids (WGS84 coordinates; in practice the resolution is approximately 75 meters per grid cell).
+				\item Attributes: commuters are disaggregated by demographic and socioeconomic characteristics, including gender, age, education, income, consumption patterns, and occupation categories.
+			\end{itemize}
+
+			\item \textbf{Shenzhen:} 2024 100-meter grid OD data
+			\begin{itemize}
+				\item Observations: 3,970,569 (O-D pairs). Among them, there are 94,670 unique origin grid IDs, 105,322 unique destination grid IDs, and a total of 110,339 unique grids.
+				\item Size: 100-meter grids
+				\item Attributes: commuters are disaggregated by demographic and socioeconomic characteristics, including gender, age, education, income, consumption patterns, and occupation categories.
+			\end{itemize}
+				
+		\item \textbf{Limitation:} Both commuting matrices do not distinguish between different transport modes.
+	\end{itemize}
+
+	The spatial distribution of residents and jobs is the first descriptive motivation for directional congestion. Employment is more concentrated than residence, which implies systematic morning inflows toward the main employment clusters and reverse flows later in the day. In Figure~\ref{fig:Beijing_commuting}, each square grid is colored by the percentile rank of residents or jobs. The map therefore emphasizes relative concentration rather than raw counts, and it makes the residence-job imbalance visible without imposing additional grid borders.
+
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.92\textwidth]{../L4_pipeline_outputs/todo_outputs/figs/figure1_spatial_distribution_residents_jobs.pdf}
+		\caption{Spatial distribution of residents and jobs in the Beijing square-grid system. Each grid is colored by the percentile rank of residents or jobs, with no grid borders.}
+		\label{fig:Beijing_commuting}
+	\end{figure}
+		
+	\subsection{Road Segment Speed Data}
+	\begin{itemize}
+		\item Beijing: segment-level speed at 10-minute frequency. Core fields include \texttt{cityname}, \texttt{roadseg\_id}, \texttt{roadname}, \texttt{roadtype}, \texttt{semantic}, \texttt{location}, and \texttt{geometry}.
+		\item Shenzhen: same structure.
+	\end{itemize}
+	
+
+	\begin{table}[h!]
+		\centering
+		\caption{Example record from the raw road-segment dataset}
+		\label{tab:raw_example}
+		\small
+		\setlength{\tabcolsep}{6pt}
+		\begin{tabularx}{\textwidth}{@{}l X l >{\raggedright\arraybackslash}p{0.55\textwidth}@{}}
+			\toprule
+			\textbf{Variable} & \textbf{Value} & \textbf{Variable} & \textbf{Value} \\
+			\midrule
+			cityname &
+			北京市 &
+			roadseg\_id &
+			\texttt{RS\_NB1520263513\_NB1530878951\_1} \\
+			roadname &
+			\texttt{X017} &
+			semantic &
+			自 S320 出入口到 X017 路口，东向西 \\
+			roadtype &
+			4 &
+			geometry &
+			\texttt{LINESTRING(115.70157 39.57762, 115.70108 39.5\ldots)} \\
+			location &
+			0.043 &
+			& \\			
+			\bottomrule
+		\end{tabularx}
+	\end{table}
+
+		\begin{figure}[h!]
+			\centering
+			\includegraphics[width=0.9\textwidth]{../L3_figs/speed_eg.png}
+			\caption{Illustrative raw road-segment speed visualization.}
+			\label{fig:speed_eg}
+		\end{figure}
+
+	\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Pipeline Overview}
+\label{sec:pipeline-overview}
+
+Figure~\ref{fig:pipeline-overview} summarizes the end-to-end data-processing workflow used in this paper. We start from raw segment-level speed records and the baseline road network. We then construct a directed-centerline system to characterize tidal patterns, quantify directional asymmetries in speed and flow, and identify potential tidal-lane candidates for counterfactual analysis.\\
+
+ In parallel, we build a grid system and compute grid-level travel-cost matrices directly from the raw network. To recover connectivity, we develop a road-connection algorithm with manual corrections in the topology. We then solve shortest paths and obtain origin--destination travel cost, distance, and implied speed measures on the raw road network.
+
+\vspace{1cm}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.9\textwidth]{../L4_pipeline_outputs/pipeline_diagram_v1.png}
+	\caption{Pipeline for Data Work}
+	\label{fig:pipeline-overview}
+\end{figure}
+
+\clearpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+
+	\section{Road Network Construction and Centerline Matching}
+	
+	The raw road map contains the information needed for measurement, but its geometry is too irregular for corridor-level directional aggregation. Offset carriageways, ramps, frontage roads, and stacked interchanges often create duplicate or overlapping traces for the same corridor. The retained raw-centerline construction therefore has two parts: \textbf{first}, manually curated corridor centerlines handle roads where the medial-axis algorithm is unreliable; \textbf{second}, a skeleton backbone regularizes the remaining raw geometry. The two layers are merged into one raw-centerline system for the downstream speed and lane stages.
+	
+	\subsection{Manual Corridors and the Two-Part Construction}
+
+	The manual component targets cases where skeletonization repeatedly fails: long divided expressways, curved frontage roads, ramps, and grade-separated interchanges. In these corridors, the two directions do not always sit around a stable medial axis. A purely mechanical skeleton can attach the centerline to the wrong carriageway, cut a road into implausibly short fragments, or bridge structures that should remain distinct. We therefore isolate a curated set of difficult corridors and represent them with manually generated corridor centerlines.
+
+	The manual layer is not a separate network built from scratch. It is a targeted supplement to the raw road map. For each selected corridor, raw edges are grouped into one corridor object. A corridor-level centerline is then traced, simplified, and snapped into a continuous path. The resulting manual centerline is linked back to its raw edges through an \textbf{exact raw-edge to centerline} crosswalk, so these edges bypass the distance-based matching rule used elsewhere in the network.
+	
+	The manually handled corridors are limited by count but important by length. Table~\ref{tab:manual-corridor-summary} reports 963 manually handled raw edges, or 3.9\% of all raw edges. These edges represent 3,846 km of roadway and 20.4\% of total raw-network length. Their average length is about 4.0 km, compared with 0.63 km among the remaining raw edges. \textbf{Manual intervention is concentrated on long, complex corridors rather than on local fragments.}
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Why manual corridors matter.}
+		\label{tab:manual-corridor-summary}
+		\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}X r r r r r}
+			\toprule
+			Group & Count & Edge share & Length (km) & Mean (m) & Median (m) \\
+			\midrule
+			Manual exact-match corridors & 963 & 3.9\% & 3,846.0 & 3,994 & 1,252 \\
+			Remaining raw edges & 23,800 & 96.1\% & 15,026.7 & 631 & 400 \\
+			\bottomrule
+		\end{tabularx} \\
+		\vspace{0.3em}
+		\begin{minipage}{\textwidth}
+			\footnotesize
+			\raggedright
+			Note: ``Manual exact-match corridors'' refers to raw edges assigned through the manual-corridor crosswalk.
+		\end{minipage}
+	\end{table}
+	
+	Figure~\ref{fig:manual-corridor-map} gives the corresponding map. The manually handled corridors lie mainly on elongated arterial and expressway corridors rather than on short local streets. This spatial pattern explains why the manual channel matters for length-weighted measurement even though it covers only a limited share of raw edges by count.
+
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.65\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/paper_appendix/manual_corridors_only.png}
+		\caption{Corridors assigned through the manual exact-match channel. The map isolates the manually handled branch of the raw-centerline construction.}
+		\label{fig:manual-corridor-map}
+	\end{figure}
+	
+	
+	Everything outside the manual raw set enters the skeleton branch. The next subsections describe that branch. The full raw-centerline system is obtained after the manual layer and the skeleton backbone are combined, and the downstream speed and lane stages are then carried out on the baseline-kept directed subset of that merged system.
+
+	\subsection{Raw Road Network and Direction Information}
+	
+	The construction starts from the raw Beijing road polylines. After projection to a planar coordinate system, the raw network serves as the geometric source for all subsequent measurement. Each segment also retains the directional information carried by the original map attributes, which is later used when assigning observations to the directed centerline network.
+	
+	Figure~\ref{fig:raw-centerline-compare} illustrates the role of this transformation. The raw map contains multiple parallel traces for the same corridor and local geometric noise around ramps and intersections. The centerline representation collapses those local duplications into a cleaner object that is better suited for directional measurement.
+	
+	\begin{figure}[h!]
+		\centering
+		\begin{minipage}[t]{0.49\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{../../00archive/exhibit/map_raw_roads_15km.png}
+		\end{minipage}
+		\hfill
+		\begin{minipage}[t]{0.49\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{../../00archive/exhibit/map_centerline_15km.png}
+		\end{minipage}
+		\caption{Raw roads and derived centerlines within 15 km of Tiananmen Square. The figure shows why a centerline abstraction is useful: the raw network contains local duplication and irregular geometry, while the centerline network recovers the corridor-level structure needed for directional aggregation.}
+		\label{fig:raw-centerline-compare}
+	\end{figure}
+	
+	\subsection{Centerline Extraction via Skeletonization}
+	
+	The skeleton branch starts from the non-manual remainder of the raw road network. The retained construction uses a 50-meter road-surface buffer, a 5-meter raster for skeletonization, and a 50-meter minimum length threshold for spurious branches. Those choices are conservative. The buffer is wide enough to merge parallel traces that belong to the same physical corridor, the 5-meter raster preserves curvature better than a coarser grid, and the short-branch pruning removes small artifacts that arise near complex intersections.
+	
+	\subsection{Directed Centerline Network Construction}
+	
+	Once the undirected skeleton centerline is extracted, each centerline segment is duplicated into two directions. The resulting network is symmetric by construction, which is useful for directional speed aggregation because each physical corridor admits one link in each direction. This representation does not attempt to preserve every lane-level feature in the raw map. It recovers the corridor-level object on which directional travel conditions are measured, and it provides the backbone to which the manual corridors are later appended.
+	
+	\subsection{Selective Segmentation of Raw Road Segments}
+	
+	Before matching, raw edges in the skeleton branch are split only when local geometry indicates that a single segment spans more than one centerline element. The rule is deliberately conservative. In the retained construction, the non-manual branch rises from 23,800 raw edges to 23,804 split segments. Equivalently, across the full raw network, the count rises from 24,763 raw edges to 24,767 split segments. The procedure therefore is not relying on aggressive segmentation to improve the match rate.
+	
+	
+	
+	\subsection{Matching Raw Sub-Segments to Directed Centerlines}
+	
+	The final matching step combines the two branches. Raw edges on curated manual corridors are attached through the exact manual crosswalk described above. The remaining raw sub-segments are matched to the directed skeleton centerlines through a distance-cap rule that also uses directional alignment to choose among nearby candidates.
+	
+	For each non-manual raw sub-segment $r$, the algorithm first searches for directed centerline candidates within a local buffer. The initial search radius is 60 meters; if no candidate is found, the search is expanded to 180 meters and then to 600 meters. Among the candidates found at the first nonempty radius, the algorithm keeps candidates whose 60-meter centerline buffer intersects $r$ whenever such candidates exist. This step limits the comparison set to centerlines that are locally plausible for the raw geometry.
+	
+	The selected candidate is the one with the lowest score,
+	\[
+		\text{score}(r,c)=d_{\text{mean}}(r,c)+0.1\,\Delta\theta(r,c),
+	\]
+	where $d_{\text{mean}}(r,c)$ is the mean perpendicular distance from the raw sub-segment to candidate centerline $c$, and $\Delta\theta(r,c)$ is the absolute bearing difference in degrees. The distance term is computed by sampling points along $r$ every 30 meters, including the terminal point, and averaging their Euclidean distances to $c$. The direction term compares the raw segment bearing, taken from the parsed direction field when available and otherwise from geometry, with the candidate directed-centerline bearing. The angular difference is normalized to the interval $[0,180]$.
+	
+	Direction therefore affects which candidate is selected, but the retained match is not rejected solely because the angle is large. After the best candidate is chosen, the hard validity check is geometric: the match is kept only if $d_{\text{mean}}(r,c) \leq 180$ meters. The algorithm also records the projected start and end positions of $r$ along the chosen centerline, denoted \texttt{s\_from} and \texttt{s\_to}. These positions are used later to define which part of a directed centerline receives raw speed and lane information.
+	
+	The retained raw-centerline network is the union of these two channels: a manual corridor layer for structurally difficult roads and a skeleton backbone for the rest of the citywide network.
+	
+	\subsection{Outputs and Descriptive Statistics}
+	
+	Five related network objects enter the measurement pipeline. The first two are the raw road network and its selectively split counterpart. The next two are the undirected and directed centerline systems before any baseline restriction. The fifth, which is the network used in the speed and lane stages, is the baseline-kept directed centerline network. The baseline rule is geometric: a directed centerline is retained when it is a valid \texttt{LineString} and its parent centerline is at least 50 meters long. Table~\ref{tab:network-summary} and Figure~\ref{fig:length-cdf-5networks} summarize how these objects differ.
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Network summary statistics across alternative representations.}
+		\label{tab:network-summary}
+		\begin{tabular}{l r >{\centering\arraybackslash}p{1.8cm} >{\centering\arraybackslash}p{1.9cm} >{\centering\arraybackslash}p{1.9cm}}
+			\toprule
+			Network & $N$ & Mean length (m) & Median length (m) & Total length (km) \\
+			\midrule
+			raw & 24,763 & 762 & 411 & 18,880.0 \\
+			raw\_split & 24,767 & 762 & 411 & 18,880.0 \\
+			undirected centerline (all) & 22,876 & 429 & 7 & 9,812.4 \\
+			directed centerline (all) & 45,752 & 429 & 7 & 19,624.9 \\
+			directed centerline (baseline) & 11,890 & 1,631 & 708 & 19,391.3 \\
+			\bottomrule
+		\end{tabular} \\
+		\vspace{0.3em}
+		\begin{minipage}{\textwidth}
+			\footnotesize
+			\raggedright
+			Note: the baseline network keeps directed centerlines whose geometry is valid and whose parent undirected centerline is at least 50 meters long. The restriction removes short skeleton branches and leaves the corridor backbone used in downstream speed aggregation.
+		\end{minipage}
+	\end{table}
+	
+	The contrast between the unrestricted and baseline networks is informative rather than cosmetic. At the undirected level, the unrestricted centerline system contains 22,876 segments, most of which are very short local skeleton branches. Imposing the baseline filter, which keeps only geometrically valid centerlines at least 50 meters long, reduces the undirected count to 5,945 while removing only 116.8 km out of 9,812.4 km of total centerline length, or about 1.2 percent. The same pattern appears on the directed network: the unrestricted median segment length is only 7 meters, whereas the baseline median rises to 708 meters and the total retained length barely changes. The filter therefore removes spurious local branches, not economically meaningful corridors.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.74\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/paper_appendix/fig_length_cdf_5networks_v11.png}
+		\caption{Length CDF for the raw, raw\_split, undirected centerline, directed centerline, and baseline directed centerline networks. The baseline restriction trims short branches while preserving almost all corridor length.}
+		\label{fig:length-cdf-5networks}
+	\end{figure}
+	
+	Figure~\ref{fig:undirected-vs-baseline-maps} gives the corresponding map comparison at the undirected-centerline level. The unrestricted network contains many fine local branches, whereas the baseline-kept network preserves the corridor backbone. The local Tiananmen zoom shows the same pattern more clearly. The visual contrast is consistent with the length distribution in Figure~\ref{fig:length-cdf-5networks}: the baseline filter removes local skeleton clutter rather than materially shrinking the citywide corridor system.
+	
+	\begin{figure}[h!]
+		\centering
+		\begin{minipage}[t]{0.95\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/paper_appendix/fig_undirected_vs_baseline_centerline_maps.png}
+		\end{minipage}
+		
+		\vspace{0.4em}
+		
+		\begin{minipage}[t]{0.9\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/paper_appendix/fig_undirected_vs_baseline_centerline_maps_tiananmen_15km.png}
+		\end{minipage}
+		\caption{Undirected centerline network before and after the baseline filter. The upper map pair shows the full study area. The bottom map pair restricts attention to the area within 15 kilometers of Tiananmen Square. In each pair, the left panel plots the full undirected centerline system and the right panel keeps only centerlines whose geometry is valid and whose length is at least 50 meters.}
+		\label{fig:undirected-vs-baseline-maps}
+	\end{figure}
+	
+
+	
+	\subsection{Match Assessment: Length Coverage and Matching Statistics}
+	
+	Table~\ref{tab:match-summary-v11} reports the quality of the retained raw-to-centerline crosswalk on the raw-edge network. In total, 23,672 of 24,763 edges are matched. The count-based unmatched share is 4.41\% on raw edges, but the length-based margin is much smaller: unmatched edges account for only 239.9 km out of 18,880.0 km of raw-network length, or 1.27\%.
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Matching quality of the raw-to-centerline crosswalk.}
+		\label{tab:match-summary-v11}
+		\begin{tabular}{l r r r r}
+			\toprule
+			Measure & Total & Matched & Unmatched & Rate / share \\
+			\midrule
+			All raw edges & 24,763 & 23,672 & 1,091 & 95.59\% matched \\
+			Raw-network length (km) & 18,880.0 & 18,640.1 & 239.9 & 1.27\% unmatched \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	
+	We next reverse the lens and ask whether a centerline corridor receives support from raw observations. The relevant denominator is the retained baseline centerline backbone, not the unrestricted centerline system and not the raw-edge network. Coverage is not the main quality metric, because the centerline network is intentionally more complete than the set of matched raw observations. 
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Coverage of directed centerlines by raw sub-segments.}
+		\label{tab:directed-coverage}
+		\begin{tabular}{l r r r r}
+			\toprule
+			Direction & $N$ & Covered & Uncovered & Coverage rate \\
+			\midrule
+			ALL & 11,890 & 8,393 & 3,497 & 0.7059 \\
+			AB  & 5,945 & 4,229 & 1,716 & 0.7114 \\
+			BA  & 5,945 & 4,164 & 1,781 & 0.7004 \\
+			\bottomrule
+		\end{tabular}
+		\vspace{0.3em}
+		\begin{minipage}{\textwidth}
+			\footnotesize
+			\raggedright
+			Note: coverage is defined relative to the retained baseline directed centerline network.
+		\end{minipage}
+	\end{table}
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Coverage status of undirected centerlines.}
+		\label{tab:undirected-coverage}
+		\begin{tabular}{l r r}
+			\toprule
+			Status & $N$ & Share \\
+			\midrule
+			Both AB and BA & 3,697 & 0.6219 \\
+			AB only or BA only & 999 & 0.1680 \\
+			None & 1,249 & 0.2101 \\
+			\bottomrule
+		\end{tabular}
+		\vspace{0.3em}
+		\begin{minipage}{\textwidth}
+			\footnotesize
+			\raggedright
+			Note: the denominator is the retained baseline undirected centerline backbone (N = 5,945). Each corridor is classified by whether the matched raw crosswalk supports both directions, exactly one direction, or neither direction on that baseline object.
+		\end{minipage}
+	\end{table}
+	
+	The directional-coverage pattern sharpens this point. On the baseline centerline backbone, 62.2\% of undirected corridors are matched in both directions, 16.8\% are matched in only one direction, and 21.0\% receive no directional support. The length perspective is far more favorable. Corridors matched in both directions account for 87.0\% of baseline centerline length, one-direction corridors account for another 9.9\%, and corridors unmatched in both directions account for only 3.0\% of baseline length. From the raw-edge perspective, 90.0\% of edges, representing 91.9\% of raw length, fall on corridors whose centerlines are supported in both directions.
+	
+	The residual unmatched network is highly uneven. Most unmatched edges are short fragments. Among the 1,091 unmatched raw edges, 954 are shorter than 50 meters. These account for 87.4\% of unmatched edges by count but only 11.9\% of unmatched length. The opposite is true for the long tail: only 134 unmatched edges are at least 500 meters long, yet they account for 87.7\% of unmatched length. The remaining error is therefore concentrated in a narrow set of corridor-level cases rather than diffused throughout the street grid.
+	
+	Figure~\ref{fig:long-unmatched-raw-edges} maps this residual long tail. The remaining unmatched edges longer than 500 meters are sparse and concentrated in a small set of difficult roads. This evidence belongs to the match-assessment stage rather than to the manual-corridor construction itself, because it describes the cases that remain after both the manual channel and skeleton branch have been combined.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.74\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/paper_appendix/long_unmatched_corridors_only.png}
+		\caption{Remaining unmatched raw edges longer than 500 meters after the retained raw-centerline match. The residual is a narrow long tail rather than a citywide mismatch pattern.}
+		\label{fig:long-unmatched-raw-edges}
+	\end{figure}
+	
+	\begin{figure}[h!]
+		\centering
+		\begin{minipage}[t]{0.49\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/final_match_review/map_final_match_centerline_coverage.png}
+		\end{minipage}
+		\hfill
+		\begin{minipage}[t]{0.49\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/final_match_review/map_final_match_raw_edges_4status.png}
+		\end{minipage}
+		\caption{Directional match status on baseline centerlines and raw edges. The left panel classifies baseline centerlines by whether AB only, BA only, both directions, or neither direction is supported by matched raw segments. The right panel assigns raw edges to the same corridor-level classification.}
+		\label{fig:matched-unmatched-map}
+	\end{figure}
+	
+	Taken together, the diagnostics support a simple conclusion. The centerline abstraction is necessary because the raw network is too irregular for direct directional aggregation. Manual intervention is necessary because a small set of long, geometrically complex corridors systematically defeats a generic skeleton. Once those corridors are handled directly, the remaining mismatch is modest in count and very small in length, which is the relevant margin for the speed measures used in the rest of the paper.
+	
+	\subsection{Lane-Count Proxy on the Baseline Centerline Network}
+	
+	The lane proxy is constructed after matching, not from the speed stage. Each matched raw segment contributes its road-class-based lane count to the directed centerline on which it lands, and the aggregation is length-weighted over matched overlap. In the retained run, the road-class field is complete on matched raw segments. Missing lane estimates therefore arise because a baseline centerline receives no raw match, not because the raw attribute is absent.
+	
+	Table~\ref{tab:lane-summary} summarizes the resulting coverage. On the baseline directed network, 8,393 of 11,890 links receive a lane estimate, which is 70.6\% by count and 92.0\% by length. The mean estimated lane count is 3.13 and the median is 3.32. Opposite-direction estimates are close on average, with a mean lane ratio of 1.04, and 86.2\% of links with valid estimates satisfy the baseline lane-symmetry flag. Figure~\ref{fig:lane-coverage} maps the baseline coverage pattern. The missing links are visible, but they are concentrated in short peripheral pieces rather than in the main arterial backbone.
+	\par 
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Lane-count proxy on the baseline directed centerline network.}
+		\label{tab:lane-summary}
+		\begin{tabular}{l r}
+			\toprule
+			Statistic & Value \\
+			\midrule
+			Baseline directed centerlines & 11,890 \\
+			With lane estimate & 8,393 \\
+			Count coverage & 70.6\% \\
+			Length coverage & 92.0\% \\
+			Mean lane estimate & 3.13 \\
+			Median lane estimate & 3.32 \\
+			Mean opposite-direction lane ratio & 1.04 \\
+			Symmetric share among valid estimates & 86.2\% \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.7\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/paper_appendix/fig_lane_coverage_baseline_v11.png}
+		\caption{Baseline directed centerlines with and without lane estimates. Blue links receive a lane-count proxy from matched raw road classes; orange links do not.}
+		\label{fig:lane-coverage}
+	\end{figure}
+
+	 Figure~\ref{fig:lane-ratio-hist} gives the corresponding lane-ratio distribution. The mass is tightly concentrated at one, and 97.9\% of observed opposite-direction ratios are at or below 1.5. This pattern indirectly supports the baseline matching quality, because once links are matched and aggregated to the corridor level, opposite directions usually inherit essentially symmetric lane counts.
+	 
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.72\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/paper_appendix/fig_lane_ratio_hist_baseline_v11.png}
+		\caption{Distribution of opposite-direction lane ratios on baseline directed centerlines with valid lane estimates in both directions. The histogram is truncated at ratio $= 1.5$, which already contains 97.9\% of observations. The dashed lines mark ratio $= 1$ and ratio $= 1.5$.}
+		\label{fig:lane-ratio-hist}
+	\end{figure}
+
+	\clearpage
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	\section{Aggregating Raw-Segment Speeds to Directed Centerlines}
+	
+	Raw speed observations are attached to directed centerlines through the matched crosswalk developed in Section~3. The aggregation is carried out at the weekday-status by hour level. In the retained run, 23.29 million matched raw speed observations are mapped into 394,468 directed-centerline-hour cells spanning 8,349 unique directed centerlines. The purpose of this stage is to recover directional travel speeds on a corridor-level object that is well suited for describing asymmetry patterns in the raw road system. It is not the final network representation used to construct the later grid-level travel-cost inputs, which are built separately from the raw road system.
+	
+	\paragraph{Time-weighted aggregation.}
+	
+	We compute the average speed on each directed centerline using a time-weighted scheme that treats the total distance as $\sum_{r \in \mathcal{R}(c)} \ell_r$ and the total travel time as $\sum_{r \in \mathcal{R}(c)} \ell_r / v_r$, where $\mathcal{R}(c)$ denotes the set of matched raw segments for centerline $c$. The average speed is then:
+	
+	\begin{align}
+		\bar{v}_c^{\,\text{time}}
+		&= \frac{\sum_{r \in \mathcal{R}(c)} \ell_r}{\sum_{r \in \mathcal{R}(c)} \ell_r / v_r}.
+		\label{eq:centerline_speed}
+	\end{align}
+	
+	This method divides total distance by total time to obtain the average speed, which is the natural aggregation when considering travel time along a centerline. The computation is performed on the matched and quality-filtered set $\mathcal{R}(c)$.
+	
+	\paragraph{Distributional and diurnal profiles.}
+	
+	The aggregate distribution remains plausible after the crosswalk and harmonic aggregation. Figure~\ref{fig:centerline-speed-dist} plots the weekday and weekend distributions of directed centerline speeds. The two distributions are close, with a modest right shift on weekends, which is what one would expect in a city where the strongest directional congestion is tied to commuting peaks rather than to all-day network collapse.
+	
+	The within-day profile is sharper. Figure~\ref{fig:centerline-speed-diurnal} plots centerline-length-weighted hourly means. Weekday speeds fall in both commuting peaks, with a deeper trough in the evening. Weekend speeds are flatter throughout the day. The period means line up with the same pattern: the AM mean is 35.19 km/h, the PM mean is 33.33 km/h, and the late-night free-flow window averages 38.46 km/h.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.68\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/paper_appendix/fig_centerline_speed_distribution_v11.png}
+		\caption{Distribution of directed centerline speeds in the retained run, split by weekday and weekend.}
+		\label{fig:centerline-speed-dist}
+	\end{figure}
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.82\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/paper_appendix/fig_centerline_speed_diurnal_v11.png}
+		\caption{Directed centerline speed over the day, using centerline-length-weighted hourly means. Shaded bands mark the AM and PM commuting peaks.}
+		\label{fig:centerline-speed-diurnal}
+	\end{figure}
+	
+	\subsection{Summary Statistics of Speed}
+	
+	Table~\ref{tab:stage03-summary} reports the main operational outputs of the speed-aggregation stage. Table~\ref{tab:centerline-speed-stats} then summarizes the resulting directed centerline speeds. The length-weighted mean is above the simple mean in all cases, which implies that longer corridors tend to carry faster traffic. The gap is modest, not dramatic, which is consistent with the view that aggregation is preserving the citywide speed distribution rather than inventing a new one.
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Stage03 aggregation summary.}
+		\label{tab:stage03-summary}
+		\begin{tabular}{l r}
+			\toprule
+			Statistic & Value \\
+			\midrule
+			Matched raw speed observations & 23,286,622 \\
+			Directed centerline-hour rows & 394,468 \\
+			Unique directed centerlines & 8,349 \\
+			Overall mean speed (km/h) & 36.30 \\
+			Overall median speed (km/h) & 33.33 \\
+			AM mean speed (km/h) & 35.19 \\
+			PM mean speed (km/h) & 33.33 \\
+			22:00--05:00 mean speed (km/h) & 38.46 \\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Summary statistics of directed centerline speeds (km/h).}
+		\label{tab:centerline-speed-stats}
+		\begin{tabular}{lccccc}
+			\toprule
+			Group & $N$ & Mean & Weighted Mean & Median & Std. Dev. \\
+			\midrule
+			All & 394,468 & 36.30 & 40.88 & 33.33 & 12.54 \\
+			Weekday & 198,300 & 36.12 & 41.02 & 33.23 & 12.66 \\
+			Weekend & 196,168 & 36.47 & 40.75 & 33.43 & 12.42 \\
+			\bottomrule
+		\end{tabular} \\
+		\vspace{0.3em}
+		\begin{minipage}{\textwidth}
+			\footnotesize
+			\raggedright
+			Note: the weighted mean uses directed centerline length as weights.
+		\end{minipage}
+	\end{table}
+	
+	\clearpage
+
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+	
+	\section{Identifying Asymmetric Segments and Tidal Lanes in the Road Network}
+	\label{sec:asym_sec}
+	Directional speed imbalance is the reduced-form object of interest in this appendix. The directed centerline representation is used here to summarize corridor-level asymmetry and to construct a transparent candidate screen. It is not the final computational network used later for grid-level travel-cost construction, which is derived separately from the raw road system.
+	
+	\subsection{Time Aggregation and Peak-Period Speed Computation}
+	
+	Raw speed observations are aggregated by centerline, direction, weekday status, and hour using the time-weighted harmonic mean in \eqref{eq:centerline_speed}. The asymmetry screen uses weekday commuting peaks only:
+	\begin{itemize}
+		\item Morning peak (AM): 7:00--9:00
+		\item Evening peak (PM): 17:00--19:00
+	\end{itemize}
+	Within each window, the two hourly observations are pooled to obtain one peak-period speed for each directed centerline, denoted $\bar{v}_{c,d,p}$ for centerline $c$, direction $d \in \{AB, BA\}$, and peak $p \in \{AM, PM\}$.
+	
+	The study area is defined as all directed centerline segments within a 150 km radius of Tiananmen Square in Beijing. After aggregation, valid peak-period observations are available for 4,656 undirected centerlines in the AM peak and 4,659 in the PM peak. Among these, 3,670 centerlines in the AM peak and 3,669 in the PM peak have valid speeds in both directions and therefore admit directional comparison.
+	
+	\subsection{Pairing Directions for Asymmetry Detection}
+	
+	Directional asymmetry is evaluated by comparing opposite directions on the same physical corridor. Although speeds are observed at the directed-centerline level ($skel\_dir$), the pairing is carried out at the undirected centerline level ($cline\_id$):
+	\begin{itemize}
+		\item For each $cline\_id$, speeds are pivoted to form paired observations $(speed_{AB}, speed_{BA})$.
+		\item Only centerlines with valid speed observations in both directions are retained for asymmetry analysis.
+	\end{itemize}
+	The comparison is therefore corridor-specific, not a comparison across nearby but distinct links.
+	
+	\subsection{Asymmetry Measures and Classification Thresholds}
+	
+	For each paired centerline, two measures of directional imbalance are computed:
+	\begin{itemize}
+		\item Speed ratio: $ratio = \min(speed_{AB}/speed_{BA},\, speed_{BA}/speed_{AB}) \in (0,1]$, which summarizes relative asymmetry in a symmetric form.
+		\item Relative difference: $ratio2 = |speed_{AB} - speed_{BA}| / (speed_{AB} + speed_{BA}) \in [0,1)$, used as a complementary diagnostic.
+	\end{itemize}
+	
+	Directional asymmetry is classified using the following thresholds:
+	\begin{itemize}
+		\item \textbf{unsym1 (baseline)}: $ratio < 0.5$, corresponding to one direction being at least twice as fast as the other.
+		\item \textbf{unsym2 (severe)}: $ratio < 1/3$, corresponding to a speed ratio of at least three-to-one.
+		\item \textbf{unsym3 (robustness)}: $ratio2 > 0.6$.
+	\end{itemize}
+	The baseline discussion uses \texttt{unsym1}; the remaining thresholds are retained as severity and robustness checks.
+	
+	\subsection{Asymmetry Detection Results}
+	
+	Applying the baseline criterion yields the following peak-specific asymmetry rates:
+	\begin{itemize}
+		\item AM peak: 405 centerlines (11.0\%) classified as asymmetric; 179 (4.9\%) satisfy the severe asymmetry criterion.
+		\item PM peak: 361 centerlines (9.8\%) classified as asymmetric; 145 (4.0\%) satisfy the severe asymmetry criterion.
+	\end{itemize}
+	
+	Figure~\ref{fig:speed_ratio_dist} makes clear that most bidirectional corridors remain close to symmetry. The left tail is present in both peaks, but it is not dominant. The AM tail is modestly thicker, which is consistent with slightly stronger directional imbalance in the morning commute.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.95\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/hist_speed_ratio_am_pm.png}
+		\caption{Distribution of speed ratios (min(AB/BA, BA/AB)) for AM and PM peak periods. Vertical dashed lines indicate the asymmetry thresholds: $ratio = 0.5$ (unsym1) and $ratio = 1/3$ (unsym2).}
+		\label{fig:speed_ratio_dist}
+	\end{figure}
+	
+	\subsection{Temporal Overlap of Asymmetric Segments}
+	
+	Using the baseline threshold, 638 unique undirected centerlines are classified as asymmetric in at least one peak period:
+	\begin{itemize}
+		\item Asymmetric in AM only: 277 centerlines (43.4\%).
+		\item Asymmetric in PM only: 233 centerlines (36.5\%).
+		\item Asymmetric in both AM and PM: 128 centerlines (20.1\%).
+	\end{itemize}
+	About four fifths of flagged corridors appear in one peak only. The asymmetry screen is therefore not merely detecting permanently unbalanced road geometry; it is picking up time-specific directional congestion.
+	
+	\subsection{Tidal Lane Candidate Identification}
+	
+		Tidal lane candidates are defined using two criteria:
+		\begin{itemize}
+			\item The faster direction reverses between AM and PM peaks.
+			\item Both peaks satisfy the baseline asymmetry criterion, $ratio_p < 0.5$ for $p \in \{AM, PM\}$.
+		\end{itemize}
+	Among the 3,668 centerlines with valid bidirectional data in both peaks, 1,032 (28.1\%) exhibit a reversal in the faster direction between peaks, but only 14 centerlines (0.4\%) also satisfy the strong asymmetry screen in both peaks. The candidate set is therefore deliberately selective. It isolates a very short list of corridors whose directional imbalance is both large and temporally reversing, which is the empirical pattern most consistent with a tidal-lane interpretation.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.85\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/map_tidal_candidates_150km.png}
+		\caption{Spatial distribution of tidal lane candidates within 150km of Tiananmen Square.}
+		\label{fig:tidal_candidates}
+	\end{figure}
+
+	The candidate map in Figure~\ref{fig:tidal_candidates} reinforces the same point. The flagged corridors are sparse relative to the full network and remain concentrated in a small number of arterial locations, rather than diffusing across the city. For the purposes of this appendix, that pattern is sufficient: the asymmetry signal is present, selective, and attached to a corridor set small enough to inspect directly when needed.
+
+	\clearpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%	
+
+	
+	
+	
+	
+	
+	
+	\section{Grid Construction}
+	
+	To discretize the urban road network for subsequent aggregation and analysis, we construct three alternative spatial grid systems: square grids, hexagonal grids, and Voronoi (Thiessen) polygons. The square and hexagonal systems are exogenous tessellations laid over the study area. The Voronoi system is different. Its seed points are induced by the baseline-kept directed centerline backbone in \texttt{manual\_centerline\_rules\_v11}, so its cell geometry reflects the spatial structure of the retained road network. The comparison therefore isolates two margins at once, a change in tiling geometry across all three systems and an additional network-adaptive partition in the Voronoi case.
+	
+	\subsection{Square Grid System}
+	
+	We first construct a regular square grid covering the study area. This is an exogenous tessellation: cell boundaries are fixed independently of the road network. The resulting system contains 3,357 grid cells with an average area of 8.38~km$^2$. Under this discretization, 63.6\% of baseline directed centerline segments (7,560 out of 11,890) are completely contained within a single grid cell. These segments account for 21.7\% of total baseline directed-centerline length (4,214.52~km out of 19,391.30~km).
+	
+	\subsection{Hexagonal Grid System}
+	
+	We next construct a hexagonal grid network using Uber's H3 geospatial indexing system. Like the square case, this is an exogenous tessellation laid over the study area rather than a partition induced by the road network itself. The resulting hexagons have an average area of approximately 6.1~km$^2$, comparable in scale to our square grid system. This choice ensures that differences across grid systems are not driven by spatial resolution. The H3 grid can also be replaced by a fixed-edge-length grid if required.
+	
+	This procedure yields 4,604 hexagonal cells, the highest cell count among the three systems. However, due to the irregular shape of hexagons near boundaries, only 58.2\% of baseline directed centerline segments (6,924) are completely contained within a single cell, representing 18.0\% of total baseline directed-centerline length (3,486.66~km).
+	
+	\subsection{Voronoi Grid System}
+	
+	The Voronoi grid system provides a spatially adaptive tessellation anchored directly to the structure of the baseline centerline network. Unlike the square and hexagonal systems, which are imposed externally, Voronoi cells are induced by seed points drawn from the retained road-network backbone. Cell geometry therefore adjusts endogenously to local network density, generating smaller cells in dense urban cores and larger cells in sparsely connected peripheral areas.
+	
+	\paragraph{Construction.}
+	Seed points are drawn from the baseline-kept directed centerline network, using network nodes with degree at least two to prioritize road intersections and major junctions. To prevent excessive clustering of generators in dense regions, we impose a minimum inter-seed distance of 1.5~km through a greedy Poisson-like sampling procedure, yielding approximately 1,200 initial seeds.
+	
+	To control cell size in sparsely connected regions, we apply an iterative densification procedure. After constructing an initial Voronoi network, cells with area exceeding $A_{\max}=200$~km$^2$ are identified. Within each such cell, an additional seed is placed at the location maximally distant from existing generators, prioritizing network nodes when available. The Voronoi diagram is then recomputed. This process is repeated until all cells satisfy the area constraint, convergence is reached, or a maximum of eight iterations is completed. To limit computational cost, each iteration adds at most 300 new seeds.
+	
+	This refinement procedure reduces the maximum cell area from over 500~km$^2$ to approximately 195~km$^2$. The final Voronoi grid consists of 1,213 cells with an average area of 23.20~km$^2$, the largest among the three systems. 59.7\% of baseline directed centerline segments (7,096) are fully contained within a single Voronoi cell, but they account for only 15.8\% of the total baseline directed-centerline length (3,058.18~km).
+	
+	To handle boundary effects, we add auxiliary generators outside the study area and clip the Voronoi tessellation to the analysis boundary, ensuring finite cells.
+
+	\subsection{Grid Comparison}
+	
+		Table~\ref{tab:grid_comparison} summarizes the key characteristics of the three grid systems under the retained baseline centerline backbone.
+	
+		Figure~\ref{fig:grid_comparison} provides a visual comparison of the three grid systems overlaid on the baseline directed centerline network, illustrating their differing spatial structures and boundary interactions.
+	
+	\begin{table}[h!]
+		\centering
+		\caption{Comparison of three spatial grid systems}
+		\label{tab:grid_comparison}
+		\begin{tabular}{lcccc}
+			\toprule
+			Grid Type & Cell Count & Avg. Area (km²) & Segments Within & Length Within \\
+			\midrule
+			Square & 3,357 & 8.38 & 7,560 (63.6\%) & 4,214.52 km (21.7\%) \\
+			Hexagonal & 4,604 & 6.10 & 6,924 (58.2\%) & 3,486.66 km (18.0\%) \\
+			Voronoi & 1,213 & 23.20 & 7,096 (59.7\%) & 3,058.18 km (15.8\%) \\
+			\bottomrule
+		\end{tabular}
+		\vspace{0.3em}
+		\begin{minipage}{\textwidth}
+			\footnotesize
+			\raggedright
+			Note: ``Segments Within'' refers to the count and percentage of baseline directed centerline segments that are completely contained within a single grid cell. ``Length Within'' refers to the total length and percentage of baseline directed centerline length that is completely contained within a single grid cell.
+		\end{minipage}
+	\end{table}
+	
+	\begin{figure}[h!]
+		\centering
+		\IfFileExists{../../data_work/outputs/manual_centerline_rules_v11/figures/paper_appendix/fig_grid_comparison_v11_baseline.png}{
+			\includegraphics[width=\textwidth]{../../data_work/outputs/manual_centerline_rules_v11/figures/paper_appendix/fig_grid_comparison_v11_baseline.png}
+		}{
+			\fbox{\parbox{0.95\textwidth}{\centering Missing figure file: \texttt{../../data\_work/outputs/manual\_centerline\_rules\_v11/figures/paper\_appendix/fig\_grid\_comparison\_v11\_baseline.png}}}
+		}
+		\caption{Comparison of square, hexagonal, and Voronoi grid systems.}
+		\label{fig:grid_comparison}
+	\end{figure}
+
+	\clearpage
+		\section{Grid-to-Grid Travel Costs on the Raw Network}
+		\label{sec:rawgrid}
+
+	The centerline network is the right object for corridor-level asymmetry measurement. Bilateral commuting costs at the grid level require a separately constructed route from the \texttt{raw\_connected\_v1} directed graph, with the centerline-grid output serving as a benchmark. The central question is how each grid enters the directed graph and whether local routes are driven by plausible road access or by arbitrary connector geometry.
+
+	For each grid system, the travel cost between an adjacent pair of cells $(i, j)$ is the minimum-time directed path through the underlying road network, computed on a pair-specific graph in which only the access points of the active home and work cells enter the routing problem. In the downstream structural model, every feasible route retains positive selection probability, with shorter-time routes receiving higher probability; the pair-specific shortest-path time records the most competitive option for each adjacent pair and defers distributional path weighting to the structural model.
+
+	\subsection{Implementations under comparison}
+
+	Three implementations are compared. The \emph{centerline benchmark} (B) is the stage06 grid-link object built from directed centerline crossings, retained as a reference for travel times and directional asymmetry. \emph{Raw\_node\_v4} (N) attaches each grid centroid to nearby \texttt{raw\_connected\_v1} road nodes; for each adjacent pair, a virtual HOME node connects only to the chosen home-side road nodes and a virtual WORK node is reached only from the chosen work-side road nodes, with no other grid connectors in the pair-specific graph. \emph{Raw\_edgeproj\_v2} (E) instead projects each centroid onto a nearby directed road \emph{edge}, using the projected access point as the road-entry geometry; the pair-specific graph is again restricted to the active home and work grids. Edge projection is intended to reduce connector-only routes and bring access geometry closer to the underlying road structure.
+
+	\subsection{Aggregate comparison}
+
+Table~\ref{tab:rawgrid-method-comparison} compares the three implementations for AM adjacent pairs on four margins: connected-grid share, mean connector distance, median adjacent travel time, and median directional ratio. \emph{Raw\_edgeproj\_v2} gains approximately ten percentage points of square and hex coverage over \emph{raw\_node\_v4}, with connector distances roughly one fifth shorter. In the Voronoi partition the connected-share gain is smaller, from 0.812 to 0.904, because the retained cells already sit closer to usable road access. The preferred version is \emph{raw\_edgeproj\_v2}: the coverage gain and tighter access geometry outweigh the longer adjacent travel times on the current bottleneck, which is grid entry rather than interior routing.
+
+	\begin{table}[h!]
+		\centering
+		\caption{AM adjacent-pair comparison across methods.}
+		\label{tab:rawgrid-method-comparison}
+		\begin{tabular}{@{}l c c c c@{}}
+			\toprule
+			Grid & \shortstack{Conn.\ share\\N / E} & \shortstack{Conn.\ dist (m)\\N / E} & \shortstack{Adj.\ time (min)\\B / N / E} & \shortstack{Dir.\ ratio\\B / N / E} \\
+			\midrule
+			square  & 0.368 / 0.474 & 1,094 / 831 & 3.44 / 12.93 / 14.81 & 0.427 / 0.938 / 0.793 \\
+			hex     & 0.384 / 0.494 & 1,105 / 850 & 2.67 / 11.50 / 13.49 & 0.433 / 0.937 / 0.796 \\
+			voronoi & 0.812 / 0.904 &   676 / 414 & 5.86 / 8.77 / 10.24 & 0.904 / 0.882 / 0.793 \\
+			\bottomrule
+		\end{tabular}
+		\vspace{0.3em}
+		\begin{minipage}{\textwidth}
+			\footnotesize
+			\raggedright
+			Note: B = centerline benchmark, N = \emph{raw\_node\_v4}, E = \emph{raw\_edgeproj\_v2}. Connected share and mean connector distance apply only to N and E. Median directional ratio is the median of $\min(t_{ab}/t_{ba},\, t_{ba}/t_{ab})$ over undirected adjacent pairs with both directions observed.
+		\end{minipage}
+	\end{table}
+
+	\subsection{Coverage of the retained edge-projection graph}
+
+	Connector attachment and finite-pair coverage are distinct objects. Table~\ref{tab:rawgrid-method-comparison} reports the share of grids that obtain at least one connector under each raw-grid method. For the retained \emph{raw\_edgeproj\_v2} run, a stricter graph-based metric is more informative: a grid is counted as covered only if it appears in at least one adjacent pair with finite raw-network travel time. Under this criterion, square and hex count coverage remain limited, 42.5\% and 41.1\%, yet the covered cells contain 95.5\% and 95.6\% of residents. The largest weakly connected component is smaller, 34.3\% and 34.2\% of cells, but it still contains 93.7\% of residents in both systems. Voronoi remains much more connected by either margin, with 87.9\% of cells covered and 82.1\% lying in the largest weakly connected component. Table~\ref{tab:rawgrid-coverage-am} and Figure~\ref{fig:rawgrid-am-maps} summarize these AM objects.
+
+	\begin{table}[h!]
+		\centering
+		\caption{AM coverage of the retained \emph{raw\_edgeproj\_v2} graph.}
+		\label{tab:rawgrid-coverage-am}
+		\begin{tabular}{lcccc}
+			\toprule
+			Grid & Covered grids & Largest comp.\ grids & Covered residents & Largest comp.\ residents \\
+			\midrule
+			square  & 1,427 (42.5\%) & 1,153 (34.3\%) & 95.5\% & 93.7\% \\
+			hex     & 1,893 (41.1\%) & 1,575 (34.2\%) & 95.6\% & 93.7\% \\
+			voronoi & 1,066 (87.9\%) &   996 (82.1\%) & 97.5\% & 95.8\% \\
+			\bottomrule
+		\end{tabular} \\
+		\vspace{0.3em}
+		\begin{minipage}{\textwidth}
+			\footnotesize
+			\raggedright
+			Note: A grid is counted as covered when it enters at least one adjacent pair with finite raw-network travel time. ``Largest comp.'' refers to the largest weakly connected component of the undirected graph induced by those finite adjacent pairs.
+		\end{minipage}
+	\end{table}
+
+	\subsection{Grid-level directional asymmetry}
+
+	The grid-level asymmetry object differs from the centerline asymmetry measure in Section~\ref{sec:asym_sec}. There the unit is a physical corridor and the primitive is direction-specific speed. Here the unit is an undirected adjacent grid pair, and the imbalance is computed from pair-specific travel times. For each pair with finite travel time in both directions, let $ratio_{ij} = \min(t_{ij}/t_{ji},\, t_{ji}/t_{ij})$. Under the retained AM \emph{raw\_edgeproj\_v2} run, the median directional ratio is 0.793 for square grids, 0.795 for hex grids, and 0.793 for Voronoi cells. Roughly 47\% of valid pairs fall below 0.8 in all three systems, while the share below 0.5 ranges from 13.8\% in square and hex to 17.9\% in Voronoi. Table~\ref{tab:rawgrid-asymmetry-am} and Figure~\ref{fig:rawgrid-am-maps} report the corresponding AM coverage and asymmetry objects side by side. The directional signal is therefore present in the retained raw-grid object, but it remains materially weaker than the centerline benchmark reported in Table~\ref{tab:rawgrid-method-comparison}.
+
+	\begin{table}[h!]
+		\centering
+		\caption{AM adjacent-pair asymmetry in the retained \emph{raw\_edgeproj\_v2} graph.}
+		\label{tab:rawgrid-asymmetry-am}
+		\begin{tabular}{lccccc}
+			\toprule
+			Grid & Both-dir pairs & Median ratio & Share $<0.8$ & Share $<0.5$ & Median gap (min) \\
+			\midrule
+			square  & 1,763 & 0.793 & 47.3\% & 13.8\% & 2.18 \\
+			hex     & 2,574 & 0.795 & 47.0\% & 13.8\% & 1.89 \\
+			voronoi & 1,658 & 0.793 & 47.4\% & 17.9\% & 2.41 \\
+			\bottomrule
+		\end{tabular} \\
+		\vspace{0.3em}
+		\begin{minipage}{\textwidth}
+			\footnotesize
+			\raggedright
+			Note: ``Both-dir pairs'' counts undirected adjacent grid pairs with finite travel time in both directions. The directional ratio is $\min(t_{ab}/t_{ba},\, t_{ba}/t_{ab})$. The median gap is the median absolute time difference, $|t_{ab}-t_{ba}|$, in minutes.
+		\end{minipage}
+	\end{table}
+
+	\begin{figure}[p!]
+		\centering
+		\begin{minipage}[t]{0.48\textwidth}
+			\centering
+			\small Coverage / cost
+		\end{minipage}
+		\hfill
+		\begin{minipage}[t]{0.48\textwidth}
+			\centering
+			\small Asymmetry
+		\end{minipage}
+		
+		\vspace{0.6em}
+		\textbf{Square}
+		
+		\vspace{0.5em}
+		\begin{minipage}[t]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth,height=0.21\textheight,keepaspectratio]{../../data_work/outputs/raw_connected_v1_grid_travel_time_edgeproj_v2/figures/grid_coverage_maps/raw_grid_coverage_square_AM.png}
+		\end{minipage}
+		\hfill
+		\begin{minipage}[t]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth,height=0.21\textheight,keepaspectratio]{../../data_work/outputs/raw_connected_v1_grid_travel_time_edgeproj_v2/figures/grid_tidal_asymmetry/raw_grid_tidal_asymmetry_square_AM.png}
+		\end{minipage}
+		
+		\vspace{0.5em}
+		\textbf{Hex}
+		
+		\vspace{0.5em}
+		\begin{minipage}[t]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth,height=0.21\textheight,keepaspectratio]{../../data_work/outputs/raw_connected_v1_grid_travel_time_edgeproj_v2/figures/grid_coverage_maps/raw_grid_coverage_hex_AM.png}
+		\end{minipage}
+		\hfill
+		\begin{minipage}[t]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth,height=0.21\textheight,keepaspectratio]{../../data_work/outputs/raw_connected_v1_grid_travel_time_edgeproj_v2/figures/grid_tidal_asymmetry/raw_grid_tidal_asymmetry_hex_AM.png}
+		\end{minipage}
+		
+		\vspace{0.5em}
+		\textbf{Voronoi}
+		
+		\vspace{0.5em}
+		\begin{minipage}[t]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth,height=0.21\textheight,keepaspectratio]{../../data_work/outputs/raw_connected_v1_grid_travel_time_edgeproj_v2/figures/grid_coverage_maps/raw_grid_coverage_voronoi_AM.png}
+		\end{minipage}
+		\hfill
+		\begin{minipage}[t]{0.48\textwidth}
+			\centering
+			\includegraphics[width=\textwidth,height=0.21\textheight,keepaspectratio]{../../data_work/outputs/raw_connected_v1_grid_travel_time_edgeproj_v2/figures/grid_tidal_asymmetry/raw_grid_tidal_asymmetry_voronoi_AM.png}
+		\end{minipage}
+		\caption{AM retained \emph{raw\_edgeproj\_v2} diagnostics across the three grid systems. In each row, the left panel plots finite adjacent-pair coverage with resident circles and the largest weakly connected component outlined in red; the right panel plots the corresponding grid-level asymmetry intensity, $1-ratio_{ij}$, over adjacent pairs with finite travel time in both directions.}
+		\label{fig:rawgrid-am-maps}
+	\end{figure}
+
+	\subsection{Route audit}
+
+	A shared random sample of 20 adjacent square-grid pairs, drawn from the intersection of pairs finite under both raw-grid methods, provides a local check on whether aggregate improvements translate to credible individual routes. Figure~\ref{fig:shared20-total-time} records the pairwise travel-time comparison: \emph{raw\_edgeproj\_v2} is usually slower, with a nontrivial tail.
+
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.8\textwidth]{../../data_work/outputs/comparison_grid_methods/fig_shared20_total_time_compare_square_AM.png}
+		\caption{Shared random 20 adjacent square-grid pairs, AM peak. Each segment links the pair-specific travel time under \emph{raw\_node\_v4} (left) and \emph{raw\_edgeproj\_v2} (right) for the same pair.}
+		\label{fig:shared20-total-time}
+	\end{figure}
+
+	The audit identifies the source of the trade-off. Under \emph{raw\_node\_v4}, 4 of 20 sampled routes contain zero road edges and connect entirely through connectors; that count falls to zero under \emph{raw\_edgeproj\_v2}. Mean connector time falls from 3.57 to 1.97 minutes while mean road-path time rises from 5.04 to 11.47 minutes. Figure~\ref{fig:shared20-pair-examples} illustrates three representative cases: a connector-only node-based route replaced by an explicit road path, a pair where edge projection is faster, and a remaining long-detour case.
+
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.86\textwidth]{../../data_work/outputs/comparison_grid_methods/fig_pair_examples_square_AM_3cases.png} 
+		\caption{Three sampled adjacent square-grid pairs under the two raw-grid methods. Top: a connector-only node-based route replaced by an explicit road path under edge projection. Middle: a pair where edge projection is faster. Bottom: a remaining long-detour case under \emph{raw\_edgeproj\_v2}.}
+		\label{fig:shared20-pair-examples}
+	\end{figure}
+
+	\clearpage
+
+	\section{National Evidence on Directional Commuting Asymmetry}
+
+	Directional commuting costs are not a single city feature. To assess whether the same empirical object appears in a national cross-city setting, I construct a township-pair sample based on the 2021 township-level commuting flow data and query bilateral driving times through the Baidu Maps driving API. The resulting evidence is descriptive, but it establishes that asymmetric travel time is a common feature of heavily used within-city commuting links.
+
+	The national sample is constructed in three steps:
+	\begin{itemize}
+		\item \textbf{City universe.} In the first round, I select cities with 50 largest commuter size, based on 2021 commuting flow data from Baidu Map.
+		\item \textbf{Township-pair universe.} Within each city, same-township flows are dropped. Township coordinates are assigned from \texttt{commuting\_town\_2021\_centers.parquet}, using office coordinates when available and centroid coordinates otherwise. Rows with missing endpoint coordinates are dropped.
+		\item \textbf{Pair selection.} Directed township flows are collapsed to unordered township pairs. For each unordered pair, commuter size is measured as, $(pop_{ab}+pop_{ba})/2$. The main crawling sample keeps the top 50 unordered township pairs per city by this two-way commuter measure.
+	\end{itemize}
+
+	Each retained township pair is queried in both directions. For a pair $(a,b)$, one API call records the travel time from $a$ to $b$, and the paired call records the travel time from $b$ to $a$. The API calls use \texttt{directionlite/v1/driving}. The AM and PM sessions use the congestion-avoidance routing option (\texttt{tactics=2}); the late-night baseline uses the regular fastest-time routing option (\texttt{tactics=0}) during a low-congestion clock window. The three sessions used here are:
+	\begin{itemize}
+		\item AM session \texttt{20260427T070801}, sampled from 07:08:01 to 08:14:32.
+		\item PM session \texttt{20260427T171554}, sampled from 17:15:54 to 18:26:28.
+		\item Late-night session \texttt{20260427T003434}, sampled from 00:34:35 to 01:48:51.
+	\end{itemize}
+	
+	Two directional rows failed in the late-night session and are backfilled from an earlier complete night run, sampled from 22:22 to 23:48.
+
+	The figures below focus on the 20 cities with the largest AM excess directional gap among the retained top-50 city sample. The ranking statistic is the commuter-weighted mean AM directional gap, measured relative to the late-night gap, across the city's top 50 township pairs.  \\ 
+	
+	% This restriction sharpens the descriptive exercise by concentrating on cities where peak-period directional congestion is most visible, while preserving a national cross-city design rather than a single-city case study.
+
+	Figure~\ref{fig:national-asymmetry-hist} records the pooled distribution of the directional ratio,
+	\[
+		\frac{\min\{t_{ab},t_{ba}\}}{\max\{t_{ab},t_{ba}\}},
+	\]
+	for 1,000 township pairs, 20 cities times 50 pairs per city. A value of one means that the two directions have identical travel time within a time window. Lower values imply stronger directional asymmetry. The AM distribution lies furthest to the left: the median ratio is 0.856, and 67.5 percent of pairs have a ratio below 0.90. The PM distribution is also left of the late-night benchmark, with a median of 0.890 and 57.4 percent below 0.90. The late-night baseline is closer to symmetry, with a median ratio of 0.912. The national pattern therefore matches the motivating mechanism of the model: commute-time costs vary by direction, and the difference is most pronounced during peak travel windows.
+
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.88\textwidth]{../../data_work/outputs/national_tidal_commuting_top50cities_2021_v1/figures/top20_congestion_top50_note/figure1_ratio_hist_overlay.png}
+		\caption{Pooled distribution of directional asymmetry in the national top-20 congestion-city sample. The horizontal axis is the lower travel time divided by the higher travel time for the same township pair and time window. Lower values correspond to stronger directional asymmetry.}
+		\label{fig:national-asymmetry-hist}
+	\end{figure}
+
+	Figure~\ref{fig:national-adjusted-asymmetry} asks whether the peak-period asymmetry exceeds the same pair's late-night directional imbalance. For each AM or PM pair, the peak-period ratio is divided by a late-night ratio aligned to the peak-period ordering of the two directions. This alignment matters because the slower direction can reverse between morning and evening commuting. Values below one indicate that the peak-period directional imbalance is stronger than the late-night imbalance for the same pair and direction ordering. The AM distribution is concentrated below one, with a median AM-to-night ratio of 0.878 and 80.1 percent of pairs more asymmetric than their late-night baseline. PM remains below one for most pairs as well, with a median PM-to-night ratio of 0.919 and 73.9 percent more asymmetric than late night. These comparisons indicate that the national asymmetry is not only a fixed feature of road geometry or signal timing; peak congestion amplifies the directional wedge.
+
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.88\textwidth]{../../data_work/outputs/national_tidal_commuting_top50cities_2021_v1/figures/top20_congestion_top50_note/figure3_adjusted_hist_overlay.png}
+		\caption{Peak-period asymmetry relative to the late-night baseline. The denominator is the late-night directional ratio aligned to the AM or PM ordering of the two directions, so the AM and PM comparisons can use different late-night direction orderings for the same township pair. Values below one indicate stronger peak-period asymmetry than late-night asymmetry.}
+		\label{fig:national-adjusted-asymmetry}
+	\end{figure}
+
+	Figure~\ref{fig:national-city-scatter} aggregates the same evidence to the city level. Each point is one city, measured by the commuter-weighted median min/max ratio across its 50 retained township pairs. The cloud is not concentrated on the 45-degree line. Some cities have stronger AM asymmetry, others have stronger PM asymmetry, and several cities have asymmetric travel times in both peaks. This cross-city dispersion is useful for the paper's empirical motivation: directional commuting costs are present across many urban systems, but their timing and intensity are heterogeneous.
+
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=0.78\textwidth]{../../data_work/outputs/national_tidal_commuting_top50cities_2021_v1/figures/top20_congestion_top50_note/figure4_city_scatter_am_pm.png}
+		\caption{City-level AM and PM directional asymmetry. Each point is a city, measured by the commuter-weighted median min/max ratio across its top 50 township pairs. Points away from the 45-degree line indicate that morning and evening directional asymmetry need not have the same intensity within a city.}
+		\label{fig:national-city-scatter}
+	\end{figure}
+
+	Taken together, the three figures establish a national descriptive fact that motivates the model. In the most congested cities among the national top-50 commuting markets, heavily used township pairs frequently have direction-specific travel times, and this wedge widens during commuting peaks relative to late night. The evidence does not identify the welfare value of tidal-lane reallocation by itself. It does, however, support the paper's maintained measurement object: bilateral commuting costs should be allowed to differ by direction when peak-period road capacity is scarce.
+
+
+\end{document}

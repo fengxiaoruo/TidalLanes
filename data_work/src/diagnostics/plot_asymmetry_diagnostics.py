@@ -3,6 +3,7 @@ Plot centerline asymmetry diagnostics for a versioned run.
 """
 
 import argparse
+import json
 from pathlib import Path
 
 import geopandas as gpd
@@ -23,6 +24,17 @@ def parse_args():
     return parser.parse_args()
 
 
+def resolve_center_lonlat(version_root: Path):
+    center_lonlat = TIANANMEN_LONLAT
+    snap_path = version_root / "config_snapshot.stage01.json"
+    if snap_path.exists():
+        payload = json.loads(snap_path.read_text(encoding="utf-8"))
+        center_cfg = payload.get("center_lonlat")
+        if isinstance(center_cfg, (list, tuple)) and len(center_cfg) == 2:
+            center_lonlat = (float(center_cfg[0]), float(center_cfg[1]))
+    return center_lonlat
+
+
 def load_inputs(version_root: Path):
     data_dir = version_root / "data"
     figures_dir = version_root / "figures"
@@ -32,8 +44,8 @@ def load_inputs(version_root: Path):
     return cl_dir, asym, tidal, figures_dir
 
 
-def within_radius(gdf: gpd.GeoDataFrame, radius_m: float):
-    center = gpd.GeoSeries([Point(TIANANMEN_LONLAT)], crs="EPSG:4326").to_crs(gdf.crs).iloc[0]
+def within_radius(gdf: gpd.GeoDataFrame, center_lonlat: tuple[float, float], radius_m: float):
+    center = gpd.GeoSeries([Point(center_lonlat)], crs="EPSG:4326").to_crs(gdf.crs).iloc[0]
     midpts = gdf.geometry.interpolate(0.5, normalized=True)
     return gdf[midpts.distance(center) <= radius_m].copy()
 
@@ -61,8 +73,9 @@ def run(version_id: str, output_dir: str):
     version_root = Path(output_dir) / version_id
     cl_dir, asym, tidal, figures_dir = load_inputs(version_root)
     figures_dir.mkdir(parents=True, exist_ok=True)
+    center_lonlat = resolve_center_lonlat(version_root)
 
-    cl_dir = within_radius(cl_dir, RADIUS_M)
+    cl_dir = within_radius(cl_dir, center_lonlat, RADIUS_M)
     base = cl_dir[["cline_id", "dir", "geometry"]].copy()
 
     for peak in ["AM", "PM"]:

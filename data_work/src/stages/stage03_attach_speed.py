@@ -29,6 +29,9 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 RAW_SPEED_PATH = ROOT / "raw_data" / "speed_Beijing_all_wgs84.csv"
+DEFAULT_STAGE03_RUNTIME = {
+    "raw_speed_path": str(RAW_SPEED_PATH),
+}
 
 
 def parse_args():
@@ -41,6 +44,28 @@ def parse_args():
         help="Base output directory for versioned results.",
     )
     return parser.parse_args()
+
+
+def load_stage03_runtime(config_path: str | None) -> dict:
+    runtime = DEFAULT_STAGE03_RUNTIME.copy()
+    if not config_path:
+        return runtime
+    path = Path(config_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Stage03 config not found: {path}")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    stage_payload = payload.get("stage03", payload)
+    for key in runtime:
+        if key in stage_payload:
+            runtime[key] = stage_payload[key]
+    return runtime
+
+
+def configure_stage03_runtime(config_path: str | None) -> dict:
+    global RAW_SPEED_PATH
+    runtime = load_stage03_runtime(config_path)
+    RAW_SPEED_PATH = Path(runtime["raw_speed_path"])
+    return runtime
 
 
 def save_config_snapshot(version_root: Path, config_path: str | None):
@@ -236,12 +261,14 @@ def run(config_path: str | None, version_id: str, output_dir: str):
     metrics_dir.mkdir(parents=True, exist_ok=True)
     figures_dir.mkdir(parents=True, exist_ok=True)
 
+    runtime = configure_stage03_runtime(config_path)
     print(f"[stage03] version_id={version_id}")
     print(f"[stage03] config={config_path}")
     print(f"[stage03] output_root={version_root}")
     print(f"[stage03] data_dir={data_dir}")
     print(f"[stage03] metrics_dir={metrics_dir}")
     print(f"[stage03] figures_dir={figures_dir}")
+    print(f"[stage03] runtime={runtime}")
 
     save_config_snapshot(version_root, config_path)
 

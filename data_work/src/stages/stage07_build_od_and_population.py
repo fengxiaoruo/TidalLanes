@@ -23,6 +23,11 @@ ROOT = Path(__file__).resolve().parents[2]
 COMMUTE_PATH = ROOT / "raw_data" / "commute_202211.csv"
 TARGET_CRS = "EPSG:3857"
 MODE_COLS = ["type_walk", "type_bike", "type_sub", "type_bus", "type_car"]
+DEFAULT_STAGE07_RUNTIME = {
+    "commute_path": str(COMMUTE_PATH),
+    "disable_type_outputs": False,
+}
+DISABLE_TYPE_OUTPUTS = False
 
 
 def parse_args():
@@ -39,12 +44,37 @@ def parse_args():
     return parser.parse_args()
 
 
+def load_stage07_runtime(config_path: str | None) -> dict:
+    runtime = DEFAULT_STAGE07_RUNTIME.copy()
+    if not config_path:
+        return runtime
+    path = Path(config_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Stage07 config not found: {path}")
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    stage_payload = payload.get("stage07", payload)
+    for key in runtime:
+        if key in stage_payload:
+            runtime[key] = stage_payload[key]
+    return runtime
+
+
+def configure_stage07_runtime(config_path: str | None) -> dict:
+    global COMMUTE_PATH, DISABLE_TYPE_OUTPUTS
+    runtime = load_stage07_runtime(config_path)
+    COMMUTE_PATH = Path(runtime["commute_path"])
+    DISABLE_TYPE_OUTPUTS = bool(runtime.get("disable_type_outputs", False))
+    runtime["disable_type_outputs"] = DISABLE_TYPE_OUTPUTS
+    return runtime
+
+
 def save_config_snapshot(version_root: Path, config_path: str | None, grid_type: str):
     payload = {
         "stage": "stage07_build_od_and_population",
         "config_path": config_path,
         "grid_type": grid_type,
         "commute_path": str(COMMUTE_PATH),
+        "disable_type_outputs": bool(DISABLE_TYPE_OUTPUTS),
     }
     (version_root / "config_snapshot.stage07.json").write_text(
         json.dumps(payload, ensure_ascii=True, indent=2),
@@ -141,6 +171,17 @@ def match_commute_to_grid(grid: gpd.GeoDataFrame):
 
 
 def build_mode_summary(df_g: pd.DataFrame):
+    if DISABLE_TYPE_OUTPUTS:
+        return pd.DataFrame(
+            [
+                {
+                    "mode": "disabled",
+                    "count": np.nan,
+                    "share_in_identified_pct": np.nan,
+                    "share_in_pop_pct": np.nan,
+                }
+            ]
+        )
     mode_totals = df_g[MODE_COLS].fillna(0).sum().rename("count").reset_index().rename(columns={"index": "mode"})
     identified_total = float(mode_totals["count"].sum())
     pop_total = float(df_g["pop"].fillna(0).sum())
@@ -150,6 +191,21 @@ def build_mode_summary(df_g: pd.DataFrame):
 
 
 def build_od(df_g: pd.DataFrame):
+    if DISABLE_TYPE_OUTPUTS:
+        df_g["pop"] = pd.to_numeric(df_g["pop"], errors="coerce").fillna(0.0)
+        for c in MODE_COLS:
+            if c not in df_g.columns:
+                df_g[c] = 0.0
+            df_g[c] = pd.to_numeric(df_g[c], errors="coerce").fillna(0.0)
+        df_g["home_grid"] = normalize_grid_id_series(df_g["home_grid"])
+        df_g["work_grid"] = normalize_grid_id_series(df_g["work_grid"])
+        use = df_g[df_g["home_grid"].notna() & df_g["work_grid"].notna()].copy()
+        od = use.groupby(["home_grid", "work_grid"], as_index=False).agg({"pop": "sum"})
+        for c in MODE_COLS:
+            od[c] = 0.0
+        od["identified"] = od["pop"]
+        od["identified_share_of_pop"] = np.where(od["pop"] > 0, 1.0, np.nan)
+        return od
     for c in ["pop"] + MODE_COLS:
         df_g[c] = pd.to_numeric(df_g[c], errors="coerce").fillna(0.0)
     df_g["home_grid"] = normalize_grid_id_series(df_g["home_grid"])
@@ -276,7 +332,9 @@ def run(config_path: str | None, version_id: str, output_dir: str, grid_type: st
     version_root = Path(output_dir) / version_id
     (version_root / "data").mkdir(parents=True, exist_ok=True)
     (version_root / "metrics").mkdir(parents=True, exist_ok=True)
+    runtime = configure_stage07_runtime(config_path)
     save_config_snapshot(version_root, config_path, grid_type)
+    print(f"[stage07] runtime={runtime}")
 
     grid_types = ["square", "hex", "voronoi"] if grid_type == "all" else [grid_type]
     for gt in grid_types:

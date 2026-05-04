@@ -1,0 +1,32 @@
+{
+  "version_id": "national_tidal_commuting_top100_congestion_2023_v1",
+  "source": "town_2021",
+  "output_dir": "data_work/outputs",
+  "top_n_cities": 100,
+  "top_n_pairs": 50,
+  "supplement_long_distance_top_n": 30,
+  "min_pair_distance_radius_share": 0.3333333333333333,
+  "max_routes_per_request": 20,
+  "city_selection": {
+    "method": "congestion_excel",
+    "path": "raw_data/20190909-15百城拥堵数据-20230616.xlsx",
+    "sheet_name": 0,
+    "city_column": "城市",
+    "date_column": "日期",
+    "peak_type_column": "高峰类型",
+    "free_speed_column": "畅通速度",
+    "speed_column": "平均速度",
+    "congestion_index_definition": "mean(畅通速度 / 平均速度) across all rows for each city"
+  },
+  "town_2021": {
+    "commute_dta_path": "raw_data/commuting_town_2021.dta",
+    "town_centers_parquet": "raw_data/commuting_town_2021_centers.parquet",
+    "town_centroids_csv": null,
+    "town_code_column": "town_code",
+    "lon_column": "lon",
+    "lat_column": "lat",
+    "county_shp_path": "raw_data/gis/map/2019中国地图-审图号GS(2019)1822号/县（等积投影）.shp",
+    "county_shp_prj_path": "raw_data/gis/map/2019中国地图-审图号GS(2019)1822号/县（等积投影）.prj",
+    "county_shp_encoding": "gbk"
+  }
+}

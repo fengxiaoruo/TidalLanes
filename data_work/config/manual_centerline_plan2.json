@@ -1,0 +1,11 @@
+{
+  "stage01": {
+    "manual_exclude_from_skeleton_input": false,
+    "manual_replace_default_centerline": true,
+    "manual_replace_buffer_m": 80.0,
+    "manual_replace_overlap_share": 0.6
+  },
+  "stage02": {
+    "baseline_exclude_manual_centerlines": true
+  }
+}

@@ -1,0 +1,62 @@
+TIDAL LANE COUNTERFACTUAL — TWO SPECIFICATIONS (AM PEAK, TOP-20)
+Model: theta=6.83  delta1=0.488  alpha=-0.12  beta=-0.1
+
+================================================================
+SPECIFICATION A: Congestion-inversion (original)
+  t_bar_hat[i,j] = (xi_sym_ij / xi_asym_ij)^(-(1+theta*lambda)/theta)
+  xi_sym = lanes x (tau_sym/tau_ff)^(1/delta1)  [same lanes, new travel time]
+  Congested dir: xi_sym < xi_asym -> t_bar_hat > 1 (cost RISES)
+  Uncongested dir: xi_sym > xi_asym -> t_bar_hat < 1 (cost FALLS)
+  Interpretation: targets equilibrium flow consistent with symmetric tau,
+  holding lanes fixed. Congested direction sees higher model cost because
+  fewer vehicles are inferred at the lower (symmetric) travel time.
+
+  chi_hat = 1.0000753531
+  (chi_hat - 1) x 10^6 = 75.3531  --> welfare WORSENS
+  l_r_hat: mean=1.00051834  std=3.027e-02
+  l_f_hat: mean=0.99996290  std=2.592e-02
+
+================================================================
+SPECIFICATION B: Direct travel-time ratio (alternative, epsilon=0.1)
+  t_bar_hat[i,j] = (tau_sym / tau_ij)^epsilon   with epsilon=0.1
+  Congested dir: tau_sym < tau_ij -> t_bar_hat < 1 (cost FALLS) -- road improves
+  Uncongested dir: tau_sym > tau_ji -> t_bar_hat > 1 (cost RISES) -- road worsens
+  Interpretation: iceberg cost proportional to travel time (t_bar ~ tau^epsilon).
+  Tidal lane physically improves the slow direction, penalizes the fast one.
+  Cost reduction hits MANY commuters (congested); cost rise hits FEW (uncongested).
+  epsilon=0.1 is conservative; larger epsilon implies stronger travel-time sensitivity.
+
+  chi_hat = 0.9999794363
+  (chi_hat - 1) x 10^6 = -20.5637  --> welfare IMPROVES
+  l_r_hat: mean=1.00009131  std=5.580e-03
+  l_f_hat: mean=1.00015271  std=5.762e-03
+
+================================================================
+COMPARISON OF BOTH SPECS (Top-20, AM peak)
+  Spec A (congestion-inv): (chi-1)*1e6 = +75.3531  (welfare WORSENS)
+  Spec B (direct tau, e=0.1): (chi-1)*1e6 = -20.5637  (welfare IMPROVES)
+  Sign flip: opposite welfare conclusions from two equally-valid t_bar_hat constructions.
+  l_r_hat std: Spec A = 3.027e-02  vs  Spec B = 5.580e-03
+  l_f_hat std: Spec A = 2.592e-02  vs  Spec B = 5.762e-03
+  Population reshuffling is ~5x larger under Spec A (std ~3-4%) vs Spec B (std ~0.5%).
+
+================================================================
+INTERPRETATION AND IDENTIFICATION NOTE
+  The key distinction is what t_bar represents vs tau:
+    Spec A: t_bar is derived from equilibrium traffic flows (xi) via BPR inversion.
+      In equilibrium, congested roads have LOW t_bar (many commuters tolerate congestion
+      because fundamental attractiveness is high). Making the road 'less congested'
+      (tau_sym < tau_obs) with fixed lanes implies fewer vehicles, hence HIGHER t_bar.
+      This is a counterfactual experiment: 'same capacity, different equilibrium flows.'
+    Spec B: t_bar is treated as proportional to physical travel time tau.
+      Capacity reallocation makes slow direction faster -> t_bar falls -> more commuters.
+      This is a structural capacity-improvement experiment.
+  For a true tidal lane policy (physical capacity reallocation), Spec B is more
+  appropriate. Spec A captures a different counterfactual (equilibrium flow targeting).
+  The choice of epsilon in Spec B is an additional degree of freedom; epsilon=1
+  (proportional) is theoretically clean but produces large shocks for highly
+  asymmetric pairs (tau_ratio up to 14.76x -> t_bar ratio up to 14.76, which may
+  cause convergence issues). Epsilon=0.1 is conservative and clearly shows the sign.
+  Recommended: report Spec B (eps=0.1) as the main tidal lane result;
+  report Spec A as a robustness check showing sensitivity to specification.
+  Run both locally with tol=1e-4 for full accuracy.

@@ -1,0 +1,79 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[UTF8,fontset=fandol]{ctex}
+\usepackage{amsmath,amssymb,graphicx,booktabs,tabularx,setspace}
+\renewcommand{\figurename}{Figure}
+\renewcommand{\tablename}{Table}
+\title{Top-20 Congestion Cities: Directional Asymmetry Across AM, PM, and the Late-Night Baseline}
+\author{Xiaoruo Feng}
+\date{April 28, 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Sample definition}
+
+The sample is restricted to the twenty cities with the largest AM excess directional gap in the retained top-50 pair design. City ranking is computed from the early-morning AM session (07:08--08:14) relative to the later overnight session (00:34--01:48), with pair weights given by total two-way commuter volume. Within each selected city, the analysis keeps the top 50 undirected town pairs ranked by commuter volume. The retained top ten cities under this rule are 苏州市（江苏省）, 佛山市（广东省）, 东莞市（广东省）, 天津市, 武汉市（湖北省）, 长沙市（湖南省）, 南京市（江苏省）, 杭州市（浙江省）, 长春市（吉林省）, 西安市（陕西省）. The late-night baseline uses the 00:34--01:48 session as the primary source. Two directional rows failed in that session, so those rows are backfilled from the earlier complete 22:22--23:48 night run.
+
+For the sampled cities, the three data versions used in the tables and figures are: AM session 20260427T070801, sampled from 07:08:01 to 08:14:32; PM session 20260427T171554, sampled from 17:15:54 to 18:26:28; and late-night session 20260427T003434, sampled from 00:34:35 to 01:48:51. All clock times are local Asia/Shanghai times.
+
+\section*{Summary statistics}
+
+Table~\ref{tab:summary} reports pooled descriptive statistics for the resulting 1,000 town pairs. Average pair distance is stable across the three windows because the sample is fixed, at roughly 11.05 kilometres. Mean bilateral travel time rises from 16.76 minutes in the late-night baseline to 23.98 minutes in AM and 23.74 minutes in PM. Directional asymmetry is also strongest in AM: the pooled median min/max ratio is 0.856 in AM, compared with 0.890 in PM and 0.912 in the late-night baseline. The left tail is economically meaningful. In AM, 67.5\% of pairs have a min/max ratio below 0.90; the corresponding shares are 57.4\% in PM and 48.8\% in the late-night baseline.
+
+The late-night-adjusted evidence is sharper. The median aligned AM-to-night ratio is 0.878, while the median PM-to-night ratio is 0.919. The share of pairs that are more asymmetric than the late-night baseline is 80.1\% in AM and 73.9\% in PM. AM therefore delivers the clearest departure from the low-congestion benchmark, although PM still exhibits a nontrivial right-tail widening relative to late night.
+
+\begin{table}[h!]
+\centering
+\caption{Pooled descriptive statistics, top-20 congestion cities and top-50 pairs}
+\label{tab:summary}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccccc}
+\toprule
+Period & Pairs & Mean dist. & Mean time & Median time & Median min/max & Share $\leq 0.90$ \\
+\midrule
+AM & 1000 & 11.05 & 23.98 & 21.56 & 0.856 & 0.675 \\
+PM & 1000 & 11.05 & 23.74 & 21.42 & 0.890 & 0.574 \\
+Late-night & 1000 & 11.05 & 16.76 & 14.81 & 0.912 & 0.488 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{Figures}
+
+Figure~\ref{fig:hist} plots the pooled min/max distributions. The AM distribution lies furthest to the left. PM remains to the left of the late-night benchmark, but the displacement is smaller. Figure~\ref{fig:adjhist} sharpens this comparison by normalising each pair's asymmetry against the late-night directional baseline. The AM distribution is concentrated below one, which indicates that morning directional imbalance typically exceeds the corresponding late-night imbalance for the same pair. The PM distribution also sits below one, though less decisively. Figure~\ref{fig:scatter} reports city-level AM and PM asymmetry, one point per city. The cross-city cloud is broad rather than collinear, which indicates substantial heterogeneity in how strongly morning and evening asymmetries covary. Figure~\ref{fig:citylines} shows the same twenty cities with separate points for AM, PM, and late night. This panel is more informative than twenty separate histograms because each city contributes only fifty pairs; the city-level weighted medians suppress small-sample noise while preserving the cross-city ranking.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.88\textwidth]{/Users/fxr/Desktop/TidalLanes/data_work/outputs/national_tidal_commuting_top50cities_2021_v1/figures/top20_congestion_top50_note/figure1_ratio_hist_overlay.png}
+\caption{Pooled distribution of directional asymmetry. The horizontal axis is the min/max ratio of bilateral travel times, computed within the same town pair and time window. Lower values correspond to stronger directional asymmetry.}
+\label{fig:hist}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.88\textwidth]{/Users/fxr/Desktop/TidalLanes/data_work/outputs/national_tidal_commuting_top50cities_2021_v1/figures/top20_congestion_top50_note/figure3_adjusted_hist_overlay.png}
+\caption{AM and PM asymmetry relative to the late-night baseline. A value below one indicates that the same pair is more asymmetric in the peak period than in the late-night baseline, after fixing the period-specific ordering of the two directions.}
+\label{fig:adjhist}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.75\textwidth]{/Users/fxr/Desktop/TidalLanes/data_work/outputs/national_tidal_commuting_top50cities_2021_v1/figures/top20_congestion_top50_note/figure4_city_scatter_am_pm.png}
+\caption{City-level directional asymmetry in AM and PM. Each point is one city, measured by the weighted median min/max ratio across its top-50 town pairs.}
+\label{fig:scatter}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.95\textwidth]{/Users/fxr/Desktop/TidalLanes/data_work/outputs/national_tidal_commuting_top50cities_2021_v1/figures/top20_congestion_top50_note/figure5_city_lines_periods.png}
+\caption{Directional asymmetry by city and time window. Cities are sorted by AM asymmetry relative to the late-night baseline.}
+\label{fig:citylines}
+\end{figure}
+
+\section*{Takeaway}
+
+This top-20 congestion-city sample delivers a cleaner descriptive pattern than the unrestricted 50-city pool. Average travel time rises in both AM and PM relative to the late-night benchmark, but the directional imbalance is most pronounced in AM. The PM peak still exhibits directional asymmetry, although its median ratio remains closer to the late-night baseline. For the present motivation exercise, the strongest evidence therefore comes from the top-20 congestion-city sample, measured on the top-50 town pairs per city and evaluated relative to the later overnight baseline.
+
+\end{document}

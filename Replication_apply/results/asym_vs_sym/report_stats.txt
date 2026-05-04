@@ -1,0 +1,58 @@
+======================================================================
+ASYMMETRIC vs SYMMETRIC BASELINE TRAFFIC — COUNTERFACTUAL COMPARISON
+Edges analysed: 272 / 4087 (full network)
+Nodes: 2729   |   Shock: t_bar_hat[i,j] = 0.99 (1% cost reduction)
+Parameters: theta=6.83, delta1=0.488, alpha=-0.12, beta=-0.10
+======================================================================
+
+--- 1. WORLD WELFARE CHANGE (chi_hat) ---
+   chi_hat < 1  →  welfare cost falls  →  welfare IMPROVES
+   ASYM: mean=0.9999999936  std=7.233e-09  [0.999999931, 1.000000032]
+   SYM: mean=0.9999999936  std=7.042e-09  [0.999999938, 1.000000014]
+
+   d_chi_hat = ASYM - SYM:
+     mean       = -4.187e-11   (near zero → no systematic bias)
+     std        = 6.473e-09
+     max |d|    = 5.154e-08
+     p5/p50/p95 = -3.788e-09 / 0.000e+00 / 3.405e-09
+     mean|d| / mean|chi-1|  = 0.252
+       → Asymmetric baseline changes welfare estimate by ~25%
+         of the edge effect on average (substantial variance, near-zero mean)
+
+--- 2. POPULATION DISTRIBUTION CHANGE ---
+   Residents (l_r_hat)  d = ASYM - SYM:
+     mean=-2.018e-08  std=6.306e-07  max|d|=6.837e-06
+     mean|d| / mean|effect| = 0.466
+   Jobs     (l_f_hat)  d = ASYM - SYM:
+     mean=1.231e-08  std=4.184e-07  max|d|=4.531e-06
+     mean|d| / mean|effect| = 0.335
+
+--- 3. NODE-LEVEL RESPONSE (ASYM baseline) ---
+   mean |l_r_hat - 1| = 4.061e-07  max = 1.746e-02
+   Fraction of (edge,node) pairs with |l_r-1| > 1e-5: 0.079%
+   Fraction of (edge,node) pairs with |l_r-1| > 1e-4: 0.033%
+
+--- 4. TOP 10 EDGES BY |d_chi_hat| ---
+    edge_i  edge_j      chi_asym       chi_sym         d_chi          d_lr
+        86     140  0.9999999895  0.9999999379     5.154e-08    -2.139e-06
+        73      21  0.9999999310  0.9999999815    -5.055e-08    -2.138e-07
+       140      86  0.9999999901  0.9999999544     3.575e-08    -6.837e-06
+       127     180  0.9999999782  1.0000000124    -3.416e-08    -5.094e-07
+       135     136  0.9999999512  0.9999999830    -3.181e-08     3.083e-07
+       144     197  1.0000000321  1.0000000029     2.914e-08     5.346e-07
+       136     137  0.9999999906  0.9999999749     1.566e-08    -4.797e-08
+        84     138  0.9999999900  1.0000000040    -1.396e-08     1.025e-07
+        86      87  1.0000000065  0.9999999939     1.265e-08    -8.387e-10
+       144      90  0.9999999890  0.9999999765     1.248e-08    -9.077e-10
+
+--- 5. INTERPRETATION ---
+   • The AVERAGE welfare effect of a 1% edge cost reduction is tiny (~7e-9)
+     but well-identified; max effect edges show |chi-1| up to ~7e-8.
+   • Using asymmetric traffic as baseline introduces DISPERSION but not
+     systematic bias in chi_hat: mean(d_chi)≈0, std(d_chi)≈25% of effect.
+   • For population shifts (l_r_hat, l_f_hat), the asym-sym difference
+     is ~35-47% of the effect size — larger relative impact.
+   • Edges with high traffic asymmetry |xi[i,j]-xi[j,i]|/xi[i,j] show
+     the largest d_chi and d_lr differences.
+   • Conclusion: asymmetric baseline matters for node-level distributional
+     analysis, less so for aggregate welfare ranking of edges.

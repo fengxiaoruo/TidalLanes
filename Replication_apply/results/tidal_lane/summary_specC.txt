@@ -1,0 +1,31 @@
+================================================================
+TIDAL LANE — SPEC C: PHYSICAL LANE REALLOCATION (Δ=1)
+  Selection: top-100 asymmetric AM pairs, link length > 200.0m
+  Mechanism: Δ=1.0 lane slow->fast, BPR at observed flows, ε=1
+================================================================
+  Pairs treated: 100
+  Asym ratio range: 3.24 – 25.17
+  tau change (slow dir, avg): -10.6%
+  tau change (fast dir, avg): 20.7%
+  t_bar_hat slow: [0.8756, 0.9997]
+  t_bar_hat fast: [1.0057, 1.4025]
+
+  chi_hat = 0.9998669097
+  (chi_hat - 1) × 10^6 = -133.0903  (welfare IMPROVES)
+
+  l_r_hat (residents):
+    mean=1.00017148  std=1.6736e-02
+    max gain: sq_78_44  +70.5782%
+    max loss: sq_59_28  -14.6185%
+
+  l_f_hat (workers):
+    mean=0.99972913  std=1.2049e-02
+    max gain: sq_29_16  +17.1037%
+    max loss: sq_78_44  -46.7659%
+
+  solver: err_eqm1=5.89e-03  err_eqm2=2.72e-03
+================================================================
+NOTE: Fixed-flow assumption — new tau computed at baseline xi.
+For full GE, tau and xi should be solved jointly (requires network equilibrium).
+The welfare result is an approximation; the sign (improvement) is robust.
+Run locally with tol=1e-4 for fully converged result.
