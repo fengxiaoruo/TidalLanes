@@ -1,0 +1,338 @@
+%====================================================================
+%  Stage 1: Fixed Directed-Cost Spatial Equilibrium
+%  Beijing, raw_connected v1 edgeproj_v2, LCC + detour gate G=5
+%====================================================================
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx,booktabs,tabularx,array,setspace,float,enumitem}
+\usepackage{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\setstretch{1.15}
+\setlength{\parindent}{1.5em}
+
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+
+\newcommand{\N}{\mathcal N}
+\newcommand{\E}{\mathcal E}
+\newcommand{\Lbar}{\bar L}
+\newcommand{\Wbar}{\bar W}
+\newcommand{\ubar}{\bar u}
+\newcommand{\Abar}{\bar A}
+\newcommand{\obs}{\mathrm{obs}}
+\newcommand{\sym}{\mathrm{sym}}
+
+\graphicspath{{../../data_work/outputs/directional_cost_edgeproj_v2_lcc_gate5_v1/figures/}}
+
+\title{Stage~1: Fixed Directed-Cost Spatial Equilibrium\\[0.4em]
+\large Beijing Morning Peak, \texttt{model\_input\_edgeproj\_v2\_lcc\_gate5\_v1}}
+\author{Yige Duan \and Xiaoruo Feng \and Yizhen Gu}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+This note documents the first structural exercise in the paper's two-stage model line.
+Observed directed peak-period travel times are held fixed; lane reallocation, endogenous
+congestion, and tidal-lane counterfactuals are deliberately excluded.
+For each cost surface (directed observed vs.\ symmetric approximation), the code
+recovers baseline residential amenities and workplace productivities that rationalise
+the observed road-commuter marginals, then solves the static spatial equilibrium.
+The comparison asks how two \emph{self-consistent} calibration worlds differ in
+within-run welfare, predicted OD flows, and inverted fundamentals when directional
+information is collapsed to a pair-level symmetric index.
+It is not a policy welfare evaluation.
+\end{abstract}
+
+\section{Research question and scope}\label{sec:question}
+
+Directional congestion is prevalent in Beijing's morning peak.
+A symmetric travel-cost index averages the two directions of a corridor and therefore
+mixes a slow peak direction with a fast off-peak direction on the same physical link.
+Stage~1 asks:
+\begin{quote}
+\noindent
+\emph{If we build a directed calibration world and a symmetric calibration world---each
+with its own inverted fundamentals and each fitting the same observed residence and
+workplace marginals---how do within-run welfare, OD commuting patterns, and baseline
+amenities/productivities differ?}
+\end{quote}
+
+Three objects are \emph{out of scope} for Stage~1:
+(i)~endogenous link traffic and congestion feedback;
+(ii)~structural estimation of $(\theta,\alpha,\beta)$ or any congestion elasticity;
+(iii)~tidal-lane or capacity counterfactuals.
+
+\section{Environment and data}\label{sec:data}
+
+\subsection{Spatial units and network scope}
+
+The city is partitioned into $N=1104$ square grid cells in the largest weakly connected
+component of the directed adjacency graph implied by pair-specific routed travel costs.
+The retained network contains $|\E|=2642$ directed edges and $310{,}525$ origin--destination
+pairs with positive road-mode commuters ($\Lbar=88{,}110.2$ road commuters; $92.6\%$ of the
+city-wide road-commuter total in the baseline OD table).
+
+Travel costs come from \texttt{raw\_connected\_v1} edge-projection routing
+(\texttt{edgeproj\_v2}) with detour gate $G=5$ and LCC restriction.
+Input QA is in \path{model_input_qa.json}.
+
+\subsection{Observed objects}
+
+Each directed edge $(k,l)\in\E$ carries observed peak-period travel time
+$\tau^{\obs}_{kl}>0$ (minutes).
+There are $1193$ unordered reciprocal pairs; $72.4\%$ have peak-period travel-time ratio
+$r_{kl}\equiv\max(\tau^{\obs}_{kl},\tau^{\obs}_{lk})/\min(\cdot)\ge 1.10$.
+
+Road-mode commuting flows $\{L^{\obs}_{ij}\}$ yield marginals
+$L^{\obs,R}_i=\sum_j L^{\obs}_{ij}$ and $L^{\obs,F}_j=\sum_i L^{\obs}_{ij}$.
+Period: AM; population column: \texttt{commuters\_road}.
+
+\section{Model}\label{sec:model}
+
+\subsection{Fixed travel cost}
+
+Stage~1 holds the edge cost vector fixed within each world:
+\begin{equation}
+  \tau_{kl} \;=\; \tau^{\obs}_{kl}
+  \quad\text{(directed world)},\qquad
+  \tau_{kl} \;=\; \tau^{\sym}_{kl}
+  \quad\text{(symmetric world)}.
+  \label{eq:fixed_tau}
+\end{equation}
+No link updates from lane counts, traffic, or congestion feedback.
+
+\subsection{Route aggregator}
+
+\begin{equation}
+  A_{kl} \;=\; \frac{1}{\kappa\,\tau_{kl}},
+  \qquad
+  T_{ij} \;\equiv\; \bigl[(I-A)^{-1}\bigr]_{ij},
+  \qquad
+  \tau_{ij}^{-\theta} \;\equiv\; T_{ij},
+  \label{eq:route_aggregator}
+\end{equation}
+with Allen--Arkolakis iceberg convention and Fréchet shape $\theta$
+\citep{AllenArkolakis2022}.
+On the gated LCC network, raw row sums of $1/\tau_{kl}$ are already below $0.9$, so
+$\kappa=1$.
+
+\subsection{Fundamentals and static equilibrium}
+
+Baseline objects $\ubar_i>0$ and $\Abar_j>0$ enter with agglomeration:
+$u_i=\ubar_i(L_i^R)^{\beta}$, $A_j=\Abar_j(L_j^F)^{\alpha}$.
+Shares $(l_i^R,l_j^F)$ solve
+\begin{align}
+  l_i^R
+  &= \left[
+      \chi\,\ubar_i^{\theta}\,
+      \sum_j T_{ij}\,
+      \Abar_j^{\theta}\,
+      (l_j^F)^{\alpha\theta}
+    \right]^{\!1/(1-\beta\theta)},
+  \label{eq:eq_R} \\[0.4em]
+  l_j^F
+  &= \left[
+      \chi\,\Abar_j^{\theta}\,
+      \sum_i T_{ij}\,
+      \ubar_i^{\theta}\,
+      (l_i^R)^{\beta\theta}
+    \right]^{\!1/(1-\alpha\theta)},
+  \label{eq:eq_F}
+\end{align}
+with $\sum_i l_i^R=\sum_j l_j^F=1$.
+Within-run welfare is
+\begin{equation}
+  \Wbar \;\equiv\;
+  \left[
+    \sum_i \ubar_i^{\theta}(L_i^R)^{\beta\theta}\,
+    \Pi_i^{-\theta}
+  \right]^{1/\theta}.
+  \label{eq:welfare}
+\end{equation}
+
+\subsection{Fundamentals inversion}\label{sec:inversion}
+
+Given a fixed cost surface $\{\tau_{kl}\}$ and observed shares
+$(l_i^{R,\obs},l_j^{F,\obs})$, inversion finds
+$(\ubar_i^{\theta},\Abar_j^{\theta},\chi)$ such that equations
+\eqref{eq:eq_R}--\eqref{eq:eq_F} hold at the observed marginals.
+Equivalently, with $v_i\equiv\ubar_i^{\theta}$, $w_j\equiv\Abar_j^{\theta}$,
+$p_R=1-\beta\theta$, $p_F=1-\alpha\theta$:
+\begin{align}
+  v_i \bigl(T (w \odot (l^{F,\obs})^{\alpha\theta})\bigr)_i
+  &= \chi\,(l_i^{R,\obs})^{p_R},
+  \label{eq:invert_R}\\
+  w_j \bigl(T^{\top} (v \odot (l^{R,\obs})^{\beta\theta})\bigr)_j
+  &= \chi\,(l_j^{F,\obs})^{p_F}.
+  \label{eq:invert_F}
+\end{align}
+The algorithm alternates updates on \eqref{eq:invert_R}--\eqref{eq:invert_F}, and after
+each half-step rescales $v$ and $w$ to geometric mean one on valid nodes
+($L^{\obs,R}_i,L^{\obs,F}_i>0$), implementing
+$\prod_i\ubar_i=\prod_j\Abar_j=1$.
+Convergence requires the implied node-level $\chi$ from the residence and workplace
+equations to agree (std$(\log\chi)<1.5\times 10^{-4}$).
+This is a structural fixed point, not a gravity regression with origin/destination fixed
+effects.
+
+\subsection{Symmetric-cost world}
+
+For reciprocal pairs,
+\begin{equation}
+  \tau^{\sym}_{kl}=\tau^{\sym}_{lk}
+  \;=\;
+  \sqrt{\tau^{\obs}_{kl}\,\tau^{\obs}_{lk}}
+  \qquad\text{(geometric mean; main specification)}.
+  \label{eq:sym_geometric}
+\end{equation}
+One-way edges keep $\tau^{\obs}_{kl}$.
+The symmetric world \emph{re-inverts} $(\ubar,\Abar,\chi)$ under $\tau^{\sym}$ and
+re-solves \eqref{eq:eq_R}--\eqref{eq:eq_F}.
+Both worlds target the same observed marginals; differences arise in OD flows, welfare
+levels, and the inverted baseline objects.
+
+\section{Computation}\label{sec:computation}
+
+Pipeline (\texttt{run\_directional\_cost.py}):
+\begin{enumerate}[leftmargin=2em,itemsep=0.2em]
+  \item Load QSM primitives; floor zero-mass shares at $10^{-6}$.
+  \item Build $T$ from \eqref{eq:route_aggregator}; set $\kappa=1$.
+  \item \textbf{Directed world:} invert under $\tau^{\obs}$; solve equilibrium.
+  \item \textbf{Symmetric world:} build $\tau^{\sym}$; invert again; solve equilibrium.
+  \item Report comparisons and optional asymmetry simulations (intensity/threshold grids),
+        each with fundamentals re-inverted at the relevant cost surface.
+\end{enumerate}
+
+Directed inversion: $503$ iterations, $\max|\Delta\log\chi|=1.49\times 10^{-4}$.
+Symmetric inversion: $511$ iterations, same tolerance.
+Static equilibria converge in $10$ iterations each.
+
+Output root:
+\texttt{data\_work/outputs/directional\_cost\_edgeproj\_v2\_lcc\_gate5\_v1/}.
+
+\section{Parameters}\label{sec:parameters}
+
+Stage~1 does not estimate $(\theta,\alpha,\beta)$; placeholders from AA Seattle:
+$\theta=6.83$, $\alpha=-0.12$, $\beta=-0.10$.
+Congestion elasticity $\lambda$ is omitted.
+
+\section{Results}\label{sec:results}
+
+\subsection{Directional asymmetry}
+
+Figure~\ref{fig:asym_hist}: median $r=1.23$; p90 $=1.94$; $8.89\%$ of reciprocal pairs
+have $r\ge 2.00$.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{asymmetry_ratio_histogram.png}
+  \caption{Reciprocal-pair travel-time ratios.}
+  \label{fig:asym_hist}
+\end{figure}
+
+\subsection{Fit to observed marginals}
+
+Both calibration worlds reproduce floored observed residence and workplace shares:
+L1 distance $\approx 0.00053\%$ (directed) and $\approx 0.00053\%$ (symmetric).
+Inversion is tied to \emph{marginals}, not the full OD matrix.
+
+\subsection{Main comparison: symmetric vs.\ directed (geometric symmetrisation)}
+
+Table~\ref{tab:main}.
+With re-inversion, residence and workplace \emph{shares} barely move (dissimilarity
+$<0.001\%$): both worlds rationalise the same observed marginals.
+Predicted \emph{OD flows} still differ by $2.46\%$ dissimilarity because bilateral
+route costs and inverted $\Abar_j$ differ.
+Within-run $\Wbar$ falls by $1.14\%$ in the symmetric world.
+Fundamentals shift materially: p95 $|\log(\ubar_i^{\sym}/\ubar_i^{\dir})|\approx 0.55$
+(and similarly for $\Abar$).
+
+\begin{table}[htbp]
+  \centering
+  \caption{Symmetric geometric world relative to directed world (both re-inverted)}
+  \label{tab:main}
+  \begin{tabular}{lc}
+  \toprule
+  Object & Value \\
+  \midrule
+  $\Wbar$ change (\%) & $-1.141$ \\
+  Residence-share dissimilarity (\%) & $<0.001$ \\
+  Workplace-share dissimilarity (\%) & $<0.001$ \\
+  Predicted OD dissimilarity (\%) & $2.463$ \\
+  Mean edge $\tau^{\sym}/\tau^{\obs}-1$ (\%) & $+1.869$ \\
+  OD-weighted bilateral route cost change (\%) & $-1.028$ \\
+  p95 $|\log(\ubar_i^{\sym}/\ubar_i^{\dir})|$ (valid nodes) & $0.550$ \\
+  p95 $|\log(\Abar_j^{\sym}/\Abar_j^{\dir})|$ (valid nodes) & $0.554$ \\
+  \bottomrule
+  \end{tabular}
+  \vspace{0.4em}
+
+  \begin{minipage}{0.92\textwidth}
+  \footnotesize
+  \emph{Notes:} Dissimilarity is $0.5\sum|\Delta\text{share}|$.
+  Comparison is between two self-consistent calibration worlds, not a fixed-fundamentals
+  counterfactual.
+  \end{minipage}
+\end{table}
+
+Arithmetic symmetric operator (re-inverted): $\Wbar$ change $-0.85\%$; OD dissimilarity
+$2.29\%$ (\texttt{directional\_cost\_edgeproj\_v2\_lcc\_gate5\_v1\_sym\_arithmetic/}).
+
+\subsection{Asymmetry simulations}\label{sec:simulations}
+
+Each simulation point re-inverts fundamentals at the stated cost surface.
+
+\textbf{Intensity} $\rho\in\{0,0.25,\ldots,1\}$:
+$\tau_{kl}(\rho)=\tau^{\sym}_{kl}\exp\{\rho[\log\tau^{\obs}_{kl}-\log\tau^{\sym}_{kl}]\}$.
+Moving from $\rho=0$ (symmetric) to $\rho=1$ (directed) raises $\Wbar$ by $1.15\%$ while
+leaving residence shares essentially unchanged ($<0.001\%$ dissimilarity at $\rho=1$).
+
+\textbf{Threshold} $c\in\{1,1.05,\ldots,2\}$:
+keep $\tau^{\obs}$ only on reciprocal pairs with $r_{kl}\ge c$, else symmetrise; compare
+to the fully symmetric world.
+At $c=2$ (8.9\% of reciprocal edges remain directed), $\Wbar$ still rises by $0.86\%$
+relative to the symmetric calibration.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{simulation_asymmetry_intensity.png}
+    \caption{Asymmetry intensity $\rho$}\label{fig:intensity}
+  \end{minipage}\hfill
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{simulation_asymmetry_threshold.png}
+    \caption{Asymmetry threshold $c$}\label{fig:threshold}
+  \end{minipage}
+\end{figure}
+
+\subsection{Interpretation}
+
+Stage~1 supports:
+\begin{enumerate}[leftmargin=2em,itemsep=0.2em]
+  \item Directional congestion is widespread in the retained Beijing network.
+  \item Directed and symmetric \emph{calibration worlds} fit the same observed marginals
+        but imply different OD patterns, welfare levels, and inverted fundamentals.
+  \item The main actionable bias for commuting \emph{structure} is in predicted OD flows
+        ($\sim$2--2.5\%), not in residence/workplace shares once fundamentals re-adjust.
+\end{enumerate}
+
+Stage~1 does \emph{not} support tidal-lane welfare claims or structural $\lambda$
+estimation.
+
+\section{Link to Stage~2}\label{sec:stage2}
+
+Stage~2 activates congestion, anchors travel times to observed speeds, and evaluates
+lane-capacity counterfactuals under fundamentals recovered here.
+
+\bibliographystyle{aer}
+\bibliography{tidal_lanes_refs}
+
+\end{document}
