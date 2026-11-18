@@ -1,5 +1,7 @@
 # New Machine Setup Checklist
 
+> **Historical (note added 2026-11-18).** The folders it names as essential (`raw_rebuild_validation`, `match_projection_complete_v7`, `Documents/todo_outputs`) belong to the March stage pipeline. For the current mainline, the folders to carry over are listed in `data_work/docs/MAINLINE_MANIFEST.md`. The current mainline (OSM 1B, all-day 2025 OD with 07:00 to 09:00 link times, `ce_floor` β_c = 0.35) is stated in the "Current mainline" table of `DOCUMENT_INDEX.md`. Text below is unchanged.
+
 This checklist is for moving the project to a new computer and getting it into a usable state quickly.
 
 ## 1. Copy the project

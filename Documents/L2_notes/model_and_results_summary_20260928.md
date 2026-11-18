@@ -1,5 +1,7 @@
 # 模型与结果系统诊断（gate5 主线 bpr+pos05）
 
+> **历史文档（2026-11-18 加注）。** 本文是旧 gate5 主线（2022 OD、anchored λ = 1.1）的结果与输出登记，数字不是当前主线。 当前主线（OSM 1B、全日 2025 OD＋07–09 用时、`ce_floor` β_c = 0.35）见 `DOCUMENT_INDEX.md` 的 “Current mainline” 表。下文未改。
+
 **最后更新：** 2026-09-28（替代 2026-07-01 版；旧版归档在 `_superseded/model_and_results_summary_20260630.md`）  
 **本版改动：** 所有通勤时间与 person-minute 数字改为 2026-07-16 物理时间口径（`Σ Ξ_kl m_kl / L̄`）；旧版把 all-route 冰山指数 `tau_ij` 当分钟乘 60，秒数全部作废。福利数字不变。P6/P7 定价反事实标记为实现有误，不再进入主表。审计见 `Documents/L2_notes/model_audit_and_referee_review_20260926.md`。  
 **用途：** 主规格结果 snapshot + 全部分析包注册表（脚本 / 输入 / 输出路径 / 关键数字）  

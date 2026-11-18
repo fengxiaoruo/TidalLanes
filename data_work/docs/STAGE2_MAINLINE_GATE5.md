@@ -1,5 +1,7 @@
 # Stage 2 gate5 — mainline specification (2026-06-29)
 
+> **Historical (note added 2026-11-18).** This was the locked specification of the old gate5 mainline (June 2026, anchored λ = 1.1, 2022 OD). It still describes how to reproduce `Tidal0715` and the April paper. The current mainline (OSM 1B, all-day 2025 OD with 07:00 to 09:00 link times, `ce_floor` β_c = 0.35) is stated in the "Current mainline" table of `DOCUMENT_INDEX.md`. Text below is unchanged.
+
 **Travel cost:** `raw_connected_v1` → `edgeproj_v2` → `model_input_edgeproj_v2_lcc_gate5_v1` (**not centerline**)
 
 ## Locked mainline

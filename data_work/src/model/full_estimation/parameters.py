@@ -67,11 +67,19 @@ class Parameters:
     theta_source: str = "AA(2022) Seattle, via Ahlfeldt et al. (2015)"
     alpha_source: str = "AA(2022) Seattle calibration"
     beta_source: str = "AA(2022) Seattle calibration"
-    lambda_phys_source: str = "Beijing speed-density evidence, elasticity ≈ 1.1 (mainline)"
+    # Label only: no solver reads params.lambda_phys. The elasticity actually used is
+    # congestion_lambda, passed by each run script. Scripts that know it call
+    # with_congestion() before writing parameters.json (2026-11-18).
+    lambda_phys_source: str = (
+        "Placeholder: old gate5 mainline default (anchored, 1.1). Not read by the solver; "
+        "the elasticity used is congestion_lambda passed by the run script (see mainline_config.json "
+        "or the run command)"
+    )
     lambda_source: str = "LEGACY exog-only: delta1/theta with delta1=0.488 (AA 2022 Seattle)"
     notes: tuple = field(
         default_factory=lambda: (
-            "Mainline congestion elasticity is lambda_phys=1.1 (Beijing).",
+            "lambda_phys is a label; the solver uses congestion_lambda from the run script. "
+            "Current mainline (2026-11): ce_floor, congestion_lambda=0.35.",
             "lambda_=0.07144 is a legacy AA-Seattle placeholder used only in exog diagnostics.",
             "TODO: re-align exog δ1 with lambda_phys once directed-traffic data support a panel/IV estimate.",
         )
@@ -87,6 +95,17 @@ class Parameters:
         if source is not None:
             kw["lambda_source"] = source
         return replace(self, **kw)
+
+    def with_congestion(self, congestion_form: str, congestion_lambda: float | None,
+                        source: str = "run script --congestion-lambda") -> "Parameters":
+        """Record the congestion elasticity actually passed to the solver."""
+        if congestion_lambda is None:
+            return self
+        return replace(
+            self,
+            lambda_phys=float(congestion_lambda),
+            lambda_phys_source=f"{source}: congestion_form={congestion_form}, congestion_lambda={float(congestion_lambda):g}",
+        )
 
     def write(self, out_path: Path) -> None:
         Path(out_path).parent.mkdir(parents=True, exist_ok=True)

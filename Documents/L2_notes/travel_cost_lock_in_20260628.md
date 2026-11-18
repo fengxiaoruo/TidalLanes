@@ -1,5 +1,7 @@
 # Travel-cost lock-in decision (2026-06-28)
 
+> **Historical (note added 2026-11-18).** This lock-in applied to the old gate5 mainline. The current mainline uses the OSM 1B bundle `model_input_osm1b_L300_gate5_od2025_v2_alldaytt0709`. The current mainline (OSM 1B, all-day 2025 OD with 07:00 to 09:00 link times, `ce_floor` β_c = 0.35) is stated in the "Current mainline" table of `DOCUMENT_INDEX.md`. Text below is unchanged.
+
 ## Locked choice (final for v1 data)
 
 `**model_input_edgeproj_v2_lcc_gate5_v1**` is the final travel-cost matrix for the v1 data: raw_connected v1 **edgeproj_v2** pair-specific routed travel costs, restricted to the **largest connected component (LCC)**, with a **detour gate at G = 5** (adjacent edges whose routed length exceeds five times the straight-line centroid distance are dropped before the LCC is taken).

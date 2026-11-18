@@ -15,7 +15,7 @@ Three categories are irreplaceable and are copied to the external drive:
 | `fieldvisit` | `fieldvisit/` | 17 GB |
 | `presentation` | `Documents/PreSlides/` | 1 GB |
 
-`data_work/outputs/` is the largest single directory in the repository and is deliberately absent from that list. Every run under it is reproducible from `data_work/src/` and the locked input bundle, and it holds roughly 148,000 files, a shape that behaves badly on the current drive (see the exFAT section). `flowvedio/split_outputs/` is excluded for the same reason. `flowvedio/batch_outputs/` and `flowvedio/traffic_count_outputs/` are retained despite being regenerable, because rebuilding them costs substantial GPU time.
+`data_work/outputs/` is the largest single directory in the repository and is deliberately absent from that list. Almost every run under it is reproducible from `data_work/src/` and the input bundles (exceptions under Known gaps below), and it holds roughly 148,000 files, a shape that behaves badly on the current drive (see the exFAT section). `flowvedio/split_outputs/` is excluded for the same reason. `flowvedio/batch_outputs/` and `flowvedio/traffic_count_outputs/` are retained despite being regenerable, because rebuilding them costs substantial GPU time.
 
 Text sources are also absent, because they belong in Git rather than on a drive. Code, `.tex` sources, notes, and configuration are small, benefit from diffs and history, and are the class of asset most often lost to an unlucky edit rather than to hardware failure.
 
@@ -28,6 +28,17 @@ Each location protects against a different failure, and none substitutes for ano
 **The external drive** holds the four sets above. It answers "the laptop is gone". It carries no history by design; a second dated copy of the same video is waste, not safety.
 
 **Dropbox** (`Projects/Projects_FengGu/DirectionalCongestion`) holds what coauthors need to open without a Python environment: the current deck, current drafts, and the self-contained replication package. It is a distribution channel rather than a backup, and its contents are generated from the main repository through the package's `make sync-from-main`, not copied by hand.
+
+## Known gaps (2026-11-18)
+
+Two irreplaceable sets sit inside folders the procedure above treats as reproducible, so neither the drive script nor Git covers them:
+
+| Path | Why irreplaceable | Size |
+|---|---|---|
+| `data_work/outputs/grid_pair_baidu_validation_v3/` | Baidu route queries for five fixed days in November 2026; the time points cannot be re-queried | 16 MB |
+| `Platform/runs/202505_v01/query-results/` | Aggregate platform exports (152 files); re-extraction needs platform access and quota | 628 MB |
+
+Field-visit video under `fieldvisit/` is in the `fieldvisit` set and so is covered. Decision of 2026-11-18 (user): both paths stay in the shared Dropbox project folder and that sync is accepted as their protection; no drive set is added for now. The current-mainline input chain and results are listed in `MAINLINE_MANIFEST.md`; they are reproducible, but a copy saves several hours of reruns.
 
 ## Running a backup
 

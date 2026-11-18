@@ -1,5 +1,7 @@
 # λ=1.1 拥堵规格对比：长度单位化 vs observed-anchored
 
+> **历史文档（2026-11-18 加注）。** 本文锁定的 anchored、λ = 1.1 是旧 gate5 主线的拥堵设定，11 月已改为 `ce_floor`。 当前主线（OSM 1B、全日 2025 OD＋07–09 用时、`ce_floor` β_c = 0.35）见 `DOCUMENT_INDEX.md` 的 “Current mainline” 表。下文未改。
+
 **日期：** 2026-06-29  
 **输入：** `model_input_edgeproj_v2_lcc_gate5_v1`  
 **输出：** `data_work/outputs/congestion_lambda11_comparison_edgeproj_v2_lcc_gate5_v1/`  

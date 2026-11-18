@@ -8,16 +8,16 @@
 
 | 目录 | 内容 |
 |---|---|
-| `grid_pair_baidu_validation_v3` | 百度格对外部基准，5 天 × 3 时段，11-16 18:01 采集完成（`logs/week_master.log`）。重采需要重新调 API，且时间点无法复现 |
+| `grid_pair_baidu_validation_v3` | 百度格对外部基准，5 天 × 3 时段，11-16 18:01 采集完成（`logs/week_master.log`）。重采需要重新调 API，且时间点无法复现。`backup_to_drive.sh` 不备份它；11-18 决定靠 Dropbox 共享文件夹同步保护（见 `BACKUP_WORKFLOW.md` 的 Known gaps） |
 
 ## B. 主线输入链（按依赖顺序）
 
 | 目录 | 作用 | 构造脚本 |
 |---|---|---|
 | `model_input_edgeproj_v2_lcc_gate5_od2025_v2_odallday` | 2025-05 全日家→单位 OD 包 | 见 WORK_LOG 2026-11-11 |
-| `osm_grid_travel_time_v2` | OSM 1A/1B 格对用时（全周） | `src/network/build_osm_grid_travel_time.py` |
-| `model_input_osm1b_L300_gate5_od2025_v2_alldaytt0709` | **主线输入包**：924 格、2,872 条边 | `src/model/travel_cost_bundle/build_osm_model_bundle.py --scheme osm1b_L300` [TODO: 核实 `--tt-source` 和 `--od-bundle` 的实际取值，BUNDLE_META 只记录了 `od_source`] |
-| `stage2_endogenous_osm1b_ce_floor_b025_fl001_ks_od2025_v1` | α、β、θ 估计（与 β_c 无关，0.35 下沿用） | `src/model/full_estimation/run_stage2_gate5.py`，参数见该目录 `mainline_config.json`（脚本默认值仍是旧主线 anchored λ = 1.1，必须显式传参） |
+| `osm_grid_travel_time_v2` | OSM 1A/1B 格对用时：早高峰 07–09 点，0519–0523 五个工作日；畅通 02–05 点。summary 无参数块，参数见同结果的 `osm_grid_travel_time_v2_recheck0709/summary.json` | `src/network/build_osm_grid_travel_time.py` |
+| `model_input_osm1b_L300_gate5_od2025_v2_alldaytt0709` | **主线输入包**：924 格、2,872 条边 | `build_osm_model_bundle.py --scheme osm1b --od-bundle model_input_edgeproj_v2_lcc_gate5_od2025_v2_odallday --tt-source osm_grid_travel_time_v2 --version-id model_input_osm1b_L300_gate5_od2025_v2_alldaytt0709`（在 `src/model/travel_cost_bundle/`）。2026-11-18 逐边核对：2,872 条边的早高峰与畅通用时与 `osm_grid_travel_time_v2` 完全一致（差为 0），包内 `tau_obs_source` 列也写的是它；`_recheck0709`、`_nb8` 在这些边上同样完全一致，其余 `v2_*` 变体都不一致。`_recheck0709` 的 summary 记录了参数（早高峰 07–09 点、0519–0523 五个工作日、L = 300 m），据此确认 v2 就是 07–09 用时 |
+| `stage2_endogenous_osm1b_ce_floor_b025_fl001_ks_od2025_v1` | 主线只从这里的 `parameters.json` 取 α、β、θ。它们是文献值（θ = 6.83、β = −0.10 取 AA 2022 西雅图，α = 0.05 取文献中值），不是在北京数据上估计的，与 β_c 无关。该目录自身的输入是 `model_input_osm1b_L300_gate5_od2025_v2`（07–09 出发 OD），见 `baseline_summary.json` 的 `version_id`；其 `mainline_config.json` 里的 `travel_cost` 是写死的旧标签，不可信 | `src/model/full_estimation/run_stage2_gate5.py`（脚本默认值仍是旧主线 anchored λ = 1.1，必须显式传参） |
 
 ## C. 主线结果（β_c = 0.35）
 

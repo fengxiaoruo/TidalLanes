@@ -8,8 +8,10 @@ The catalogue of every document in the project, with its status and what superse
 
 | File | Use |
 |---|---|
-| `WORK_LOG.md` | Completed work, locked parameters, retained decisions. Append here rather than editing history. |
-| `STAGE2_MAINLINE_GATE5.md` | The locked Stage 2 specification the mainline actually runs. |
+| `WORK_LOG.md` | Completed work, locked parameters, retained decisions, from 2026-10 onward. Add new entries at the top; do not edit history. Earlier entries are in `WORK_LOG_2026Q3.md` and `WORK_LOG_2026Q2.md`. |
+| `MAINLINE_MANIFEST.md` | Output folders of the current mainline and its input chain. The specification itself is the "Current mainline" table in `DOCUMENT_INDEX.md`. |
+| `OUTPUTS_REGISTRY.md` | Every output folder sorted by category. |
+| `STAGE2_MAINLINE_GATE5.md` | Specification of the old gate5 mainline (June 2026); reproduces `Tidal0715` and the April paper, not the current mainline. |
 | `HOW_TO_RERUN_PARTIAL_RESULTS.md` | How to change a parameter and rerun only what depends on it. |
 
 ## `_superseded/`

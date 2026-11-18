@@ -15,8 +15,8 @@ The catalogue of every document, with its status and what supersedes it, lives i
 
 ## Current state
 
-The active deck is `PreSlides/Tidal0715.tex`, compiled as `Tidal0718.pdf`. The full paper draft `L1_manuscripts/TidalLanes_0429.tex` has not advanced since April and now trails the deck substantially; whether to write it forward from the deck is an open decision recorded in `nextstep.md`.
+The only material that uses current-mainline numbers is the November discussion deck `PreSlides/brad_202611/`. The seminar deck `PreSlides/Tidal0715.tex` (compiled as `Tidal0718.pdf`, July) and the paper draft `L1_manuscripts/TidalLanes_0429.tex` (April) still quote the old gate5 mainline. Which results each document uses is listed in the "Materials and the results they use" table of `DOCUMENT_INDEX.md`; updating the deck and paper waits until the specification is frozen (`nextstep.md`).
 
 ## Conventions
 
-LaTeX build artefacts are not kept. They are regenerated on compile and are excluded by `.gitignore`; 180 of them were cleared on 2026-07-27.
+LaTeX build artefacts are not kept. They are regenerated on compile and are excluded by `.gitignore`; 180 of them were cleared on 2026-07-27 and 14 more on 2026-11-18. Decks with their own `build/` subfolder keep build files there.

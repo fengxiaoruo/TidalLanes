@@ -167,7 +167,7 @@ def run_spec(prim, out_root: Path, *, tag: str, theta: float, eta: float, pairs_
              mainline_pairs: set, congestion_lambda: float, xi_floor_rel: float,
              kappa_rule: str) -> dict:
     t0 = time.time()
-    params = _params(theta, eta)
+    params = _params(theta, eta).with_congestion("ce_floor", congestion_lambda)
     d = out_root / tag
     d.mkdir(parents=True, exist_ok=True)
     params.write(d / "parameters.json")

@@ -1,5 +1,7 @@
 # Quick Rerun Cheatsheet
 
+> **Historical (note added 2026-11-18).** This cheatsheet covers the March stage pipeline (`src/stages/`), which builds the old gate5 inputs. The current mainline commands are in `data_work/outputs/beta_c_rerun_b035_summary_v1/README.md`. Paths under `/Users/fxr/Dropbox/` resolve through a symlink to `~/Library/CloudStorage/Dropbox/`. The current mainline (OSM 1B, all-day 2025 OD with 07:00 to 09:00 link times, `ce_floor` β_c = 0.35) is stated in the "Current mainline" table of `DOCUMENT_INDEX.md`. Text below is unchanged.
+
 This is the short version.
 
 Use this when you already know what you changed and only want the command.

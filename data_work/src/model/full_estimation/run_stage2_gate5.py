@@ -47,6 +47,32 @@ from src.model.directional_cost.tidal_lane_counterfactuals import (  # noqa: E40
 LOG = logging.getLogger("stage2_gate5")
 
 
+def describe_travel_cost(bundle_dir: Path) -> dict:
+    """Record where the loaded bundle's edge times come from.
+
+    Uses BUNDLE_META.json when present and the edge table's tau source columns,
+    so the record follows the input rather than a fixed label.
+    """
+    info: dict = {"version_id": bundle_dir.name}
+    meta_path = bundle_dir / "BUNDLE_META.json"
+    if meta_path.exists():
+        meta = json.loads(meta_path.read_text())
+        for key in ("scheme", "tt_source", "od_source", "od_bundle", "detour_gate", "edges_final", "nodes"):
+            if key in meta:
+                info[key] = meta[key]
+    else:
+        info["bundle_meta"] = "missing"
+    edges_path = bundle_dir / "data" / "qsm_input_edges_square.parquet"
+    if edges_path.exists():
+        cols = pd.read_parquet(edges_path).columns
+        wanted = [c for c in ("tau_obs_source", "tau_ff_source") if c in cols]
+        if wanted:
+            e = pd.read_parquet(edges_path, columns=wanted)
+            for c in wanted:
+                info[c] = sorted(map(str, e[c].dropna().unique()))
+    return info
+
+
 def _data_work_root(arg: str) -> Path:
     p = Path(arg).resolve()
     if (p / "outputs").is_dir() and (p / "src" / "model").is_dir():
@@ -99,6 +125,7 @@ def run_pipeline(
     (out / "counterfactuals").mkdir(parents=True, exist_ok=True)
 
     prim = bp.load_primitives(data_work / "outputs" / version_id, period="AM")
+    params = params.with_congestion(congestion_form, congestion_lambda)
     params.write(out / "parameters.json")
     bp.write_primitives_summary(prim, out / "primitives")
 
@@ -122,7 +149,12 @@ def run_pipeline(
         "congestion_lambda": congestion_lambda,
         "xi_floor_rel": skw_extra.get("xi_floor_rel", 0.0),
         "pair_selection": pair_selection,
-        "travel_cost": "raw_connected_v1 edgeproj_v2 gate5",
+        # Read from the bundle actually loaded. Before 2026-11-18 this field was the
+        # hard-coded string "raw_connected_v1 edgeproj_v2 gate5" in every output.
+        "travel_cost": describe_travel_cost(data_work / "outputs" / version_id),
+        "parameter_sources": {
+            "theta": params.theta_source, "alpha": params.alpha_source, "beta": params.beta_source,
+        },
     }
     (out / "mainline_config.json").write_text(json.dumps(mainline_meta, indent=2))
 

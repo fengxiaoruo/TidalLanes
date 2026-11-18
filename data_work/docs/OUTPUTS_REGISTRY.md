@@ -6,8 +6,8 @@ Classification is by folder name and contents, so treat it as a first sort. The 
 
 | Category | Folders | Meaning |
 |---|---|---|
-| Current mainline | 25 | Listed in `MAINLINE_MANIFEST.md`. Back up; do not move or delete. |
-| Current-spec experiments | 152 | Runs on the 1B / 1A networks, 2025 platform data, or the November checks. Context for the mainline; most are robustness or trials. |
+| Current mainline | 26 | Listed in `MAINLINE_MANIFEST.md`. Back up; do not move or delete. |
+| Current-spec experiments | 151 | Runs on the 1B / 1A networks, 2025 platform data, or the November checks. Context for the mainline; most are robustness or trials. |
 | 2025 OD on the gate5 network | 70 | Transition runs (Sept to early Nov 2026) that put 2025 OD on the old gate5 network. Superseded by 1B. |
 | Old gate5 mainline and its experiments | 163 | 2022 OD, anchored lambda = 1.1, BPR trials, Stage 1 and Stage 2. Keep the ones marked as cited; the rest are history. |
 | Pipeline baselines and Baidu validation | 23 | Stage pipeline, centreline match, Baidu route validation. |
@@ -15,7 +15,7 @@ Classification is by folder name and contents, so treat it as a first sort. The 
 | Smoke tests and named failures | 14 | Safe to delete after a check. |
 | Failed runs (only run.log) | 7 | Recorded as void in the work log. Safe to delete. |
 
-## Current mainline (25)
+## Current mainline (26)
 
 | Folder | README | Cited by |
 |---|---|---|
@@ -28,6 +28,7 @@ Classification is by folder name and contents, so treat it as a first sort. The 
 | `link_time_gamma_eta_scan_osm1b_alldaytt0709_v1` |  |  |
 | `load_dependent_elasticity_trial_v1` | yes | deck / paper / replication |
 | `model_input_edgeproj_v2_lcc_gate5_od2025_v2_odallday` |  |  |
+| `model_input_osm1b_L300_gate5_od2025_v2` |  |  |
 | `model_input_osm1b_L300_gate5_od2025_v2_alldaytt0709` |  |  |
 | `osm_grid_travel_time_v2` |  |  |
 | `policy_comparison_osm1b_ce_floor_b025_fl001_ks_od2025_alldaytt0709_v1` |  |  |
@@ -45,7 +46,7 @@ Classification is by folder name and contents, so treat it as a first sort. The 
 | `tidal_lane_diagnostics_osm1b_ce_floor_b035_fl001_ks_od2025_alldaytt0709_v1` |  |  |
 | `tidal_lane_diagnostics_osm1b_ce_floor_b044_fl001_ks_od2025_alldaytt0709_v1` |  |  |
 
-## Current-spec experiments (152)
+## Current-spec experiments (151)
 
 | Folder | README | Cited by |
 |---|---|---|
@@ -70,7 +71,6 @@ Classification is by folder name and contents, so treat it as a first sort. The 
 | `model_input_osm1b_L300_gate5_am_even_days_od2025_v1` |  |  |
 | `model_input_osm1b_L300_gate5_am_odd_days_od2025_v1` |  |  |
 | `model_input_osm1b_L300_gate5_od2025_v1` |  |  |
-| `model_input_osm1b_L300_gate5_od2025_v2` |  |  |
 | `model_input_osm1b_L300_gate5_od2025_v2_alldaytt0610` |  |  |
 | `model_input_osm1b_L300_gate5_od2025_v2_alldaytt0709_accminor20` |  |  |
 | `model_input_osm1b_L300_gate5_od2025_v2_chain0610mxtt0610` |  |  |
@@ -385,7 +385,7 @@ Classification is by folder name and contents, so treat it as a first sort. The 
 | `raw_connected_v3_grid_travel_time_edgeproj_v2_lanefix` |  |  |
 | `route_kernel_exp_trial_20260928_nu00122_v2` | yes |  |
 | `route_kernel_exp_trial_20260928_nu00420_v2` | yes |  |
-| `route_location_split_trial_v1` |  |  |
+| `route_location_split_trial_v1` | yes |  |
 | `selection_split_day_check_gate5_v1` | yes |  |
 | `stage2_endogenous_edgeproj_v2_lcc_gate5_anchored_lanefix_neg_v1` |  |  |
 | `stage2_endogenous_edgeproj_v2_lcc_gate5_anchored_lanefix_pos05_v1` |  |  |

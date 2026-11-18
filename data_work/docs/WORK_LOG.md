@@ -9,6 +9,22 @@ This file holds 2026-10-01 onward. Earlier entries, also newest first:
 
 Search by date (`## 2026-MM-DD`) or by output folder name; do not read the files in full.
 
+## 2026-11-18 旧标签修正与规则文档一致性审计
+
+- `parameters.json` 的 `lambda_phys`：核实没有任何求解器读它（弹性一律由运行脚本的 `congestion_lambda` 传入），所以只是标签。`parameters.py` 新增 `Parameters.with_congestion()`，`run_stage2_gate5.py`、`run_tidal_lane_diagnostics_gate5.py`、`run_theta_first_second_order_osm1b.py` 写 `parameters.json` 前记下实际传入的形式与弹性；默认的 `lambda_phys_source` 和 notes 改为说明这是占位标签。其他脚本仍写 1.1 加新说明。旧输出未改。
+- `full_estimation_flat/run_estimation_flat.py` 的 `travel_cost` 改为按实际输入包记录（与 `describe_travel_cost()` 相同，内联以保持该文件独立）。未运行：其输出目录 `estimation_flat_check_v1` 已存在，运行会覆盖。`estimation_walkthrough.ipynb` 里的旧字符串未改。
+- 审计范围：根 `AGENTS.md`、`Platform/AGENTS.md`、`data_work/AGENTS.md`、`.claude/settings.local.json`（无 CLAUDE.md）、`DOCUMENT_INDEX.md`、`MAINLINE_MANIFEST.md`、`nextstep.md`、`data_work/docs/` 下各说明、11 月 L2_notes 与旧主线锁定文档，对照结果文件、主线输入包和代码默认值。主线表的数字（福利、省时、κ = 1.483、政策排序、P7 差、背景车流 0.49）与结果文件一致。
+- 已修文档：根 `AGENTS.md`（表格断行、“可重建即不进 Git”的说法、Replication_apply 引用数 21 → 38、备份缺口）；`Documents/README.md`（当前状态）；`data_work/docs/README.md`（WORK_LOG 顺序、STAGE2 文档不是现主线、补列清单与登记表）；`STAGE2_MAINLINE_GATE5.md`、`travel_cost_lock_in_20260628.md`、`congestion_lambda11_density_vs_anchored_20260629.md`、`model_and_results_summary_20260928.md`、`HOW_TO_RERUN_PARTIAL_RESULTS.md`、`QUICK_RERUN_CHEATSHEET.md`、`NEW_MACHINE_SETUP_CHECKLIST.md` 顶部加“历史文档”注，正文未改；`BACKUP_WORKFLOW.md` 加 Known gaps；`DOCUMENT_INDEX.md` 补 `lambda_phys` 标签说明；`MAINLINE_MANIFEST.md` 注明格对采集未在备份脚本内。
+- 发现但未改（代码或需用户决定）：`backup_to_drive.sh` 不覆盖 `grid_pair_baidu_validation_v3` 和 `Platform/runs/202505_v01/query-results/`（628 MB）；`equilibrium_solve.py` 的 `MAINLINE_*` 常量与各脚本默认值仍是旧主线；主线参数目录的输入是 07–09 出发 OD 包；Platform run-log 未记 0757–0768；`.claude/settings.local.json` 的允许命令指向已不存在的 `src/fromKunpeng`。
+- 输出登记表重跑：476 个目录（主线 26，其中新增 `model_input_osm1b_L300_gate5_od2025_v2`，因清单已把它列为参数目录的输入）。脚本改为扫描引用时跳过新加的“历史文档”注，避免把主线包误标为被旧主线文档引用。
+
+## 2026-11-18 主线输入包用时来源核实；stage 2 的 travel_cost 字段改为按实际输入记录
+
+- 主线输入包 `model_input_osm1b_L300_gate5_od2025_v2_alldaytt0709` 的 2,872 条边与各 `osm_grid_travel_time_v2*` 的 `pairs_osm1b_L300_sq3000_model_origin.parquet` 逐边比对：早高峰（`tm_AM`）与畅通（`tm_FF`）用时与 `osm_grid_travel_time_v2` 完全一致（最大差 0），包内 `tau_obs_source` 列也记为该目录。`_recheck0709`、`_nb8` 在这些边上同样完全一致；`_am_odd_days`、`_am_even_days`、`_am0610cw`、`_acc_minor_v20` 都不一致（早高峰中位差 0.06–3.5 分钟）。v2 的 summary 没有参数块，`_recheck0709` 的 summary 记录了参数（早高峰 07、08 点起始小时，0519–0523 五个工作日，畅通 02–04 点起始小时，L = 300 m），两者一致，所以主线用时就是 07–09 点。构造命令已填入 `MAINLINE_MANIFEST.md`。
+- `build_osm_model_bundle.py` 的 BUNDLE_META 今后写入 `tt_source`、`od_bundle`、`cells_rule`。已有输入包不改。
+- 核实：`run_stage2_gate5.py` 第 125 行把 `mainline_config.json` 的 `travel_cost` 写死为 "raw_connected_v1 edgeproj_v2 gate5"，所以此前所有 stage 2 目录的这个字段都不可信，实际输入看 `baseline_summary.json` 的 `version_id`。主线参数目录 `stage2_endogenous_osm1b_ce_floor_b025_fl001_ks_od2025_v1` 的实际输入是 `model_input_osm1b_L300_gate5_od2025_v2`（07–09 出发 OD），不是全日 OD 的 `alldaytt0709`；主线运行只从它取 α、β、θ，并在主线包上重做反演和均衡，所以不影响主结果。α、β、θ 来自 `parameters.json` 的文献值（θ = 6.83、β = −0.10 为 AA 2022 西雅图，α = 0.05 为文献中值），不是在北京数据上估计的。`parameters.json` 里的 `lambda_phys = 1.1` 也是旧主线标签，主线弹性由命令行 `--congestion-lambda` 传入。
+- 改为由新函数 `describe_travel_cost()` 按实际加载的输入包记录 `travel_cost`（版本、方案、`tt_source`、`od_source`、边表的 tau 来源），并加 `parameter_sources`。已在主线包和旧 gate5 包上只读测试；没有重跑，旧输出未改。`full_estimation_flat/run_estimation_flat.py` 里有同样的写死字段，属旧线，未改。`DOCUMENT_INDEX.md` 主线表与 `MAINLINE_MANIFEST.md` 已注明。
+
 ## 2026-11-18 输出目录登记表；整理 Documents 杂项
 
 - 新增 `data_work/docs/OUTPUTS_REGISTRY.md`，由 `src/diagnostics/build_outputs_registry.py` 生成：`outputs/` 下 475 个目录按名称和内容分八类（主线 25、现口径试验 152、gate5 上的 2025 OD 70、旧 gate5 主线及试验 163、pipeline 与百度验证 23、深圳／彩田／全国 21、smoke 与命名失败 14、只有 run.log 的失败 7），并标出 README 有无、被旧主线文档或 deck／论文／复现包引用的目录。分类按规则自动做，是初筛；主线以 `MAINLINE_MANIFEST.md` 为准。新增输出后重跑脚本。

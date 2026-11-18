@@ -555,12 +555,31 @@ CF_DIR.mkdir(parents=True, exist_ok=True)
     "lambda_phys_source": "Beijing speed-density evidence, elasticity ~1.1 (mainline)",
     "lambda_source": "LEGACY exog-only: delta1/theta with delta1=0.488 (AA 2022 Seattle)",
 }, indent=2))
+def _describe_travel_cost(bundle_dir: Path) -> dict:
+    """Same record as run_stage2_gate5.describe_travel_cost, inlined to keep this file standalone.
+    Before 2026-11-18 the field was a fixed label, "raw_connected_v1 edgeproj_v2 gate5"."""
+    info = {"version_id": bundle_dir.name}
+    meta_path = bundle_dir / "BUNDLE_META.json"
+    if meta_path.exists():
+        meta = json.loads(meta_path.read_text())
+        info.update({k: meta[k] for k in ("scheme", "tt_source", "od_source", "od_bundle", "detour_gate") if k in meta})
+    else:
+        info["bundle_meta"] = "missing"
+    edges_path = bundle_dir / "data" / "qsm_input_edges_square.parquet"
+    if edges_path.exists():
+        cols = [c for c in ("tau_obs_source", "tau_ff_source") if c in pd.read_parquet(edges_path).columns]
+        if cols:
+            e = pd.read_parquet(edges_path, columns=cols)
+            info.update({c: sorted(map(str, e[c].dropna().unique())) for c in cols})
+    return info
+
+
 (OUT / "mainline_config.json").write_text(json.dumps({
     "congestion_form": "anchored", "congestion_lambda": LAMBDA_PHYS,
     "pair_selection": "score_bpr_st",
-    "travel_cost": "raw_connected_v1 edgeproj_v2 gate5",
+    "travel_cost": _describe_travel_cost(DATA_WORK / "outputs" / VERSION_ID),
     "solver": {"damping": DAMPING, "max_outer": MAX_OUTER, "tol": TOL_OUTER, "kappa": KAPPA},
-}, indent=2))
+}, indent=2, default=str))
 
 pdir = OUT / "primitives"; pdir.mkdir(exist_ok=True)
 (pdir / "primitives_meta.json").write_text(json.dumps({

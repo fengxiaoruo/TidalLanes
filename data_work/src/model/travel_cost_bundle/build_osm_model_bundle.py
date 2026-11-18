@@ -224,7 +224,8 @@ def main(argv: list[str] | None = None) -> None:
     P = pd.read_parquet(src_tt / f"pairs_{SCHEMES[args.scheme]}_sq3000_model_origin.parquet")
     L = path_lanes(G, P, x0, y0, 3000.0)
     info = assemble(P, L, out, vid, source_label=f"{src_tt.name}:{SCHEMES[args.scheme]}", cells=args.cells)
-    info.update({"scheme": SCHEMES[args.scheme], "lane_rule": lane_info})
+    info.update({"scheme": SCHEMES[args.scheme], "lane_rule": lane_info,
+                 "tt_source": args.tt_source, "od_bundle": args.od_bundle, "cells_rule": args.cells})
     (out / "BUNDLE_META.json").write_text(json.dumps(info, indent=2, ensure_ascii=False, default=float))
     print(json.dumps(info, indent=2, ensure_ascii=False, default=float))
 

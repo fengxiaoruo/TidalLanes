@@ -37,7 +37,11 @@ def corpus(root: str, patterns: list[str]) -> str:
         for f in glob.glob(os.path.join(root, pat), recursive=True):
             if os.path.isfile(f) and f.endswith((".md", ".tex", ".py", ".R", ".json", ".txt")) and os.path.getsize(f) < 5e6:
                 with open(f, encoding="utf-8", errors="ignore") as fh:
-                    text.append(fh.read())
+                    # Skip the "historical" banners added on 2026-11-18: they name current folders.
+                    text.append("\n".join(
+                        ln for ln in fh.read().splitlines()
+                        if not ln.startswith(("> **Historical", "> **历史文档"))
+                    ))
     return "\n".join(text)
 
 

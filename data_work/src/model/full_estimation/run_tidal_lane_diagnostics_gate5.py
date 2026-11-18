@@ -80,7 +80,7 @@ def run(
 ) -> pd.DataFrame:
     out.mkdir(parents=True, exist_ok=True)
     prim = bp.load_primitives(data_work / "outputs" / version_id, period="AM")
-    params = params or pm.Parameters()
+    params = (params or pm.Parameters()).with_congestion(congestion_form, congestion_lambda)
     params.write(out / "parameters.json")
     kappa, kinfo = resolve_kappa(prim, kappa_rule)
     (out / "kappa.json").write_text(json.dumps(kinfo, indent=2))
