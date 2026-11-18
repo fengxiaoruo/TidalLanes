@@ -48,7 +48,7 @@
 - 是否把通勤者范围扩到含停留的通勤链（×1.10，福利变化 < 1%），与背景车流一起定。
 - 唯一性的解析部分：AA 充分条件换算为 β_c ≤ 0.317，路段层面 0.42 不满足；带下限函数与 BPR 的推广待做。
 - 只有一周（0519–0525）速度与车流数据，是否向平台要更多周。
-- 2026-11-18 已做 Git 快照提交（分支 `snapshot/20261118-mainline`，未推送）。`outputs/` 不进 Git，主线输出的备份清单见 `data_work/docs/MAINLINE_MANIFEST.md`。
+- 2026-11-18 已做 Git 快照提交（分支 `snapshot/20261118-mainline`，已推送到 origin）。`outputs/` 不进 Git，主线输出的备份清单见 `data_work/docs/MAINLINE_MANIFEST.md`。
 - 旧的开放问题（深圳 crosswalk、cross-city 小节、留仙 DID 数据、三亚）见快照文件。
 
 ## 先看哪里

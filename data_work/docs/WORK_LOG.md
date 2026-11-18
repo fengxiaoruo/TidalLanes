@@ -5409,4 +5409,4 @@ Downstream status:
 - 新增 `data_work/docs/MAINLINE_MANIFEST.md`：主线输出目录清单（不可重建的百度格对采集、输入链、0.35 结果、试算、0.25 对照），备份以此为准。输入包构造命令的 `--tt-source` 取值待核实。
 - 入口文件改为指向该表：`agent_quickstart.md`（不再要求通读 WORK_LOG，合并并删除 `agent_entry_prompt.txt`）、根 `AGENTS.md`、`data_work/AGENTS.md`（重写）、`data_work/README.md`（重写，旧 stage 链和 gate5 复现移到末节）、`data_work/outputs/README.md`、`full_estimation/README.md`（注明默认值是旧主线）、11-10 结果备忘加取代说明。
 - `.gitignore` 增加媒体、parquet、`*.env`、`Processed_Data/`、平台培训资料、生成的大表等规则；未跟踪文件从约 5.8 GB 降到约 12 MB。`sync_github.sh` 改为先列出待提交文件并要求确认，默认不推送。删除 7 月 3 日遗留的空 `.git/index.lock`。
-- Git 快照提交在新分支 `snapshot/20261118-mainline`，未推送。
+- Git 快照提交在新分支 `snapshot/20261118-mainline`，已推送到 origin。
