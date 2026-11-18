@@ -1,0 +1,7 @@
+lambda,damping,scenario,converged,iters,final_delta,Wbar,note
+0.0714,0.5,baseline,True,16,6.2e-06,4.5298,converged; lambda_hat_internal=0.0121
+0.0714,0.5,cf2_tidal_top100,True,16,6.2e-06,4.5300,welfare +0.0044% vs baseline
+0.30,0.5,baseline,False,54,1.7393,4.4140,oscillating limit cycle (never settles)
+0.30,0.15,baseline,False,54,0.1339,4.4147,residual ~13x smaller but not at tol
+1.10,0.5,baseline,False,24,22.382,10.3259,(I-A)^-1 ill-conditioned rcond~1e-30; Wbar unreliable
+1.10,0.15,baseline,False,24,1.6498,4.3562,still ill-conditioned; not converged

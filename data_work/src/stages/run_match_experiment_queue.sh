@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -euo pipefail
 
-ROOT="/Users/fxr/Desktop/TidalLanes"
+ROOT="/Users/fxr/Dropbox/Projects/TidalLanes"
 cd "$ROOT"
 
 export MPLCONFIGDIR=/tmp/mpl

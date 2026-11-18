@@ -369,7 +369,7 @@ def solve_static_equilibrium(
             break
 
     Pi, Pj = market_access(tau_inv, l_R, l_F, prim.Lbar, theta)
-    Wbar = welfare(ubar_theta, l_R, Pi, prim.Lbar, params)
+    Wbar = welfare(ubar_theta, abar_theta, tau_inv, l_R, l_F, prim.Lbar, params)
     return StaticEquilibriumResult(
         label=label,
         tau_min_kl=np.asarray(tau_min_kl, dtype=float),
@@ -416,27 +416,336 @@ def market_access(
     return Pi, Pj
 
 
-def welfare(ubar_theta: np.ndarray, l_R: np.ndarray, Pi_i: np.ndarray,
-            Lbar: float, params: Parameters) -> float:
-    """Aggregate welfare scale used for within-run comparisons."""
+def welfare(
+    ubar_theta: np.ndarray,
+    abar_theta: np.ndarray,
+    tau_inv_theta: np.ndarray,
+    l_R: np.ndarray,
+    l_F: np.ndarray,
+    Lbar: float,
+    params: Parameters,
+) -> float:
+    """Gauge-free aggregate welfare from the primitive u-w Frechet denominator."""
     theta = params.theta
     L_R = np.clip(l_R * Lbar, EPS, None)
+    L_F = np.clip(l_F * Lbar, EPS, None)
     u_theta = ubar_theta * (L_R ** (params.beta * theta))
-    Wbar_theta = float(np.sum(u_theta * (np.clip(Pi_i, EPS, None) ** (-theta))))
+    w_theta = abar_theta * (L_F ** (params.alpha * theta))
+    Wbar_theta = float(np.sum(np.asarray(tau_inv_theta, dtype=float) * u_theta[:, None] * w_theta[None, :]))
     return Wbar_theta ** (1.0 / theta) if Wbar_theta > 0 else np.nan
+
+
+def intrazonal_cost_minutes(tau_min_kl: np.ndarray) -> float:
+    """Proxy same-cell commute time: half the median positive directed edge time."""
+    positive = np.asarray(tau_min_kl, dtype=float)
+    positive = positive[positive > EPS]
+    return 0.5 * float(np.median(positive)) if positive.size else 1.0
+
+
+def _workplace_choice_weights(
+    result: StaticEquilibriumResult,
+    abar_theta: np.ndarray,
+    params: Parameters,
+    intra_spec: str,
+    intra_cost_scale: float = 1.0,
+    accessibility: np.ndarray | None = None,
+) -> np.ndarray:
+    """Unnormalised workplace-choice weights for each origin-destination pair."""
+    theta = params.theta
+    n = len(result.l_R)
+    dest_factor = abar_theta * (result.l_F ** (params.alpha * theta))
+    if accessibility is not None:
+        weights = np.asarray(accessibility, dtype=float) * dest_factor[None, :]
+    else:
+        weights = result.tau_ij_inv_theta * dest_factor[None, :]
+
+    if intra_spec == "baseline":
+        return weights
+
+    if intra_spec == "exclude_diag":
+        out = weights.copy()
+        np.fill_diagonal(out, 0.0)
+        return out
+
+    if intra_spec == "intrazonal_proxy":
+        out = weights.copy()
+        intra_inv_theta = intrazonal_cost_minutes(result.tau_min_kl) ** (-theta)
+        np.fill_diagonal(out, intra_inv_theta * dest_factor)
+        return out
+
+    if intra_spec in {"exclude_diag_plus_proxy", "exclude_diag_plus_proxy_calibrated"}:
+        out = weights.copy()
+        np.fill_diagonal(out, 0.0)
+        intra_inv_theta = (intrazonal_cost_minutes(result.tau_min_kl) * intra_cost_scale) ** (-theta)
+        out[np.arange(n), np.arange(n)] = intra_inv_theta * dest_factor
+        return out
+
+    raise ValueError(f"unknown intra_spec: {intra_spec}")
+
+
+def calibrate_intrazonal_cost_scale(
+    prim: Primitives,
+    result: StaticEquilibriumResult,
+    abar_theta: np.ndarray,
+    params: Parameters,
+    target_intra_share: float | None = None,
+    accessibility: np.ndarray | None = None,
+) -> float:
+    """Choose intra-cost scale so aggregate predicted intra share matches target."""
+    if target_intra_share is None:
+        positive = prim.L_ij_obs > EPS
+        on_diag = np.eye(prim.n_nodes, dtype=bool)
+        target_intra_share = float(
+            prim.L_ij_obs[on_diag].sum() / prim.L_ij_obs[positive].sum()
+        )
+
+    def predicted_intra_share(scale: float) -> float:
+        od = predicted_od_shares(
+            result, abar_theta, params,
+            intra_spec="exclude_diag_plus_proxy",
+            intra_cost_scale=scale,
+            accessibility=accessibility,
+        )
+        on_diag = np.eye(prim.n_nodes, dtype=bool)
+        positive = od > EPS
+        if not positive.any():
+            return 0.0
+        return float(od[on_diag].sum() / od[positive].sum())
+
+    lo, hi = 1e-4, 10.0
+    for _ in range(80):
+        mid = np.sqrt(lo * hi)
+        if predicted_intra_share(mid) >= target_intra_share:
+            lo = mid
+        else:
+            hi = mid
+    return float(np.sqrt(lo * hi))
 
 
 def predicted_od_shares(
     result: StaticEquilibriumResult,
     abar_theta: np.ndarray,
     params: Parameters,
+    intra_spec: str = "baseline",
+    intra_cost_scale: float = 1.0,
+    accessibility: np.ndarray | None = None,
 ) -> np.ndarray:
-    """Allocate workplace choices conditional on residence shares."""
-    theta = params.theta
-    weights = result.tau_ij_inv_theta * (abar_theta * (result.l_F ** (params.alpha * theta)))[None, :]
+    """Allocate workplace choices conditional on residence shares.
+
+    ``intra_spec`` (new OD-track specs; default ``baseline`` preserves Stage 1):
+    - ``baseline``: use full ``T`` including Leontief diagonal.
+    - ``exclude_diag``: zero ``i->i`` weight; interzonal shares renormalize.
+    - ``intrazonal_proxy``: replace ``T_ii`` with proxy intra cost in weights.
+    - ``exclude_diag_plus_proxy``: separate intra term with proxy cost (spatial_equilibrium convention).
+    - ``exclude_diag_plus_proxy_calibrated``: same, with ``intra_cost_scale`` calibrated to observed aggregate intra share.
+    """
+    weights = _workplace_choice_weights(
+        result, abar_theta, params, intra_spec, intra_cost_scale=intra_cost_scale,
+        accessibility=accessibility,
+    )
     row_sum = np.clip(weights.sum(axis=1), EPS, None)
     prob = weights / row_sum[:, None]
     return result.l_R[:, None] * prob
+
+
+def compare_od_intra_specs(
+    prim: Primitives,
+    result: StaticEquilibriumResult,
+    abar_theta: np.ndarray,
+    params: Parameters,
+) -> dict:
+    """Compare baseline and P1 intra-zonal OD prediction specs."""
+    specs: list[tuple[str, dict]] = [
+        ("baseline", {"intra_spec": "baseline"}),
+        ("exclude_diag", {"intra_spec": "exclude_diag"}),
+        ("intrazonal_proxy", {"intra_spec": "intrazonal_proxy"}),
+        ("exclude_diag_plus_proxy", {"intra_spec": "exclude_diag_plus_proxy"}),
+    ]
+    calibrated_scale = calibrate_intrazonal_cost_scale(prim, result, abar_theta, params)
+    specs.append((
+        "exclude_diag_plus_proxy_calibrated",
+        {
+            "intra_spec": "exclude_diag_plus_proxy",
+            "intra_cost_scale": calibrated_scale,
+        },
+    ))
+
+    baseline_fit: dict | None = None
+    rows: list[dict] = []
+    for label, kw in specs:
+        od = predicted_od_shares(result, abar_theta, params, **kw)
+        fit = od_fit_to_observed_summary(prim, od, top_k_errors=5)
+        fit_row = {
+            "spec": label,
+            "intra_spec": kw["intra_spec"],
+            "intra_cost_scale": float(kw.get("intra_cost_scale", 1.0)),
+            "intrazonal_cost_minutes_base": intrazonal_cost_minutes(result.tau_min_kl),
+            "global_l1_pct": fit["global_l1_pct"],
+            "off_diagonal_l1_pct": fit["off_diagonal_l1_pct"],
+            "intrazonal_l1_pct": fit["intrazonal_l1_pct"],
+            "intrazonal_share_pred_pct": fit["intrazonal_share_pred_pct"],
+            "weighted_log_corr": fit["weighted_log_corr"],
+        }
+        if label == "baseline":
+            baseline_fit = fit_row
+        elif baseline_fit is not None:
+            fit_row["global_l1_pct_change_vs_baseline"] = (
+                fit_row["global_l1_pct"] - baseline_fit["global_l1_pct"]
+            )
+            fit_row["off_diagonal_l1_pct_change_vs_baseline"] = (
+                fit_row["off_diagonal_l1_pct"] - baseline_fit["off_diagonal_l1_pct"]
+            )
+            fit_row["intrazonal_share_pred_pct_change_vs_baseline"] = (
+                fit_row["intrazonal_share_pred_pct"] - baseline_fit["intrazonal_share_pred_pct"]
+            )
+        rows.append(fit_row)
+
+    return {
+        "track": "od_fit_improvement_p1_intra_zonal",
+        "note": (
+            "New specs affect implied OD only; Stage 1 equilibrium and re-invert fundamentals unchanged."
+        ),
+        "observed_intrazonal_share_pct": 100.0 * float(
+            prim.L_ij_obs[np.eye(prim.n_nodes, dtype=bool)].sum()
+            / prim.L_ij_obs[prim.L_ij_obs > EPS].sum()
+        ),
+        "specs": rows,
+        "recommended_next": "P2 theta / SMM moments; off-diagonal L1 remains ~50%+ under structural P1",
+    }
+
+
+def _od_l1_pct(pred: np.ndarray, obs: np.ndarray, mask: np.ndarray) -> float:
+    """Half L1 distance between pred and obs, as percent of obs mass in mask."""
+    m = mask & (obs > EPS)
+    if not m.any():
+        return float("nan")
+    return 100.0 * 0.5 * float(np.abs(pred[m] - obs[m]).sum() / obs[m].sum())
+
+
+def _weighted_log_corr(pred: np.ndarray, obs: np.ndarray, mask: np.ndarray,
+                       weighted: bool = True) -> float:
+    """Pearson correlation of log flows on masked positive cells."""
+    m = mask & (obs > EPS) & (pred > EPS)
+    if int(m.sum()) < 2:
+        return float("nan")
+    lp = np.log(pred[m])
+    lo = np.log(obs[m])
+    if weighted:
+        w = obs[m]
+        w = w / w.sum()
+        lp_mean = float(np.sum(w * lp))
+        lo_mean = float(np.sum(w * lo))
+        cov = float(np.sum(w * (lp - lp_mean) * (lo - lo_mean)))
+        var_p = float(np.sum(w * (lp - lp_mean) ** 2))
+        var_o = float(np.sum(w * (lo - lo_mean) ** 2))
+    else:
+        lp_mean = float(lp.mean())
+        lo_mean = float(lo.mean())
+        cov = float(np.mean((lp - lp_mean) * (lo - lo_mean)))
+        var_p = float(np.var(lp))
+        var_o = float(np.var(lo))
+    denom = np.sqrt(var_p * var_o)
+    return float(cov / denom) if denom > EPS else float("nan")
+
+
+def od_fit_to_observed_summary(
+    prim: Primitives,
+    od_pred: np.ndarray,
+    od_pred_sym: np.ndarray | None = None,
+    top_k_errors: int = 15,
+) -> dict:
+    """Compare model-implied OD to observed bilateral flows.
+
+    ``od_pred`` and optional ``od_pred_sym`` are population shares (sum to 1 over
+    the full matrix). Observed flows come from ``prim.L_ij_obs``.
+    """
+    n = prim.n_nodes
+    L_obs = np.asarray(prim.L_ij_obs, dtype=float)
+    L_pred = np.asarray(od_pred, dtype=float) * prim.Lbar
+    positive = L_obs > EPS
+    off_diag = ~np.eye(n, dtype=bool)
+    on_diag = np.eye(n, dtype=bool)
+    pos_mass = float(L_obs[positive].sum())
+
+    origin_l1: list[float] = []
+    for i in range(n):
+        row_obs = L_obs[i]
+        tot = float(row_obs.sum())
+        if tot <= EPS:
+            continue
+        origin_l1.append(0.5 * float(np.abs(L_pred[i] - row_obs).sum() / tot))
+
+    origin_arr = np.asarray(origin_l1, dtype=float) if origin_l1 else np.array([], dtype=float)
+
+    # Top flows by observed mass (top 1% of positive cells).
+    pos_idx = np.flatnonzero(positive)
+    n_top = max(1, int(np.ceil(0.01 * pos_idx.size)))
+    top_flow_idx = pos_idx[np.argsort(-L_obs.ravel()[pos_idx])[:n_top]]
+    top_flow_mask = np.zeros_like(positive, dtype=bool)
+    top_flow_mask.ravel()[top_flow_idx] = True
+
+    pos_off_idx = np.flatnonzero(positive & off_diag)
+    n_top_off = max(1, int(np.ceil(0.01 * pos_off_idx.size)))
+    top_off_idx = pos_off_idx[np.argsort(-L_obs.ravel()[pos_off_idx])[:n_top_off]]
+    top_off_mask = np.zeros_like(positive, dtype=bool)
+    top_off_mask.ravel()[top_off_idx] = True
+
+    abs_err = np.zeros_like(L_obs)
+    abs_err[positive] = np.abs(L_pred[positive] - L_obs[positive])
+    k = min(top_k_errors, int(positive.sum()))
+    flat = abs_err.ravel()
+    idx = np.argpartition(flat, -k)[-k:]
+    idx = idx[np.argsort(-flat[idx])]
+    origins, dests = np.unravel_index(idx, L_obs.shape)
+    top_errors = [
+        {
+            "origin_idx": int(origins[t]),
+            "destination_idx": int(dests[t]),
+            "origin_grid_id": str(prim.node_grid_ids[origins[t]]),
+            "destination_grid_id": str(prim.node_grid_ids[dests[t]]),
+            "L_obs": float(L_obs[origins[t], dests[t]]),
+            "L_pred": float(L_pred[origins[t], dests[t]]),
+            "abs_error": float(abs_err[origins[t], dests[t]]),
+            "is_intrazonal": bool(origins[t] == dests[t]),
+        }
+        for t in range(k)
+    ]
+
+    out: dict = {
+        "n_nodes": n,
+        "n_positive_od_cells": int(positive.sum()),
+        "total_obs_commuters": pos_mass,
+        "global_l1_pct": _od_l1_pct(L_pred, L_obs, positive),
+        "off_diagonal_l1_pct": _od_l1_pct(L_pred, L_obs, positive & off_diag),
+        "intrazonal_l1_pct": _od_l1_pct(L_pred, L_obs, positive & on_diag),
+        "intrazonal_share_obs_pct": 100.0 * float(L_obs[on_diag].sum() / pos_mass) if pos_mass > 0 else float("nan"),
+        "intrazonal_share_pred_pct": 100.0 * float(L_pred[on_diag].sum() / max(L_pred[positive].sum(), EPS)),
+        "origin_conditional_l1_median_pct": 100.0 * float(np.median(origin_arr)) if origin_arr.size else float("nan"),
+        "origin_conditional_l1_p90_pct": 100.0 * float(np.quantile(origin_arr, 0.90)) if origin_arr.size else float("nan"),
+        "n_origins_with_obs_outflow": int(origin_arr.size),
+        "weighted_log_corr": _weighted_log_corr(L_pred, L_obs, positive, weighted=True),
+        "unweighted_log_corr": _weighted_log_corr(L_pred, L_obs, positive, weighted=False),
+        "top_1pct_cells_l1_pct": _od_l1_pct(L_pred, L_obs, top_flow_mask),
+        "top_1pct_cells_n": int(n_top),
+        "off_diagonal_top_1pct_cells_l1_pct": _od_l1_pct(L_pred, L_obs, top_off_mask),
+        "off_diagonal_top_1pct_cells_n": int(n_top_off),
+        "top_1pct_cells_weighted_log_corr": _weighted_log_corr(L_pred, L_obs, top_flow_mask, weighted=True),
+        "top_abs_errors": top_errors,
+    }
+
+    if od_pred_sym is not None:
+        L_pred_sym = np.asarray(od_pred_sym, dtype=float) * prim.Lbar
+        share_dir = np.asarray(od_pred, dtype=float)
+        share_sym = np.asarray(od_pred_sym, dtype=float)
+        out["directed_vs_symmetric_od_l1_pct"] = 100.0 * 0.5 * float(
+            np.abs(share_sym - share_dir).sum()
+        )
+        out["symmetric_vs_observed_global_l1_pct"] = _od_l1_pct(L_pred_sym, L_obs, positive)
+        out["symmetric_vs_observed_off_diagonal_l1_pct"] = _od_l1_pct(
+            L_pred_sym, L_obs, positive & off_diag,
+        )
+
+    return out
 
 
 def weighted_bilateral_cost(

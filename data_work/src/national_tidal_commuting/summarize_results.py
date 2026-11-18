@@ -15,7 +15,16 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from src.diagnostics.mpl_setup import ensure_mpl_cache
-from src.national_tidal_commuting.common import abs_log_ratio, ensure_version_dirs, get_version_root, load_config, safe_divide, weighted_mean, weighted_median
+from src.national_tidal_commuting.common import (
+    abs_log_ratio,
+    directional_minmax_ratio,
+    ensure_version_dirs,
+    get_version_root,
+    load_config,
+    safe_divide,
+    weighted_mean,
+    weighted_median,
+)
 
 
 def parse_args():
@@ -91,6 +100,9 @@ def build_pair_summary(pairs: pd.DataFrame, results: pd.DataFrame) -> pd.DataFra
     out["pm_peak_penalty_work_home"] = out.apply(lambda r: safe_divide(r["ba_pm_sec"], r["ba_free_sec"]), axis=1)
     out["am_abs_log_ratio"] = out.apply(lambda r: abs_log_ratio(r["ab_am_sec"], r["ba_am_sec"]), axis=1)
     out["pm_abs_log_ratio"] = out.apply(lambda r: abs_log_ratio(r["ab_pm_sec"], r["ba_pm_sec"]), axis=1)
+    out["am_minmax_ratio"] = out.apply(lambda r: directional_minmax_ratio(r["ab_am_sec"], r["ba_am_sec"]), axis=1)
+    out["pm_minmax_ratio"] = out.apply(lambda r: directional_minmax_ratio(r["ab_pm_sec"], r["ba_pm_sec"]), axis=1)
+    out["free_minmax_ratio"] = out.apply(lambda r: directional_minmax_ratio(r["ab_free_sec"], r["ba_free_sec"]), axis=1)
     out["am_home_to_work_slower"] = (out["ab_am_sec"] > out["ba_am_sec"]).astype("float")
     out["pm_work_to_home_slower"] = (out["ba_pm_sec"] > out["ab_pm_sec"]).astype("float")
     out["reversal_flag"] = np.where(
@@ -134,10 +146,14 @@ def summarize_city(pair_summary: pd.DataFrame) -> pd.DataFrame:
                 "city_label": city_label,
                 "balanced_pairs": int(len(use)),
                 "low_coverage_flag": bool(len(use) < 30),
-                "weighted_am_asymmetry_median": weighted_median(use["am_abs_log_ratio"], weights),
-                "weighted_pm_asymmetry_median": weighted_median(use["pm_abs_log_ratio"], weights),
-                "weighted_am_asymmetry_mean": weighted_mean(use["am_abs_log_ratio"].fillna(0).values, weights) if len(use) else np.nan,
-                "weighted_pm_asymmetry_mean": weighted_mean(use["pm_abs_log_ratio"].fillna(0).values, weights) if len(use) else np.nan,
+                "weighted_am_minmax_ratio_median": weighted_median(use["am_minmax_ratio"], weights),
+                "weighted_pm_minmax_ratio_median": weighted_median(use["pm_minmax_ratio"], weights),
+                "weighted_am_minmax_ratio_mean": weighted_mean(use["am_minmax_ratio"].fillna(0).values, weights) if len(use) else np.nan,
+                "weighted_pm_minmax_ratio_mean": weighted_mean(use["pm_minmax_ratio"].fillna(0).values, weights) if len(use) else np.nan,
+                "weighted_am_asymmetry_median": weighted_median(use["am_minmax_ratio"], weights),
+                "weighted_pm_asymmetry_median": weighted_median(use["pm_minmax_ratio"], weights),
+                "weighted_am_asymmetry_mean": weighted_mean(use["am_minmax_ratio"].fillna(0).values, weights) if len(use) else np.nan,
+                "weighted_pm_asymmetry_mean": weighted_mean(use["pm_minmax_ratio"].fillna(0).values, weights) if len(use) else np.nan,
                 "am_home_to_work_slower_share": weighted_mean(use["am_home_to_work_slower"].fillna(0).values, weights) if len(use) else np.nan,
                 "pm_work_to_home_slower_share": weighted_mean(use["pm_work_to_home_slower"].fillna(0).values, weights) if len(use) else np.nan,
                 "reversal_share": weighted_mean(use["reversal_flag"].fillna(0).values, weights) if len(use) else np.nan,
@@ -150,11 +166,11 @@ def summarize_city(pair_summary: pd.DataFrame) -> pd.DataFrame:
 
 
 def plot_city_bar(city_summary: pd.DataFrame, value_col: str, title: str, out_path: Path):
-    use = city_summary.sort_values(value_col, ascending=False).copy()
+    use = city_summary.sort_values(value_col, ascending=True).copy()
     fig, ax = plt.subplots(figsize=(11, 5.5))
     ax.bar(use["city_label"], use[value_col], color="#2b6cb0")
     ax.set_title(title)
-    ax.set_ylabel("|log ratio|")
+    ax.set_ylabel("min duration / max duration")
     ax.tick_params(axis="x", rotation=45)
     fig.tight_layout()
     fig.savefig(out_path, dpi=180)
@@ -164,10 +180,10 @@ def plot_city_bar(city_summary: pd.DataFrame, value_col: str, title: str, out_pa
 def plot_hist(pair_summary: pd.DataFrame, out_path: Path):
     use = pair_summary[pair_summary["balanced_sample_flag"]].copy()
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.hist(use["am_directional_ratio"].dropna(), bins=30, alpha=0.55, color="#2b6cb0", label="AM")
-    ax.hist(use["pm_directional_ratio"].dropna(), bins=30, alpha=0.45, color="#dd6b20", label="PM")
-    ax.set_title("Pooled directional ratio distribution")
-    ax.set_xlabel("home->work / work->home")
+    ax.hist(use["am_minmax_ratio"].dropna(), bins=30, alpha=0.55, color="#2b6cb0", label="AM")
+    ax.hist(use["pm_minmax_ratio"].dropna(), bins=30, alpha=0.45, color="#dd6b20", label="PM")
+    ax.set_title("Pooled directional asymmetry (min/max travel time)")
+    ax.set_xlabel("min duration / max duration")
     ax.set_ylabel("Pairs")
     ax.legend(frameon=False)
     fig.tight_layout()
@@ -191,10 +207,10 @@ def plot_rank_vs_asym(pair_summary: pd.DataFrame, out_path: Path):
     use = pair_summary[pair_summary["balanced_sample_flag"]].copy()
     fig, ax = plt.subplots(figsize=(8, 5))
     sizes = np.clip(np.sqrt(use["pop_total_pair"].fillna(0).values), 10, 160)
-    ax.scatter(use["rank_in_city"], use["am_abs_log_ratio"], s=sizes, alpha=0.55, color="#2f855a", edgecolors="none")
+    ax.scatter(use["rank_in_city"], use["am_minmax_ratio"], s=sizes, alpha=0.55, color="#2f855a", edgecolors="none")
     ax.set_title("Pair rank and AM asymmetry")
     ax.set_xlabel("Rank in city")
-    ax.set_ylabel("|log(home->work / work->home)|")
+    ax.set_ylabel("min duration / max duration (AM)")
     fig.tight_layout()
     fig.savefig(out_path, dpi=180)
     plt.close(fig)
@@ -249,8 +265,8 @@ def main():
     pair_summary.to_csv(pair_summary_path, index=False)
     city_summary.to_csv(city_summary_path, index=False)
 
-    plot_city_bar(city_summary, "weighted_am_asymmetry_median", "AM commuting-direction asymmetry by city", dirs["figures"] / "figure1_am_asymmetry_by_city.png")
-    plot_city_bar(city_summary, "weighted_pm_asymmetry_median", "PM commuting-direction asymmetry by city", dirs["figures"] / "figure2_pm_asymmetry_by_city.png")
+    plot_city_bar(city_summary, "weighted_am_minmax_ratio_median", "AM commuting-direction asymmetry by city", dirs["figures"] / "figure1_am_asymmetry_by_city.png")
+    plot_city_bar(city_summary, "weighted_pm_minmax_ratio_median", "PM commuting-direction asymmetry by city", dirs["figures"] / "figure2_pm_asymmetry_by_city.png")
     plot_hist(pair_summary, dirs["figures"] / "figure3_pooled_directional_ratio_hist.png")
     plot_reversal(city_summary, dirs["figures"] / "figure4_reversal_share_by_city.png")
     plot_rank_vs_asym(pair_summary, dirs["figures"] / "figure5_rank_vs_am_asymmetry.png")

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>深圳潮汐车道 · 百度单周描述性结果一页汇总</title>
+  <style>
+    :root {
+      --ink: #1a1a1a;
+      --muted: #555;
+      --line: #ddd;
+      --blue: #1f77b4;
+      --red: #d62728;
+      --bg: #fafafa;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+      margin: 0;
+      padding: 24px 28px 40px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0 0 6px;
+      font-weight: 700;
+    }
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 16px;
+      font-size: 12.5px;
+    }
+    .banner {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--blue);
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      border-radius: 4px;
+    }
+    .banner strong { color: var(--ink); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin: 10px 0 16px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 6px 8px;
+      text-align: center;
+    }
+    th { background: #f0f4f8; font-weight: 600; }
+    td.road { text-align: left; white-space: nowrap; }
+    .pos { color: var(--blue); font-weight: 600; }
+    .neg { color: var(--red); font-weight: 600; }
+    .weak { color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .card-head {
+      padding: 8px 12px;
+      background: #f7f7f7;
+      border-bottom: 1px solid var(--line);
+      font-weight: 600;
+      font-size: 12.5px;
+    }
+    .card-body { padding: 10px 12px 12px; }
+    .card-body img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border: 1px solid #eee;
+      border-radius: 2px;
+    }
+    .card-body ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+    .card-body li { margin: 4px 0; }
+    .tag {
+      display: inline-block;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    .tag-main { background: #dbeafe; color: #1e40af; }
+    .tag-pool { background: #dcfce7; color: #166534; }
+    .tag-placebo { background: #fef3c7; color: #92400e; }
+    .footer {
+      margin-top: 14px;
+      padding: 12px 14px;
+      background: #fff3cd;
+      border: 1px solid #ffecb5;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .chain {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .chain h3 { margin: 0 0 8px; font-size: 14px; }
+    .chain ol { margin: 0; padding-left: 20px; }
+    .chain li { margin: 5px 0; }
+    code { font-size: 11px; background: #f0f0f0; padding: 1px 4px; border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<h1>深圳 5 条市区潮汐车道 · 百度单周描述性结果</h1>
+<p class="subtitle">
+  数据：百度 10 分钟速度，2025-05-19 – 05-25（5 个工作日）｜
+  识别：<strong>post-only 日内比较</strong>（非开通前后 causal DID）｜
+  Treatment：<code>core_treatment</code> + <code>analysis_length_m</code> 加权走廊速度
+</p>
+
+<div class="banner">
+  <strong>一句话：</strong>
+  彩田路最像「保护 policy 方向、挤出 opposite」；
+  红岭路 policy 方向符号最干净（相对 control 少恶化）；
+  文锦北路 / 新洲路 / 留仙大道不支持理想叙事。
+  Pooled PSM-DID 后，<strong>跨 cohort 唯一较稳的是 asymmetry（+0.10）</strong>，policy 绝对速度 local jump 仍不显著。
+</div>
+
+<h2 style="font-size:15px;margin:0 0 8px;">主表：v1 近控 pooled 描述性结果（km/h 或 log 比）</h2>
+<table>
+  <thead>
+    <tr>
+      <th class="road">路段 / 窗口</th>
+      <th>policy<br>active−ref DDD</th>
+      <th>opposite<br>active−ref DDD</th>
+      <th>event-study<br>policy active 均值</th>
+      <th>event-study<br>opposite active 均值</th>
+      <th>asymmetry<br>Δlog(pol/opp) DDD</th>
+      <th>叙事</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="road">彩田路 16:30–21:30</td>
+      <td class="weak">−0.3</td>
+      <td class="neg">−9.0</td>
+      <td class="weak">−0.03</td>
+      <td class="neg">−12.2</td>
+      <td class="pos">+0.33</td>
+      <td>不对称保护 ✓</td>
+    </tr>
+    <tr>
+      <td class="road">红岭路 07:30–09:30</td>
+      <td class="pos">+4.0</td>
+      <td class="weak">−1.0</td>
+      <td class="pos">+2.4</td>
+      <td class="weak">+0.7</td>
+      <td class="pos">+0.08</td>
+      <td>policy 相对改善 ✓</td>
+    </tr>
+    <tr>
+      <td class="road">文锦北路 07:00–09:30</td>
+      <td class="neg">−22.0</td>
+      <td class="neg">−8.5</td>
+      <td class="neg">−16.0*</td>
+      <td class="neg">−7.2</td>
+      <td class="neg">−0.44</td>
+      <td>不支持 ✗</td>
+    </tr>
+    <tr>
+      <td class="road">文锦北路 18:00–20:00</td>
+      <td class="neg">−3.8</td>
+      <td class="pos">+1.8</td>
+      <td class="weak">−0.7</td>
+      <td class="weak">+2.0</td>
+      <td class="neg">−0.19</td>
+      <td>混杂</td>
+    </tr>
+    <tr>
+      <td class="road">新洲路 17:30–20:00</td>
+      <td class="neg">−4.9</td>
+      <td class="weak">+0.1</td>
+      <td class="weak">−0.3</td>
+      <td class="weak">+1.6</td>
+      <td class="neg">−0.23</td>
+      <td>不支持 ✗</td>
+    </tr>
+    <tr>
+      <td class="road">留仙大道 17:30–20:00 <span class="tag tag-placebo">pre-shock</span></td>
+      <td class="neg">−4.7</td>
+      <td class="weak">+0.6</td>
+      <td class="neg">−5.0</td>
+      <td class="weak">−0.2</td>
+      <td class="neg">−0.24</td>
+      <td>placebo</td>
+    </tr>
+  </tbody>
+</table>
+<p style="font-size:11px;color:var(--muted);margin:-8px 0 16px;">
+  * active−ref DDD = 政策窗相对 reference（政策前 90 min）的速度变化，treatment 减 pooled 近控均值；
+  event-study = segment FE + date + minute，active 窗口 bins 系数均值；
+  asymmetry = Δlog(policy速度/opposite速度)，treat−control。
+  留仙大道公开开通在 2026-03 之后，当前周为 pre-shock placebo。
+</p>
+
+<h2 style="font-size:15px;margin:0 0 8px;">Pooled PSM-DID（5 主 cohort，远控 Mahalanobis 匹配，±30 min）</h2>
+<table>
+  <thead>
+    <tr>
+      <th>规格</th>
+      <th>policy</th>
+      <th>opposite</th>
+      <th>pooled asymmetry DDD</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>估计值 (SE)</td>
+      <td class="weak">+0.35 (1.09)</td>
+      <td class="neg">−1.17 (0.94)</td>
+      <td class="pos">+0.105 (0.041)</td>
+    </tr>
+  </tbody>
+</table>
+<p style="font-size:12px;margin:0 0 16px;">
+  Cohort 异质性（policy ±30 min）：红岭 <span class="pos">+2.4</span>，文锦 PM <span class="pos">+3.3</span>，彩田 <span class="neg">−2.5</span>，新洲 ≈0，文锦 AM ≈0。
+</p>
+
+<div class="grid">
+  <div class="card">
+    <div class="card-head"><span class="tag tag-main">v1 汇总</span> 五路 active−reference 速度变化（近控 pooled）</div>
+    <div class="card-body">
+      <img src="../outputs/shenzhen_multi_tidal_post_only_v1/figures/summary/active_reference_treatment_control_change_summary.png" alt="active reference summary" />
+      <ul>
+        <li><strong>红岭</strong>是唯一 policy 方向明显为正（+4 km/h）的路段。</li>
+        <li><strong>彩田</strong> policy ≈0，opposite 大幅为负（−9 km/h）→ 挤出反方向。</li>
+        <li>文锦 AM 双方向都大幅为负（−22 / −8.5），不宜作主结果。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="tag tag-main">v1 汇总</span> 五路 directional asymmetry 变化（policy/opposite 比值）</div>
+    <div class="card-body">
+      <img src="../outputs/shenzhen_multi_tidal_post_only_v1/figures/summary/directional_asymmetry_treatment_control_summary.png" alt="asymmetry summary" />
+      <ul>
+        <li><strong>彩田 +0.33</strong>：policy 方向相对 opposite 更受保护（机制叙事最贴）。</li>
+        <li><strong>红岭 +0.08</strong>：弱正，与 policy DDD 同向。</li>
+        <li>文锦 / 新洲 / 留仙为负或接近 0 → 不支持统一「缓解拥堵」故事。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="tag tag-main">v1 event-study</span> 彩田路 PM · pooled 近控</div>
+    <div class="card-body">
+      <img src="../outputs/shenzhen_multi_tidal_post_only_v1/figures/caitian_pm_1630_2130_event_study_did_pooled.png" alt="caitian event study" />
+      <ul>
+        <li>Policy 方向（蓝）：16:30 后大致 flat，相对 control 不显著变差。</li>
+        <li>Opposite 方向（红）：+30 ~ +240 min <strong>显著低于 0</strong>（约 −10 km/h 量级）。</li>
+        <li>Exploration 远控下 opposite local jump ±30/60 min 仍显著为负。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="tag tag-main">v1 event-study</span> 红岭路 AM · pooled 近控</div>
+    <div class="card-body">
+      <img src="../outputs/shenzhen_multi_tidal_post_only_v1/figures/hongling_am_0730_0930_event_study_did_pooled.png" alt="hongling event study" />
+      <ul>
+        <li>Policy 方向：07:30 后 active bins 均值约 <strong>+2.4 km/h</strong>（相对近控）。</li>
+        <li>Opposite 略正（+0.7），幅度远小于彩田 opposite 负向。</li>
+        <li>换远控（文锦中路 2.7 km）后 active−ref DDD 可至 +9 km/h，但 local jump 仍不显著。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="tag tag-placebo">placebo</span> 留仙大道 pre-shock · refinement 短窗</div>
+    <div class="card-body">
+      <img src="../outputs/shenzhen_multi_tidal_refinement_v1/figures/summary/liuxian_pre_shock_placebo.png" alt="liuxian placebo" />
+      <ul>
+        <li>±30/60/90 min local jump：<strong>两方向均不显著</strong>，无 policy 独有断点。</li>
+        <li>但 exploration 中 active−ref DDD 仍可出现 +2.2 km/h 假阳性 → 该指标不能单独作主证据。</li>
+        <li>Pooled placebo：留仙 policy −2.7 km/h (SE 1.9)，12:00 非政策时点 policy +1.8 (SE 0.8)。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><span class="tag tag-pool">pooled PSM-DID</span> Cohort 异质性 + PSM balance</div>
+    <div class="card-body">
+      <img src="../outputs/shenzhen_multi_tidal_pooled_psm_did_v1/figures/summary/pooled_cohort_heterogeneity_policy.png" alt="pooled cohort heterogeneity" style="margin-bottom:8px;" />
+      <img src="../outputs/shenzhen_multi_tidal_pooled_psm_did_v1/figures/summary/psm_balance_after_matching.png" alt="psm balance" />
+      <ul>
+        <li>Pooled policy jump +0.35 km/h 被 cohort 异质性稀释；opposite pooled −1.17 更稳。</li>
+        <li>PSM 远控：红岭→文锦中路 (2.7 km, corr 0.79)；彩田→福龙路等 (3.7 km, corr 0.95)。</li>
+        <li>Pooled asymmetry <strong>+0.105 (SE 0.041)</strong> 是目前跨路最显著的 pooled 结果。</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="chain">
+  <h3>证据链条 A · 彩田路（最稳）—「保护 policy / 挤出 opposite」</h3>
+  <ol>
+    <li>地图：<code>post_only_v1/figures/maps_osm_masked/caitian_treatment_controls_osm_masked.png</code></li>
+    <li>Raw 时序：policy 与 opposite 均在晚高峰变慢，但 opposite 更深 → <code>raw_time_variation/caitian_*_raw_speed_over_time.png</code></li>
+    <li>Event-study：opposite 16:30 后显著下探（见上图）</li>
+    <li>Asymmetry DDD +0.33（v1）→ pooled +0.23（cohort 级）</li>
+    <li>远控 exploration：policy local jump 仍负，但 <strong>opposite local jump 显著为负</strong>（±30~60 min）</li>
+  </ol>
+</div>
+
+<div class="chain">
+  <h3>证据链条 B · 红岭路 —「policy 方向相对改善，显著性不足」</h3>
+  <ol>
+    <li>Active−ref DDD +4.0 km/h（v1 近控）；远控 similar_best +9.1 km/h（exploration，无 SE）</li>
+    <li>Event-study active 均值 +2.4 km/h（见上图）</li>
+    <li>Asymmetry +0.08（v1）→ 远控 +0.58（exploration）→ pooled cohort +0.14</li>
+    <li>Short-window local jump：点估计 +2~+6 km/h，<strong>SE 大、均不显著</strong></li>
+    <li>Pooled PSM cohort 异质性 +2.4 km/h (SE 2.8)</li>
+  </ol>
+</div>
+
+<div class="footer">
+  <strong>识别限制（写进正文）：</strong>
+  ① 仅单周 post-only，不能替代开通前后 DID；
+  ② control 选择敏感（近控 spillover vs 远控 level 差）；
+  ③ active−ref 长窗 DDD 无正式 SE，留仙可假阳性；
+  ④ 下一步：彩田/红岭多周 pre/post + 预注册 far-similar control；留仙 2026-04-24 Gaode 真 shock。
+  <br><br>
+  <strong>输出目录：</strong>
+  v1 <code>outputs/shenzhen_multi_tidal_post_only_v1/</code> ·
+  refinement <code>outputs/shenzhen_multi_tidal_refinement_v1/</code> ·
+  exploration <code>outputs/shenzhen_multi_tidal_exploration_v1/</code> ·
+  pooled PSM <code>outputs/shenzhen_multi_tidal_pooled_psm_did_v1/</code>
+</div>
+
+</body>
+</html>

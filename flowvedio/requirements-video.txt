@@ -1,0 +1,6 @@
+opencv-python-headless
+ultralytics
+supervision
+pandas
+pyyaml
+lap

@@ -348,22 +348,48 @@ asymmetry intensity rho: 0, 0.25, 0.50, 0.75, 1.00
 threshold ratio c: 1.00, 1.05, 1.10, 1.25, 1.50, 2.00
 ```
 
-## 11. 局限和下一步
+## 11. Implied OD vs observed OD（诊断 scope）
+
+Stage 1 **不**以复现全 OD 矩阵为目标；反演矩只有 `L_R_obs`, `L_F_obs`。
+
+### 11.1 主要数字（directed world，gate5，re-invert）
+
+| 指标 | 数值 |
+|------|-----:|
+| 边际 L1 vs obs | ~0.0005% |
+| **全 OD L1 vs obs** | **~72%** |
+| 去对角 OD L1 | ~51% |
+| Origin 条件 L1（中位） | ~66% |
+| 加权 log corr | 0.60 |
+| **Directed vs symmetric 预测 OD** | **2.46%** |
+| 区内流占比（obs / pred） | 8% / 53% |
+
+### 11.2 结论
+
+1. Poor bilateral fit **不是 Stage 1 的 failure**；本阶段问题是 calibration-world 比较。
+2. 最大误差来自 **i=j 区内流**（`T_ii` 过大 vs 数据定义）。
+3. 对称化 **几乎不改善** model vs data 的 OD fit；只改变 directed vs sym 的 implied OD（~2.5%）。
+
+### 11.3 记录与后续
+
+完整诊断、改进优先级、并行 track 分工见：
+
+`Documents/L2_notes/stage1_od_fit_diagnosis_and_handoff_20260628.md`
+
+---
+
+## 12. 局限和下一步（Stage 1 主线）
 
 1. 参数仍是 placeholder。
    - `theta=6.83`、`alpha=-0.12`、`beta=-0.10` 继承自现有 full-estimation scaffold。
    - 下一步需要做 `theta`、`alpha`、`beta` sensitivity。
 
 2. 最大 log fit gap 来自低 mass 节点。
-   - L1 fit 很小，但 node-level extremes 需要在图表中标记。
+   - 边际 L1 fit 很小，但 node-level extremes 需要在图表中标记。
    - 若进入论文表，建议报告 weighted distribution，而不是只报 max。
 
 3. symmetric operator 需要做 robustness。
-   - 当前主口径是 geometric mean。
-   - 可加 arithmetic mean、min-cost、max-cost 或 OD-weighted mean。
+   - 当前主口径是 geometric mean；gate5 上 arithmetic 已跑（W̄ −0.85%，OD dissim 2.29%）。
 
-4. 下一版可以加入 parameter sensitivity。
-   - `theta` grid: 4, 6.83, 9。
-   - `alpha/beta` grid: current values, zero externality, stronger agglomeration。
-   - 输出同一套 `summary_metrics` 和 simulation figures。
+4. **OD 改进**在独立 track 推进（intra-zonal 处理、θ 估计、SMM 矩），不阻塞 Stage 1 framing。
 

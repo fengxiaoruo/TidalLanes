@@ -1,5 +1,43 @@
 # Estimation Notes — full_estimation v1
 
+## Status update, 2026-09-26 (read this first)
+
+The step-by-step text below was written for the May 2026 scaffold. The code in
+this package is the gate5 mainline, and five statements below are superseded.
+Where the two disagree, this section wins.
+
+1. **Welfare.** The main welfare object is the gauge-free Frechet denominator,
+   `Wbar^theta = sum_ij tau_ij^{-theta} u_i^theta w_j^theta`, with
+   `u_i^theta = ubar_i^theta (L_i^R)^{beta theta}` and
+   `w_j^theta = abar_j^theta (L_j^F)^{alpha theta}`. The market-access form
+   `sum_i u_i^theta Pi_i^{-theta}` in Step 5 is kept only as `Wbar_pi_raw`, a
+   diagnostic. It carries a normalisation drift in `(Pi, P)` across scenarios
+   and its sign is not a welfare result (see
+   `Documents/L2_notes/estimation_audit_welfare_gauge_20260630.md`).
+2. **Parameters.** Mainline counterfactuals use `alpha = +0.05`,
+   `beta = -0.10`, `theta = 6.83`, and the physical congestion elasticity
+   `lambda_phys = 1.1`. The `alpha = -0.12` and `lambda = 0.488/6.83` values in
+   Step 2 are the AA Seattle placeholders still stored in `parameters.py`;
+   `lambda_` is used only in the exogenous-tau diagnostics.
+3. **Congestion form.** The mainline is `anchored`: physical minutes update as
+   `m = max(m_ff, m_obs [(Xi/Xi^0)(n^0/n)]^lambda)` around the observed
+   allocation, with log damping `0.25` (the `legacy` update in Step 5 is a
+   robustness form). The baseline therefore starts at `m_obs`, not at `m_ff`.
+4. **Physical time versus the cost index.** `tau_ij` is the all-route iceberg
+   index and is never in minutes. Experienced commuting time is the additive
+   link-passage average `Mbar = (1/Lbar) sum_kl Xi_kl m_kl`, and the ST/GE/sorting
+   decomposition in `tidal_lane_diagnostics.py` is written in that space. The
+   June reference tables that reported `tau_ij` differences in seconds were
+   replaced on 2026-09-26 by the `physical_time` runs listed in
+   `docs/FILE_MAP.csv`.
+5. **Sample size.** The gate5 bundle has `N = 1104` nodes and `2642` directed
+   links, not `N ~ 2700`. Row sums of `A = 1/m` stay below one at `kappa = 1`.
+
+The CF1 symmetric default is `geometric`; `arithmetic` is the documented
+alternative and is the one used for the physical-time symmetry result.
+
+---
+
 This file walks through every step of the level-form scaffold:
 *target object*, *formula reference*, *algorithm and solver*,
 *parameter values with source*, and *open TODOs*. The equation labels
@@ -45,7 +83,7 @@ v4 Table 1 panel A and B, plus the dense OD matrix.
    (the QSM stage 06 export ships a `lane_quality_flag`); we fall
    back to `lane_est_length_weighted`, then to the mean
    `nanmean(n_kl)`. Documented in
-   `data_work/docs/STRUCTURAL_MODEL_WORKFLOW.md`.
+   `data_work/docs/_superseded/STRUCTURAL_MODEL_WORKFLOW.md`.
 
 3. *OD column choice.* Default `commuters_road` (car + bus
    on-road commuters). Switchable via `--od-pop-col`. The meeting
@@ -234,14 +272,16 @@ current other side and the (fixed) marginals.
   found `0.5` faster on smooth shocks and stable on the 1% test
   cases used in `Replication_apply/PLAN.md`.
 
-**Welfare**:
+**Welfare** (superseded, see the 2026-09-26 status update at the top):
 
 ```
-Wbar^theta = sum_i u_i^theta * Pi_i^{-theta},
+Wbar^theta = sum_ij tau_ij^{-theta} * u_i^theta * w_j^theta     # main, gauge-free
+Wbar_pi_raw^theta = sum_i u_i^theta * Pi_i^{-theta}             # diagnostic only
 u_i^theta  = ubar_i^theta * (L_i^R)^{beta*theta}
+w_j^theta  = abar_j^theta * (L_j^F)^{alpha*theta}
 ```
 
-(v4 eq. welfare_MA). We report `Wbar` (not `Wbar / Wbar_baseline`)
+We report `Wbar` (not `Wbar / Wbar_baseline`)
 because all comparisons in this scaffold are run side-by-side.
 
 **Spectral-radius safety (`kappa`)**:

@@ -1,0 +1,599 @@
+\documentclass[11pt,aspectratio=169]{beamer}
+\usetheme{Boadilla}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage[onehalfspacing]{setspace}
+
+\newcommand{\figplaceholder}[1]{\begin{center}\fbox{\begin{minipage}[c][0.32\textheight][c]{0.82\textwidth}\centering\large #1\end{minipage}}\end{center}}
+\newcommand{\shortfigplaceholder}[1]{\begin{center}\fbox{\begin{minipage}[c][0.22\textheight][c]{0.82\textwidth}\centering\large #1\end{minipage}}\end{center}}
+\newcommand{\compactfigplaceholder}[1]{\begin{center}\fbox{\begin{minipage}[c][0.10\textheight][c]{0.82\textwidth}\centering\normalsize #1\end{minipage}}\end{center}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\dd}{\,\mathrm{d}}
+
+\title[Tidal Lanes]{Tidal Traffic}
+\author[Duan (SJTU), Feng (PKU), Gu (PKU)]{Yige Duan (SJTU) $\quad$ Xiaoruo Feng (PKU) $\quad$ Yizhen Gu (PKU)}
+\date{\today}
+
+\begin{document}
+
+% 1
+\begin{frame}
+\titlepage
+\end{frame}
+
+% 10
+\begin{frame}{Motivation}
+\begin{itemize}
+  \item \textbf{Peak-direction imbalance}
+  \begin{itemize}
+    \item Urban roads often face strong directional congestion
+    \item Commuting traffic is shaped by where workers live and where jobs are located
+  \end{itemize}
+  \item Daily two-way cost
+  \begin{itemize}
+    \item Return trips reverse the same flows
+    \item Value-of-time costs should account for both commute and return trips
+  \end{itemize}
+  \item Policy margin
+  \begin{itemize}
+    \item Tidal lanes reallocate existing lanes across directions
+    \item They may change route choices and residence--workplace sorting
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% 11
+\begin{frame}{What We Do}
+\begin{itemize}
+  \item Model \textcolor{blue}{directional congestion}
+  \begin{itemize}
+    \item Extend the Allen--Arkolakis inner-city model
+    \item Keep physical road infrastructure symmetric for each road segment
+  \end{itemize}
+  \item Generate asymmetric commuting costs
+  \begin{itemize}
+    \item Traffic per lane differs by direction
+    \item Residence and workplace choices determine directional flows
+  \end{itemize}
+  \item Evaluate tidal lanes
+  \begin{itemize}
+    \item Hold total lanes fixed and shift one lane toward the more congested direction
+    \item Decompose local congestion, global congestion, and residence--workplace sorting
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% 12
+\begin{frame}{Literature}
+\begin{itemize}
+  \item Spatial equilibrium and agglomeration
+  \begin{itemize}
+    \item Allen and Arkolakis (RES, 2022)
+    \item Ahlfeldt et al. (2015), as used by Allen--Arkolakis
+  \end{itemize}
+  \item Transportation policy and congestion
+  \begin{itemize}
+    \item Barwick et al. (AER, 2024)
+    \item Yang et al. (AEJ: Policy, 2020)
+  \end{itemize}
+  \item Calibration and contribution
+  \begin{itemize}
+    \item Beijing studies estimate \textcolor{blue}{$\delta_1=-1.1$}
+    \item This project adds a \underline{tidal-lane margin}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% 13
+\begin{frame}{Data}
+\small
+\begin{itemize}
+  \item Network and traffic
+  \begin{itemize}
+    \item Road endpoints, length, direction, lanes, and functional class
+    \item Link-level traffic volume, ideally by direction and time of day
+  \end{itemize}
+  \item Speeds
+  \begin{itemize}
+    \item Observed speed or travel time by segment and time interval
+    \item Summary objects for Figure 8 and Table 9
+  \end{itemize}
+  \item Commuting and geography
+  \begin{itemize}
+    \item Residence location, workplace location, and OD commuting flows
+    \item Grid cells, tract boundaries, and CBD or subcenter indicators
+  \end{itemize}
+\end{itemize}
+\compactfigplaceholder{Figure 1 placeholder: study area and main road network map}
+\end{frame}
+
+% 14
+\begin{frame}{Road Segments}
+\small
+\begin{itemize}
+  \item Build model links
+  \begin{itemize}
+    \item Convert raw road geometry into links between adjacent nodes
+    \item Clean duplicate or unusable road records
+  \end{itemize}
+  \item Preserve direction-specific attributes
+  \begin{itemize}
+    \item Keep lanes and peak traffic where available
+    \item Treat each physical road as symmetric infrastructure with two directed flows
+  \end{itemize}
+  \item Document network construction
+  \begin{itemize}
+    \item Figure 2: road segments
+    \item Figure 4: selected or cleaned network
+  \end{itemize}
+\end{itemize}
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\compactfigplaceholder{Figure 2 placeholder: road segments}
+\column{0.49\textwidth}
+\compactfigplaceholder{Figure 4 placeholder: selected or cleaned network}
+\end{columns}
+\end{frame}
+
+% 15
+\begin{frame}{Speed Statistics}
+\small
+\begin{equation}
+v_{klh}=\frac{\mathrm{distance}_{kl}}{\mathrm{travel\ time}_{klh}},
+\qquad
+m_{klh}=v_{klh}^{-1}.
+\end{equation}
+\begin{itemize}
+  \item Speed and inverse speed
+  \begin{itemize}
+    \item $v_{klh}$ is speed on road segment $k$--$l$ in time interval $h$
+    \item $m_{klh}$ is \textbf{inverse speed}, interpreted as minutes per unit distance
+  \end{itemize}
+  \item Congestion summaries
+  \begin{itemize}
+    \item Figure 8 shows the speed distribution
+    \item Table 9 reports speed summary statistics
+  \end{itemize}
+\end{itemize}
+\begin{columns}[T,onlytextwidth]
+\column{0.55\textwidth}
+\compactfigplaceholder{Figure 8 placeholder: speed distribution}
+\column{0.43\textwidth}
+\compactfigplaceholder{Table 9 placeholder: speed summary statistics}
+\end{columns}
+\end{frame}
+
+% 16
+\begin{frame}{Speed Within A Day}
+\small
+\begin{itemize}
+  \item Peak timing
+  \begin{itemize}
+    \item Compare speeds across time intervals
+    \item Identify morning and evening peaks
+  \end{itemize}
+  \item Directional imbalance
+  \begin{itemize}
+    \item Compare opposite directions within the same road segment
+    \item Use within-day patterns to reveal \textcolor{red}{tidal congestion}
+  \end{itemize}
+  \item Model discipline
+  \begin{itemize}
+    \item Map traffic per lane into speed
+    \item Calibrate the speed elasticity from the literature
+  \end{itemize}
+\end{itemize}
+\compactfigplaceholder{Figure 9 placeholder: within-day speed profile}
+\end{frame}
+
+% 17
+\begin{frame}{Tidal Commuting}
+\small
+\begin{itemize}
+  \item \textbf{Tidal commuting}
+  \begin{itemize}
+    \item Dominant commute direction reverses over the day
+    \item Morning and return-trip asymmetry are two sides of the same flow pattern
+  \end{itemize}
+  \item Residence--workplace separation
+  \begin{itemize}
+    \item More workers may live in one area and work in another
+    \item The imbalance generates asymmetric traffic per lane
+  \end{itemize}
+  \item Empirical object
+  \begin{itemize}
+    \item Measure \textcolor{blue}{directional traffic per lane}
+    \item Use Figure 10 to summarize tidal commuting patterns
+  \end{itemize}
+\end{itemize}
+\compactfigplaceholder{Figure 10 placeholder: tidal commuting patterns}
+\end{frame}
+
+% 18
+\begin{frame}{Grids}
+\small
+\begin{itemize}
+  \item Spatial aggregation
+  \begin{itemize}
+    \item Aggregate locations into grid cells
+    \item Use cells for residence, workplace, and network nodes
+  \end{itemize}
+  \item Data linkage
+  \begin{itemize}
+    \item Link OD commuting data to the road network
+    \item Preserve consistent geography across model objects
+  \end{itemize}
+  \item Counterfactual units
+  \begin{itemize}
+    \item Reallocate residence and workplace shares across grid cells
+    \item Use Figure 14 to document the analysis grid
+  \end{itemize}
+\end{itemize}
+\compactfigplaceholder{Figure 14 placeholder: analysis grid}
+\end{frame}
+
+% 2
+\begin{frame}{Model: Environment}
+\begin{itemize}
+  \item Locations $i,j\in N$ host $\bar{L}$ mass of residents and jobs
+  \vspace{0.5em}
+  \item A physical road is represented by two directed links, $(k,l)$ and $(l,k)$
+  \begin{itemize}
+    \item The road has symmetric quality $t_{kl}=t_{lk}$, but directed lanes $n_{kl}$ and $n_{lk}$ can differ
+    \item A tidal-lane policy shifts one lane across directions while holding $n_{kl}+n_{lk}$ fixed
+  \end{itemize}
+  \vspace{0.5em}
+  \item Traversal cost is \textcolor{blue}{endogenous} and \textcolor{red}{directed}
+  \begin{itemize}
+    \item $c_{kl}$ depends on road quality and traffic-per lane
+    \item $c_{kl} \neq c_{lk}$ when traffic differs by direction
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% 3
+\begin{frame}{Individual Location Choice}
+\begin{itemize}
+  \item An individual $\omega$ living in $i$, working in $j$, and taking route $r\in\R_{ij}$ obtains
+  \vspace{-0.5em}\begin{footnotesize}\begin{equation}
+    V_{ij,r}(\omega) = \left( \frac{u_i w_j}{C_{ij,r}} \right)\varepsilon_{ij,r}(\omega),
+    \qquad
+    C_{ij,r} = \prod_{\ell=1}^{K_r} c_{r_{\ell-1},r_\ell}
+  \vspace{-1.25em}\end{equation}\end{footnotesize}
+  \begin{itemize}
+    \item $u_i$ is amenity; $w_j$ is wage; $\epsilon$ is i.i.d. Frechet
+    \item Route $r = [r_0, r_1, \cdots, r_{K_r}]$ with $r_0=i$ and $r_{K_r}=j$
+  \end{itemize}
+  \vspace{0.5em}
+  \item Choice probabilities are
+  \vspace{-0.5em}\begin{equation}\label{eq:pi}
+    \pi_{ij,r} = \frac{\left(u_i w_j/C_{ij,r}\right)^\theta}{\sum_{a}\sum_b\sum_{s\in\R_{ab}}\left(u_a w_b/C_{ab,s}\right)^\theta}
+  \end{equation}
+\end{itemize}
+\end{frame}
+
+% 4
+\begin{frame}{Bilateral Commuting Costs and Flows}
+\begin{itemize}
+  \item The bilateral commuting-cost, aggregated across all routes (Frechet expectation)
+  \vspace{-0.5em}\begin{equation}
+    \tau_{ij} = \left[ \sum_{r\in\R_{ij}} C_{ij,r}^{-\theta} \right]^{-1/\theta}
+  \end{equation}
+  \item Thus, residence-workplace choice shares satisfy
+  \vspace{-0.25em}\begin{equation}\label{eq:gravity}
+    L_{ij} = \sum_{r\in\R_{ij}}L_{ij,r} = \tau_{ij}^{-\theta} \left(\frac{L_i^R}{\Pi_i}\right) \left(\frac{L_j^F}{P_j}\right), \,\, L_i^R=\sum_jL_{ij}, \,\, L_j^F=\sum_iL_{ij}
+  \vspace{-1em}\end{equation}
+  \begin{itemize}
+    \item Directional congestion implies $\tau_{ij}\neq\tau_{ji}$ in general
+    \item $\Pi_i$ and $P_j$ are origin and destination market-access terms
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% 5
+\begin{frame}{Amenity, Productivity, and Location Choices}
+\begin{itemize}
+  \item Agglomeration of local fundamentals
+  \vspace{-0.5em}\begin{equation}\label{eq:agglom}
+    w_j = A_j = \bar A_j\left(L_j^F\right)^\alpha, \qquad u_i=\bar u_i\left(L_i^R\right)^\beta
+  \end{equation}
+  \item Resident ($R$) and workplace ($F$) distribution across space
+  \begin{align}
+  \left( \frac{L_i^R}{\bar{L}}\right)^{1+\beta} & = \lambda \sum_j\tau_{ij}^{-\theta}\bar u_i\bar A_j \left(\frac{L_j^F}{\bar{L}}\right)^\alpha \label{eq:clear1} \\ 
+  \left(\frac{L_i^F}{\bar{L}}\right)^{1+\alpha} & = \lambda \sum_j\tau_{ji}^{-\theta}\bar u_j\bar A_i \left(\frac{L_j^R}{\bar{L}}\right)^\beta \label{eq:clear2}
+  \end{align}
+  where $\lambda$ is a constant related to the expected welfare of residents
+\end{itemize}
+\end{frame}
+
+% 34
+\begin{frame}{Route-Specific Traversal Cost vs. Residence-Workplace Commuting Cost}
+\begin{itemize}
+  \item Define the directed adjacency matrix $A=[a_{kl}]$ by
+  \vspace{-0.5em}\begin{equation}
+    a_{kl} = c_{kl}^{-\theta}
+  \end{equation}
+  \item Summing over all feasible route lengths gives
+  \vspace{-0.5em}\begin{equation}
+    B = \sum_{K=0}^{\infty}A^K = (I-A)^{-1}
+  \end{equation}
+  \item The bilateral commuting-cost aggregator can be written as
+  \vspace{-0.5em}\begin{equation}\label{eq:inverse}
+    \tau_{ij} = B_{ij}^{-1/\theta}
+  \end{equation}
+\end{itemize}
+\end{frame}
+
+% 37
+\begin{frame}{Feedback between Location Choice, Route Traffic, and Traversal Cost}
+\begin{itemize}
+  \item For a directed trip $i\to j$, define $\kappa^{kl}_{ij}$ as expected use of link $(k,l)$
+  \vspace{-1em}\begin{equation}
+    \kappa^{kl}_{ij} = \left( \frac{\tau_{ij}} {\tau_{ik}c_{kl}\tau_{lj}} \right)^\theta 
+  \vspace{-0.5em}\end{equation}
+  \item The directional traffic is
+  \begin{equation}\label{eq:Xi_c}
+  \Xi_{kl} = \sum_i\sum_j \kappa^{kl}_{ij}L_{ij}
+  \end{equation}
+  \item Traffic, in turn, affects route-level traversal cost
+  \vspace{-0.5em}\begin{equation}\label{eq:c_Xi}
+    c_{kl} = t_{kl} \left(\frac{\Xi_{kl}}{n_{kl}}\right)^{-\delta_1}
+  \vspace{-0.5em}\end{equation}
+    This allows for asymmetric traversal costs $c_{kl}\neq c_{lk}$ even if $t_{kl}=t_{lk}$
+  \end{itemize}
+\end{frame}
+
+% 9
+\begin{frame}{Equilibrium}
+\begin{itemize}
+  \item Given fundamentals $\{\bar u_i,\bar A_i,t_{kl},n_{kl}\}$ with $t_{kl}=t_{lk}$ on each physical road and parameters $(\theta,\alpha,\beta,\delta_1)$, an equilibrium is
+  \vspace{-0.5em}\begin{equation}
+    \left\{L_i^R,L_i^F,L_{ij},\tau_{ij},c_{kl},\Xi_{kl},\Pi_i,P_j,\lambda\right\}
+  \vspace{-0.5em}\end{equation}
+  such that
+  \begin{itemize}
+    \item residents choose residence-workplace-route options according to \eqref{eq:pi}
+    \item bilateral flows satisfy commuting gravity \eqref{eq:gravity} and market clearing \eqref{eq:clear1}--\eqref{eq:clear2} 
+    \item amenities and productivity satisfy \eqref{eq:agglom}
+    \item bilateral costs are generated by the directed road network \eqref{eq:inverse}
+    \item directed link traffic and directed traversal costs are mutually consistent \eqref{eq:Xi_c}--\eqref{eq:c_Xi}
+  \end{itemize}
+  \item Existence and uniqueness: see Allen and Arkolakis (2022)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Exact-Hat Algebra for Tidal Lanes}
+\begin{itemize}
+  \item Exact-hat notation writes counterfactual changes as ratios
+  \vspace{-1em}\begin{equation}
+    \hat{x}=\frac{x'}{x}
+  \vspace{-2em}\end{equation}
+  \begin{itemize}
+    \item Unobserved fundamentals $\{\bar u_i,\bar A_i,t_{kl}\}$ cancel out
+    %\item They discipline the counterfactual through observed activity and traffic
+  \end{itemize}
+  \item A physical road $\{k,l\}$ has two directed lane allocations
+  \vspace{-1em}\begin{equation}
+    N_{kl}=n_{kl}+n_{lk}
+  \vspace{-1em}\end{equation}
+  and the policy shifts $\Delta_{kl}$ lanes from $l\to k$ to $k\to l$
+  \vspace{-1em}\begin{equation}
+    n'_{kl}=n_{kl}+\Delta_{kl},
+    \qquad
+    n'_{lk}=n_{lk}-\Delta_{kl}
+  \vspace{-1em}\end{equation}
+  \item The directed lane hats and mechanical cost hats are
+  \vspace{-0.5em}\begin{equation}
+    \hat n_{kl}=1+\frac{\Delta_{kl}}{n_{kl}},
+    \qquad
+    \hat n_{lk}=1-\frac{\Delta_{kl}}{n_{lk}},
+    \qquad
+    \hat c_{kl}^{\mathrm{mech}}=\hat n_{kl}^{\delta_1}
+  \end{equation}
+\end{itemize}
+\end{frame}
+
+
+
+
+
+
+\begin{frame}{Equilibrium Changes with Tidal Lanes}
+\begin{itemize}
+  \item For any vector of directed link-cost changes $\{\hat c_{kl}\}$, update the network by
+  \vspace{-1em}\begin{equation}
+    A'_{kl}=A_{kl}\hat c_{kl}^{-\theta}, \qquad B'=(I-A')^{-1}
+  \vspace{-0.5em}\end{equation}
+  \item (Link) traversal costs and (route) commuting costs change by
+  \vspace{-0.5em}\begin{equation}\label{eq:chat}
+    \hat c_{kl}=\hat\Xi_{kl}^{-\delta_1}\hat n_{kl}^{\delta_1}, \qquad \hat\tau_{ij} = \left( B'_{ij} / B_{ij} \right)^{-1/\theta}
+  \vspace{-0.5em}\end{equation}
+  \item Residence and workplace shares follow
+  \vspace{-0.5em}\begin{equation}
+    (\hat L_i^R)^{1+\beta} = \hat\lambda\sum_j s^R_{ij}\hat\tau_{ij}^{-\theta}(\hat L_j^F)^\alpha , \qquad 
+(\hat L_i^F)^{1+\alpha} = \hat\lambda\sum_j s^F_{ji}\hat\tau_{ji}^{-\theta}(\hat L_j^R)^\beta
+  \vspace{-0.5em}\end{equation}
+  \item Directed traffic become
+  \vspace{-0.5em}\begin{equation}
+    \Xi'_{kl} = \sum_i\sum_j \kappa_{ij}^{kl\prime}L'_{ij}
+ \end{equation}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Counterfactual Algorithm}
+\begin{enumerate}
+  \item Choose treated physical roads and lane shifts $\{\Delta_{kl}\}$
+  \item Compute directed lane hats $\{\hat n_{kl},\hat n_{lk}\}$
+  \item Initialize traffic hats, for example $\hat\Xi_{kl}=1$
+  \item Update link-cost hats by \eqref{eq:chat}
+  \item Update bilateral costs using the matrix inverse and solve for $\hat L_i^R,\hat L_i^F$
+  \item Recompute route intensities, directed traffic, and iterate to convergence
+  \item Report mechanical, route-equilibrium, and full-equilibrium effects
+\end{enumerate}
+\end{frame}
+
+\end{document}
+
+
+
+%% 21
+%\begin{frame}{Local Versus Global Congestion}
+%\begin{itemize}
+%  \item Local mechanical effect: hold routes and residence--workplace flows fixed.
+%  \item Treated direction: lower traffic per lane and faster speed.
+%  \item Donor direction: higher traffic per lane and slower speed.
+%  \item Global equilibrium effect: commuters reoptimize routes and locations.
+%  \item Network congestion: change in $2\sum_{k,l}d_{kl}m_{kl}\Xi_{kl}$ after reoptimization.
+%\end{itemize}
+%\end{frame}
+%
+%% 22
+%\begin{frame}{Residence--Workplace Sorting}
+%Tidal lanes can make directional commuting easier, especially for suburb-to-center work trips.
+%\begin{equation}
+%S
+%=
+%\frac{1}{2}\sum_i \left|l_i^R-l_i^F\right|.
+%\end{equation}
+%\begin{itemize}
+%  \item If downtown becomes easier to reach from residential suburbs, workplace concentration may rise.
+%  \item If suburbs become easier to access under the flipped return-trip asymmetry, residential decentralization may rise.
+%  \item The model separates direct travel-time gains from induced changes in where people live and work.
+%\end{itemize}
+%\end{frame}
+%
+%% 24
+%\begin{frame}{Data Needs}
+%\begin{tabularx}{\textwidth}{@{}lX@{}}
+%\toprule
+%Object & Role in the tidal analysis\\
+%\midrule
+%Road geometry & Defines undirected roads $\{k,l\}$ and feasible directed links.\\
+%Directional lanes & Determines $n_{kl}$ and the feasible tidal-lane reallocations.\\
+%Directional traffic & Disciplines $\Xi_{kl}$ and $\Xi_{lk}$.\\
+%Speeds or travel times & Converts traffic per lane into minutes and value-of-time costs.\\
+%LODES or OD flows & Disciplines $L_{ij}$, residential shares, and workplace shares.\\
+%Value of time & Converts static one-way travel-time changes into daily dollar congestion costs using a factor of two.\\
+%\bottomrule
+%\end{tabularx}
+%\end{frame}
+%
+%% 25
+%\begin{frame}{Calibration Choices}
+%\begin{center}
+%\begin{tabular}{@{}llll@{}}
+%\toprule
+%Parameter & Value & Interpretation & Source\\
+%\midrule
+%$\theta$ & 6.83 & commuting-cost sensitivity & AA / Ahlfeldt et al.\\
+%$\alpha$ & 0.12 & productivity externality & AA / Ahlfeldt et al.\\
+%$\beta$ & 0.10 & amenity externality & AA / Ahlfeldt et al.\\
+%$\delta_1$ & $-1.1$ & speed-density elasticity & Barwick et al.; Yang et al.\\
+%\bottomrule
+%\end{tabular}
+%\end{center}
+%\begin{itemize}
+%  \item Agglomeration parameters follow Allen--Arkolakis.
+%  \item The congestion calibration uses Beijing evidence because it relates speed to traffic density per kilometer-lane.
+%\end{itemize}
+%\end{frame}
+%
+%% 26
+%\begin{frame}{Why the Beijing Elasticity Is Useful}
+%\begin{itemize}
+%  \item Barwick et al. and Yang et al. estimate how speed changes with local traffic density.
+%  \item Traffic density is converted to vehicles per kilometer-lane.
+%  \item That object is close to the model's $\Xi_{kl}/n_{kl}$: directional link traffic per lane.
+%  \item A speed elasticity of $-1.1$ implies that a 10\% increase in traffic per lane lowers speed by about 11\%.
+%  \item Inverse speed and minutes per kilometer rise with elasticity $1.1$.
+%\end{itemize}
+%\end{frame}
+%
+%% 27
+%\begin{frame}{Recovering Directional Flows}
+%When direct directional traffic is unavailable, infer it using the model:
+%\begin{equation}
+%\Xi_{kl}=\sum_i\sum_j \kappa^{kl}_{ij} L_{ij},
+%\qquad
+%\Xi_{lk}=\sum_i\sum_j \kappa^{lk}_{ij} L_{ij}.
+%\end{equation}
+%\begin{itemize}
+%  \item OD flows identify where commuters live and work.
+%  \item Route intensities allocate OD commuters across network links.
+%  \item Directional imbalance can be validated against directional counts or speed asymmetries.
+%\end{itemize}
+%\end{frame}
+%
+%% 29
+%\begin{frame}{Decomposition Design}
+%\begin{tabularx}{\textwidth}{@{}lX@{}}
+%\toprule
+%Scenario & Interpretation\\
+%\midrule
+%Mechanical & Shift lanes, hold OD flows and route shares fixed.\\
+%Route equilibrium & Allow commuters to change routes, hold residence and workplace shares fixed.\\
+%Full equilibrium & Allow routes, residences, and workplaces to adjust.\\
+%\bottomrule
+%\end{tabularx}
+%\begin{itemize}
+%  \item The first step isolates local engineering effects.
+%  \item The second step measures network diversion and induced route demand.
+%  \item The third step measures sorting and welfare effects.
+%\end{itemize}
+%\end{frame}
+%
+%% 30
+%\begin{frame}{Expected Sorting Mechanism}
+%\begin{itemize}
+%  \item Tidal lanes reduce commuting costs in the dominant residence-to-work direction.
+%  \item Lower suburb-to-center daily costs can make suburban residence and central employment more attractive jointly.
+%  \item The same policy can reduce peak bottleneck delays while increasing residence--workplace specialization.
+%  \item The welfare effect depends on whether time savings dominate induced congestion and any sorting externalities.
+%\end{itemize}
+%\end{frame}
+%
+%% 31
+%\begin{frame}{Planned Empirical Result Slides}
+%\begin{itemize}
+%  \item Map of baseline directional traffic imbalance.
+%  \item Map of roads eligible for a one-lane tidal reallocation.
+%  \item Local congestion effects for treated directions.
+%  \item Global network congestion effects after route reoptimization.
+%  \item Residence and workplace reallocation maps.
+%  \item Welfare and value-of-time congestion-cost tables.
+%\end{itemize}
+%\end{frame}
+%
+%% 32
+%\begin{frame}{Limitations and Assumptions}
+%\begin{tabularx}{\textwidth}{@{}lXX@{}}
+%\toprule
+%Assumption & Why it is useful & Caveat\\
+%\midrule
+%Directed traffic as commuting traffic & Aligns congestion with work trips & Non-work travel and mode choice may matter.\\
+%Symmetric physical road & Separates infrastructure from directional demand & Some roads may have fixed asymmetric design.\\
+%Log-linear speed-density curve & Uses transparent literature calibration & May miss capacity thresholds and queuing.\\
+%One-lane reallocation & Matches tidal-lane policy design & Requires feasible reversible-lane operations.\\
+%Static daily equilibrium & Keeps sorting and route choice tractable & Does not model departure-time choice.\\
+%\bottomrule
+%\end{tabularx}
+%\end{frame}
+%
+%% 33
+%\begin{frame}{Takeaways}
+%\begin{enumerate}
+%  \item Tidal commuting requires directed traffic even when physical roads are symmetric.
+%  \item The residence--workplace matrix determines the congested direction in the static network.
+%  \item Tidal lanes hold total road capacity fixed and reallocate lanes toward the more congested direction.
+%  \item Evaluation should separate local mechanical congestion effects, global route-equilibrium effects, and full residence--workplace sorting effects.
+%  \item Value-of-time congestion costs are twice the static one-way travel-time cost because the return-trip asymmetry flips.
+%\end{enumerate}
+%\end{frame}

@@ -33,7 +33,48 @@ data_work/outputs/
 Literatures/
 # 本机百度 AK（从 ak_local.py.example 复制，勿提交）
 data_work/src/national_tidal_commuting/ak_local.py
+# 本地三轮爬取调度环境（含路径等，勿提交）
+data_work/scripts/scheduled_triple_crawl.env
+data_work/scripts/centerline_validation_week.env
 Documents/archive/
 Documents/generated/
 Documents/figs/
 Documents/todo_outputs/
+
+# Local traffic video processing artifacts
+flowvedio/.venv-video/
+flowvedio/batch_outputs/
+flowvedio/**/traffic_count_outputs/
+flowvedio/input_videos/*
+!flowvedio/input_videos/.gitkeep
+flowvedio/models/*.pt
+flowvedio/**/*.MOV
+flowvedio/**/*.mov
+flowvedio/**/*.mp4
+
+# --- 2026-11-18 snapshot rules: keep code and docs, keep data and media out ---
+# Scratch and tool folders
+tmp/
+.codex/
+.claude/settings.local.json
+# Local run environments (may hold machine paths); keep only *.env.example
+*.env
+!*.env.example
+# Media and large binaries
+*.mov
+*.MOV
+*.mp4
+*.m4a
+*.aiff
+*.parquet
+*.pptx
+# Data copies kept beside code (recoverable from raw_data + pipeline)
+data_work/src/**/Processed_Data/
+# Third-party platform training material (vendor docs, not project source)
+data_work/data_platform/
+# LaTeX build leftovers saved as Finder copies
+*_副本
+# Generated model inputs and large tables (rebuilt by scripts)
+Replication_apply/**/sparse_commute_seattle.csv
+Documents/L4_pipeline_outputs/baidu_api_validation/*.csv
+Platform/runs/**/local_model/

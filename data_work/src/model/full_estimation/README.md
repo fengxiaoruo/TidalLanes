@@ -1,5 +1,11 @@
 # full_estimation — level-form scaffold (v1)
 
+> **Current mainline (2026-11):** OSM 1B, all-day 2025 OD with 07–09 link times, `ce_floor` β_c = 0.35.
+> Its input bundle, entry scripts, and full commands are in the "Current mainline" table of
+> [`DOCUMENT_INDEX.md`](../../../../DOCUMENT_INDEX.md). The defaults and "mainline" labels below
+> describe the **old gate5 mainline of 2026-06-29** (anchored, λ = 1.1). Script defaults still follow it,
+> so mainline runs must pass every flag explicitly.
+
 Level-form implementation of the TidalLanes structural model in
 `Documents/L1_manuscripts/TidalLanes_Model_v4.tex` §6 (Estimation and
 Algorithms). v1 is a **scaffold**, agreed at the 2026-05-02 meeting:
@@ -26,7 +32,9 @@ data_work/src/model/full_estimation/
 ├── invert_fundamentals.py     # Step 4
 ├── equilibrium_solve.py       # level-form fixed point (used by all CFs)
 ├── counterfactual_levels.py   # CF1 / CF2 / CF3
-├── run_full_estimation.py     # CLI entry point
+├── stage2_counterfactuals.py  # Stage 2 policy + tidal CFs (exog/endog)
+├── run_full_estimation.py     # CLI entry point (legacy bundle default)
+├── run_stage2_gate5.py        # **Stage 2 gate5 entry point**
 ├── README.md
 ├── WORKFLOW.md                # inputs -> outputs schema per step
 └── ESTIMATION_NOTES.md        # per-step derivation + code thinking
@@ -34,7 +42,29 @@ data_work/src/model/full_estimation/
 
 ## How to run
 
-From the project root (`/Users/fxr/Desktop/TidalLanes`):
+### Stage 2 (gate5, endogenous congestion — **mainline 2026-06-29**)
+
+```bash
+cd data_work
+python3 src/model/full_estimation/run_stage2_gate5.py
+python3 src/model/full_estimation/run_stage2_gate5.py --quick
+python3 src/model/full_estimation/run_tidal_lane_diagnostics_gate5.py
+```
+
+**Old-mainline defaults (not current):** `congestion_form=anchored`, `lambda_phys=1.1`, `damping=0.25`, tidal pairs by **asym**.
+
+Legacy diagnostic two-phase: `--legacy-diagnostic-two-phase --output-name stage2_endogenous_edgeproj_v2_lcc_gate5_v1`
+
+Full spec: `data_work/docs/STAGE2_MAINLINE_GATE5.md`
+
+Output (mainline): `data_work/outputs/stage2_endogenous_edgeproj_v2_lcc_gate5_anchored_v1/`
+
+Write-up: `Documents/L1_manuscripts/EndogenousCongestion_Stage2_gate5.tex`  
+Handoff: `Documents/L2_notes/stage2_endogenous_congestion_handoff_20260628.md`
+
+### Legacy scaffold (manual_centerline_rules_v11)
+
+From the project root (`/Users/fxr/Dropbox/Projects/TidalLanes`):
 
 ```bash
 python -m data_work.src.model.full_estimation.run_full_estimation \

@@ -33,7 +33,8 @@
 \newcommand{\Wbar}{\bar W}
 \newcommand{\ubar}{\bar u}
 \newcommand{\Abar}{\bar A}
-\newcommand{\tbar}{\bar t}
+\newcommand{\tbar}{m^{\mathrm{ff}}}
+\newcommand{\mkl}{m_{kl}}
 \newcommand{\tkl}{t_{kl}}
 \newcommand{\tijk}{\tau_{ij}}
 \newcommand{\obs}{\mathrm{obs}}
@@ -42,7 +43,7 @@
 \title{Directional Congestion and Tidal Lanes:\\
 Model Part}
 \author{Yige Duan \and Xiaoruo Feng \and Yizhen Gu}
-\date{\today}
+\date{September 28, 2026 (welfare paragraph revised; earlier text archived as drafts/TidalLanes\_Model\_v4\_pre20260928.tex)}
 
 \begin{document}
 \maketitle
@@ -76,30 +77,33 @@ Each directed link $(k,l)\in\E$ carries three primitives:
   \item physical length $\ell_{kl}>0$ (centroid-to-centroid);
   \item directed lane capacity $n_{kl}>0$;
   \item free-flow speed $v^{0}_{kl}>0$, with associated free-flow
-        travel time $\tbar_{kl}\equiv\ell_{kl}/v^{0}_{kl}$.
+        physical travel time $\tbar_{kl}\equiv\ell_{kl}/v^{0}_{kl}$.
 \end{itemize}
-Congested directed travel time $\tkl$ is endogenous and
+Congested directed physical time $\mkl$ is endogenous and
 determined by the congestion technology in
 \S\ref{sec:objects}.  Directionality is permitted in every primitive:
 $\ell_{kl}\ne\ell_{lk}$, $n_{kl}\ne n_{lk}$, $v^{0}_{kl}\ne v^{0}_{lk}$,
-$\tkl\ne t_{lk}$ are all admitted.
+$\mkl\ne m_{lk}$ are all admitted.
 
 \subsection{Iceberg cost convention}\label{ssec:iceberg}
 
-The model uses a dimensionless iceberg link cost $\tkl\ge 1$ with the
+The model maps physical link time into an iceberg link cost with the
 \citet{AllenArkolakis2022} micro-foundation
 \begin{equation}
-  \tkl\;=\;\bigl(\ell_{kl}/v_{kl}\bigr)^{1/\theta},
+  \mkl\;=\;\ell_{kl}/v_{kl},
+  \qquad
+  \tkl\;=\;\mkl^{1/\theta},
   \qquad
   v_{kl}\;=\;v^{0}_{kl}\bigl(n_{kl}/\Xi_{kl}\bigr)^{\lambda},
   \label{eq:iceberg}
 \end{equation}
 where $v_{kl}$ is the realised (congested) directed speed and
-$\Xi_{kl}$ is endogenous directed link traffic.  The iceberg cost
+$\Xi_{kl}$ is endogenous directed link traffic. The physical time $\mkl$
+is measured in minutes. The iceberg cost
 $\tkl$ enters utility multiplicatively as
 $\prod_m t_{r_{m-1},r_m}$ and the kernel of the route system is
-$\tkl^{-\theta}$.  The $\tkl$ here is scale invariance, rather than physical minutes. Physical minutes enter only through the empirical free-flow
-and congested speeds, $v^{0}_{kl}$ and $v_{kl}$.
+$\tkl^{-\theta}$. The bilateral index constructed from this kernel is not
+physical origin--destination travel time.
 
 \subsection{Population and fundamentals}
 
@@ -137,7 +141,7 @@ The model is closed by four scalar parameters:
         elasticity in \eqref{eq:fundamentals};
   \item $\beta<0$, the residential externality (congestion)
         elasticity in \eqref{eq:fundamentals};
-  \item $\lambda\ge 0$, the congestion elasticity of speed with
+  \item $\lambda\ge 0$, the congestion elasticity of physical time with
         respect to traffic per lane in \eqref{eq:iceberg}.
 \end{itemize}
 $(\theta,\alpha,\beta)$ are externally calibrated; $\lambda$ is
@@ -232,13 +236,33 @@ implies the reduced-form identity
   \label{eq:xi_gravity}
 \end{equation}
 
+\paragraph{Expected physical travel time.}
+Physical minutes add along route $r$ even though iceberg costs compound:
+\begin{equation}
+  M_{ij,r}=\sum_{(k,l)\in r}m_{kl},
+  \qquad
+  C_{ij,r}=\prod_{(k,l)\in r}t_{kl}.
+  \label{eq:physical_route_time}
+\end{equation}
+Let $L_{ij,r}$ denote route-specific commuting flow. Expected physical
+commuting time per worker can be aggregated by routes or directed links:
+\begin{equation}
+  \bar M
+  =\frac{1}{\Lbar}\sum_{i,j,r}L_{ij,r}M_{ij,r}
+  =\frac{1}{\Lbar}\sum_{k,l}\Xi_{kl}m_{kl}.
+  \label{eq:average_physical_time}
+\end{equation}
+The complete derivation and the short-run and long-run decomposition are
+recorded in the companion file
+\href{run:./PhysicalTravelTimeMeasurement.pdf}{\texttt{PhysicalTravelTimeMeasurement.tex}}.
+
 \paragraph{Congestion technology.}
 Given directed link traffic $\Xi_{kl}$, the congestion technology
 maps traffic per lane into the directed iceberg link cost
 \begin{equation}
   \tkl
   \;=\;
-  \tbar_{kl}^{1/\theta}\,
+  \bigl(\tbar_{kl}\bigr)^{1/\theta}\,
   \bigl(\Xi_{kl}/n_{kl}\bigr)^{\lambda/\theta}.
   \label{eq:cong}
 \end{equation}
@@ -250,7 +274,7 @@ for $\tkl$ delivers the reduced-form expression
 \begin{equation}
   \tkl
   \;=\;
-  \tbar_{kl}^{1/[\theta(1+\lambda)]}\cdot
+  \bigl(\tbar_{kl}\bigr)^{1/[\theta(1+\lambda)]}\cdot
   n_{kl}^{-\lambda/[\theta(1+\lambda)]}\cdot
   \bigl(P_k\Pi_l\bigr)^{-\lambda/(1+\lambda)}.
   \label{eq:tkl_reduced}
@@ -322,7 +346,7 @@ that satisfies, jointly,
 \item \textbf{Link traffic.} \eqref{eq:xi_gravity}:
   $\Xi_{kl}=\tkl^{-\theta}P_k^{-\theta}\Pi_l^{-\theta}$.
 \item \textbf{Congestion technology.} \eqref{eq:cong}:
-  $\tkl=\tbar_{kl}^{1/\theta}(\Xi_{kl}/n_{kl})^{\lambda/\theta}$.
+  $\tkl=\bigl(\tbar_{kl}\bigr)^{1/\theta}(\Xi_{kl}/n_{kl})^{\lambda/\theta}$.
 \item \textbf{Spectral-radius condition.} 
 \end{enumerate}
 % Equivalently, equilibrium share allocations $(l^R,l^F)$ solve the fixed-point system
@@ -339,11 +363,18 @@ Two equivalent forms hold at any equilibrium:
   \;=\;\sum_j w_j^{\theta}P_j^{-\theta}.
   \label{eq:welfare_MA}
 \end{equation}
-Equation \eqref{eq:welfare_MA} is the welfare object the model
-identifies; counterfactual welfare changes are constructed from
-exact-hat algebra (\S\ref{ssec:hat}) and reported as the time-equivalent
-variation $\hat{\mathbb W}$.  No separate housing-market or goods-market
-welfare component is computed.
+The two forms in \eqref{eq:welfare_MA} equal the expected-utility
+scale \eqref{eq:Wbar_def} only under the normalisation of $(\Pi_i,P_j)$
+implied by \eqref{eq:Wbar_def}; the market-access system fixes
+$(\Pi,P)$ up to a common factor, so a numerical fixed point may settle on
+a different scale in different equilibria. The implemented welfare object
+is therefore \eqref{eq:Wbar_def} evaluated directly on
+$(\tau_{ij},u_i,w_j)$, and the market-access form is retained as a
+consistency check only (revised 2026-09-28). Counterfactual equilibria
+are re-solved in levels from the inverted fundamentals; the exact-hat
+representation in \S\ref{ssec:hat} is algebraically equivalent and is
+kept for exposition. No separate housing-market or goods-market welfare
+component is computed.
 
 %====================================================================
 \section{Variables, parameters, and data sources}\label{sec:inventory}
@@ -410,8 +441,9 @@ $\ell_{kl}$ & Directed grid length & P & On-network path length between adjacent
 $n_{kl}$ & Directed lane count & P / $\Delta$ & Length-weighted lane proxy from matched centerlines; this object is perturbed in tidal-lane counterfactuals.\\
 $v^{0}_{kl}$ & Free-flow directed speed & P & Nighttime matched-centerline speed, projected to the grid edge.\\
 $v^{\obs}_{kl}$ & Observed congested speed & P & Peak-period matched-centerline speed, projected to the grid edge.\\
-$\tbar_{kl}$ & Free-flow time & P & $\ell_{kl}/v^{0}_{kl}$.\\
-$\tkl^{\obs}$ & Observed iceberg link cost & P & Travel time from $\ell_{kl}$ and $v_{kl}^{\obs}$, converted to iceberg form by \eqref{eq:iceberg}.\\
+$\tbar_{kl}$ & Free-flow physical time & P & $\ell_{kl}/v^{0}_{kl}$, measured in minutes.\\
+$m_{kl}^{\obs}$ & Observed physical link time & P & Peak-period travel time from $\ell_{kl}$ and $v_{kl}^{\obs}$.\\
+$\tkl^{\obs}$ & Observed iceberg link cost & P & $(m_{kl}^{\obs})^{1/\theta}$ from \eqref{eq:iceberg}.\\
 \midrule
 \multicolumn{4}{l}{\textbf{B. Population primitives}}\\
 $L_{ij}^{\obs}$ & Bilateral commuting flow & P & Gridded OD matrix aggregated by point-in-polygon to the active tessellation.\\
@@ -436,6 +468,7 @@ $u_i,w_j$ & Composite amenity / wage & Q & Determined by \eqref{eq:fundamentals}
 $\tijk$ & Bilateral cost index & Q & Computed from directed link costs using \eqref{eq:tau_series}.\\
 $\Xi_{kl}$ & Directed link traffic & Q & Computed from \eqref{eq:xi_gravity}; the empirical baseline analogue is constructed in \S\ref{ssec:link_traffic_obs}.\\
 $\Pi_i, P_j$ & Resident / firm market access & Q & Linear system \eqref{eq:MA_def}.\\
+$m_{kl}$ & Directed physical link time & Q & Updated by the speed--flow relation in \eqref{eq:iceberg}; used in \eqref{eq:average_physical_time}.\\
 $\tkl$ & Directed iceberg link cost & Q & Updated through the congestion relation \eqref{eq:cong}.\\
 $\Wbar$ & Aggregate welfare scale & Q & Computed from \eqref{eq:Wbar_def} or \eqref{eq:welfare_MA}; counterfactual changes are reported in \S\ref{ssec:hat}.\\
 \end{longtable}

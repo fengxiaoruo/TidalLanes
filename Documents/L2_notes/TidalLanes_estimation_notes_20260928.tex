@@ -1,0 +1,681 @@
+%====================================================================
+%  Tidal Lanes — Estimation Notes
+%
+%  Companion to TidalLanes_Model_v4.tex.  Structure follows
+%  Path_Dependence_in_Transportation_Network_Expansion_estimation_notes.pdf.
+%  Last updated: 2026-09-28 (welfare gauge and physical-time corrections;
+%  the 2026-06-30 version is archived in _superseded/).
+%====================================================================
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,longtable,enumitem}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{setspace}
+\newtheorem{assumption}{Assumption}
+\setstretch{1.12}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+
+\newcommand{\Ncal}{\mathcal{N}}
+\newcommand{\Lbar}{\bar L}
+\newcommand{\Wbar}{\bar W}
+\newcommand{\ubar}{\bar u}
+\newcommand{\Abar}{\bar A}
+\newcommand{\obs}{\mathrm{obs}}
+\newcommand{\phys}{\mathrm{phys}}
+\newcommand{\AAcal}{\mathrm{AA}}
+
+\title{Tidal Lanes --- Estimation Notes}
+\author{Working draft (gate5 mainline)}
+\date{September 28, 2026}
+
+\begin{document}
+\maketitle
+
+%====================================================================
+\section{Overview}\label{sec:overview}
+%====================================================================
+
+This note records how each object in the directional spatial commuting
+model is \emph{measured}, \emph{calibrated}, \emph{inverted}, or
+\emph{estimated}.  Equation labels refer to
+\texttt{TidalLanes\_Model\_v4.tex} unless noted otherwise.
+
+\paragraph{Parameter accounting.}
+We distinguish three tiers:
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Data construction} (no free parameters): directed
+        network primitives, peak-period travel times, lane counts, and
+        road-mode OD flows.
+  \item \textbf{Offline calibration} (fixed from external literature or
+        documented mapping exercises): $(\theta,\alpha,\beta)$ and the
+        congestion elasticities $(\lambda_{\phys},\lambda_{\AAcal})$.
+  \item \textbf{Inversion} (recovers latent fundamentals given
+        Assumption~\ref{ass:obs_eq}): $(\ubar_i,\Abar_j,\chi)$.
+  \item \textbf{Joint / structural estimation} (not yet implemented for
+        the gate5 mainline): panel or IV congestion elasticity; optional
+        GMM on sorting parameters.
+\end{enumerate}
+
+\paragraph{Status (2026-09-28).}
+Sections~\ref{sec:data}--\ref{sec:invert} are \emph{complete} for the
+gate5 mainline bundle
+(\texttt{model\_input\_edgeproj\_v2\_lcc\_gate5\_v1}).
+Section~\ref{sec:diagnostic} reports \emph{diagnostic} regressions only.
+Section~\ref{sec:planned} lists open structural estimation tasks.
+This version replaces the 2026-06-30 draft on two points. Welfare is the
+gauge-free Fr\'echet denominator (Section~\ref{sec:equilibrium}); the
+market-access form used in June carried a normalisation drift and its
+negative long-run sign was an artefact. Commuting time is the additive
+link-passage average of physical minutes; the June seconds were computed
+from the bilateral cost index $\tau_{ij}$, which is not measured in
+minutes. Two open specification problems are recorded in
+Section~\ref{sec:equilibrium}: model intrazonal commuting mass and the
+inseparability of $\theta$ from the route kernel under $t_{kl}=m_{kl}^{1/\theta}$.
+
+\paragraph{Mainline counterfactual specification (for reference).}
+Pair selection \texttt{score\_bpr\_st}; $\alpha=+0.05$, $\beta=-0.10$;
+anchored congestion with $\lambda_{\phys}=1.1$; tidal policy top-100
+pairs, $\Delta n=1$.  Full numerical results:
+\texttt{Documents/L2\_notes/model\_and\_results\_summary\_20260928.md}.
+
+%====================================================================
+\section{Data Construction}\label{sec:data}
+%====================================================================
+
+These objects enter the model as \emph{primitives} (v4 \S6.1, Table~1).
+They are not estimated within the structural system.
+
+\begin{longtable}{@{}p{0.42\linewidth}p{0.18\linewidth}p{0.32\linewidth}@{}}
+\toprule
+\textbf{Description} & \textbf{Symbol / object} & \textbf{Source (gate5 mainline)} \\
+\midrule
+\endhead
+Spatial cells (LCC) & $N=1104$ & Square grid, gate5 largest connected component \\
+Directed edges & $|\mathcal{E}|\approx 2642$ & \texttt{qsm\_input\_edges\_square.parquet} \\
+Directed length & $\ell_{kl}$ (km) & QSM stage-06 export \\
+Free-flow speed / time & $v^0_{kl}$, $\bar\tau_{kl}$ & \texttt{tau\_ff\_min} \\
+Observed peak speed / time & $v^{\obs}_{kl}$, $\tau^{\obs}_{kl}$ & Baidu AM peak; edgeproj\_v2 \\
+Directed lane count & $n_{kl}$ & Lane lookup (2026-06-29 gate5 lane-fix) \\
+Bilateral OD flow & $L^{\obs}_{ij}$ & \texttt{commuters\_road} (default column) \\
+Residence / workplace shares & $l^{R,\obs}_i$, $l^{F,\obs}_j$ & Marginals of $L^{\obs}_{ij}$ \\
+Total commuters & $\Lbar$ & $\sum_i L^{R,\obs}_i \approx 88{,}110$ \\
+\bottomrule
+\end{longtable}
+
+\paragraph{Implementation.}
+\texttt{data\_work/src/model/full\_estimation/build\_primitives.py}
+loads the parquet bundle under
+\texttt{data\_work/outputs/<version\_id>/}, reindexes nodes to
+contiguous $0..N-1$, and applies lane fallbacks documented in
+\texttt{data\_work/docs/STRUCTURAL\_MODEL\_WORKFLOW.md}.
+
+\paragraph{Open design choices (switchable, not locked).}
+\begin{itemize}[leftmargin=2em]
+  \item Grid geometry: square (baseline), hex, voronoi.
+  \item Peak period: AM (mainline), PM robustness.
+  \item Travel-cost pipeline: raw connected vs.\ edge projection v2
+        (mainline uses \texttt{edgeproj\_v2\_lcc\_gate5}).
+  \item OD column: \texttt{commuters\_road} vs.\ mode-specific columns.
+\end{itemize}
+
+%====================================================================
+\section{Transportation Network and Directed Travel Costs}\label{sec:transport}
+%====================================================================
+
+\begin{longtable}{@{}p{0.42\linewidth}p{0.22\linewidth}p{0.28\linewidth}@{}}
+\toprule
+\textbf{Description} & \textbf{Current value} & \textbf{Status} \\
+\midrule
+\endhead
+Median $\tau^{\obs}/\tau^{\mathrm{ff}}$ (edges) & $\approx 1.00--1.35$ & Measured \\
+Share of edges with $\tau^{\obs}<\tau^{\mathrm{ff}}$ & $\approx 8.3\%$ & QA flag (anchored floor) \\
+Baseline median $\tau/\tau^{\obs}$ (endogenous) & $1.0001$ & Converged (mainline) \\
+Spectral-radius rescaling & $\kappa\ge 1$ (auto) & Algorithmic stabilizer \\
+\bottomrule
+\end{longtable}
+
+\subsection{Iceberg commuting cost index}
+
+From v4 \S3.2--3.3, the bilateral cost index satisfies
+\begin{equation}\label{eq:tau_series}
+  \tau_{ij}^{-\theta} = \bigl[(I-A)^{-1}\bigr]_{ij},
+  \qquad
+  A_{kl} = t_{kl}^{-\theta},\quad
+  t_{kl} = (\tau^{\min}_{kl})^{-1/\theta}.
+\end{equation}
+At the data stage we set $\tau^{\min,\obs}_{kl}=\tau^{\obs}_{kl}$ and
+build $\tau^{\obs}_{ij}(\theta)$ once per calibration of $\theta$.
+
+\subsection{Congestion technology (three implemented forms)}
+
+Physical minutes update (level form, v4 \S3.6):
+\begin{equation}\label{eq:congestion_legacy}
+  \tau^{\min}_{kl}
+  \;=\;
+  \bar\tau_{kl}\,
+  \Bigl(\frac{\Xi_{kl}}{n_{kl}}\Bigr)^{\lambda_{\AAcal}}
+  \qquad\text{(legacy / AA iceberg mapping).}
+\end{equation}
+
+Density form (Barwick units):
+\begin{equation}\label{eq:congestion_density}
+  \tau^{\min}_{kl}
+  \;=\;
+  \bar\tau_{kl}\,
+  \Bigl(\frac{\Xi_{kl}}{n_{kl}\ell_{kl}}\Bigr)^{\lambda_{\phys}}.
+\end{equation}
+
+Anchored form (gate5 mainline):
+\begin{equation}\label{eq:congestion_anchored}
+  \tau^{\min}_{kl}
+  \;=\;
+  \max\Bigl\{
+    \bar\tau_{kl},\;
+    \tau^{\obs}_{kl}\,
+    \Bigl(\frac{\Xi_{kl}}{\Xi^{\obs}_{kl}}\frac{n^{\obs}_{kl}}{n_{kl}}\Bigr)^{\lambda_{\phys}}
+  \Bigr\}.
+\end{equation}
+Anchored congestion \emph{semi-locks} the baseline at observed travel
+times when $\Xi=\Xi^{\obs}$ and $n=n^{\obs}$, while preserving the
+congestion \emph{slope} $\lambda_{\phys}$ around that point.  This is
+the default in \texttt{equilibrium\_solve.py}
+(\texttt{MAINLINE\_CONGESTION\_FORM = "anchored"}).
+
+\paragraph{Code.}
+Congestion updates live in
+\texttt{data\_work/src/model/full\_estimation/equilibrium\_solve.py};
+observation anchors $(\Xi^{\obs}_{kl},n^{\obs}_{kl})$ in
+\texttt{compute\_observation\_anchors()}.
+
+%====================================================================
+\section{Congestion Elasticity}\label{sec:lambda}
+%====================================================================
+
+\begin{longtable}{@{}p{0.38\linewidth}p{0.22\linewidth}p{0.34\linewidth}@{}}
+\toprule
+\textbf{Description} & \textbf{Symbol} & \textbf{Current value (mainline)} \\
+\midrule
+\endhead
+Physical travel-time elasticity w.r.t.\ density &
+  $\lambda_{\phys}$ & $\mathbf{1.1}$ (Barwick et al.\ 2024) \\
+AA / iceberg-cost elasticity &
+  $\lambda_{\AAcal}=\lambda_{\phys}/\theta$ & $\approx 0.161$ \\
+Legacy AA replication import &
+  $\delta_1$ & $0.488$ (Allen--Arkolakis 2022 Seattle) \\
+Legacy code default &
+  $\lambda_{\AAcal}=\delta_1/\theta$ & $\approx 0.0714$ \\
+Robustness band (Phase A) &
+  $\lambda_{\phys}$ & $0.572$ (legacy $\delta_1$ as physical slope) \\
+\bottomrule
+\end{longtable}
+
+\subsection{External mapping (Barwick et al.\ 2024)}
+
+Barwick, Li, and Lin estimate, for Beijing traffic sensors,
+\begin{equation}
+  \ln S_{st} = e\,\ln D_{st} + \cdots,
+  \qquad \hat e \approx -1.1,
+\end{equation}
+where $S$ is speed and $D$ is traffic density (vehicles per lane-km).
+Since $\tau_{kl}=\ell_{kl}/S_{kl}$ (holding length fixed),
+\begin{equation}\label{eq:lambda_phys_barwick}
+  \lambda_{\phys}
+  \;=\;
+  -\frac{\partial\ln S_{kl}}{\partial\ln D_{kl}}
+  \;\approx\;
+  1.1.
+\end{equation}
+Under the AA iceberg mapping $t_{kl}=\tau_{kl}^{1/\theta}$,
+\begin{equation}\label{eq:lambda_AA_barwick}
+  \lambda_{\AAcal} = \frac{\lambda_{\phys}}{\theta} \approx \frac{1.1}{6.83} \approx 0.161.
+\end{equation}
+Full derivation:
+\texttt{data\_work/docs/CONGESTION\_ELASTICITY\_PARAMETER\_MAPPING.tex}.
+
+\subsection{AA Seattle replication import (legacy default)}
+
+The replication scaffold imports Allen and Arkolakis (2022) Seattle
+congestion coefficient $\delta_1=0.488$ and sets
+\begin{equation}
+  \lambda_{\AAcal} = \frac{\delta_1}{\theta} = \frac{0.488}{6.83} \approx 0.0714,
+\end{equation}
+stored in \texttt{parameters.py} as \texttt{Parameters.lambda\_}.
+This value governs the \texttt{legacy} congestion form
+\eqref{eq:congestion_legacy}.  It is \textbf{not} the mainline anchored
+slope; mainline counterfactuals use $\lambda_{\phys}=1.1$ in
+\eqref{eq:congestion_anchored}.
+
+\subsection{Why structural $\lambda$ is not yet identified}
+
+v4 \S6.3 states two data
+limitations:
+\begin{enumerate}[leftmargin=2em]
+  \item Directed link traffic $\Xi_{kl}$ is \emph{not observed} in the
+        QSM bundle; only speeds, free-flow speeds, lanes, and OD flows.
+  \item We observe a single peak-period cross-section, not a panel with
+        exogenous flow variation suitable for IV.
+\end{enumerate}
+Until Baidu crawl / sensor panel data are merged at the directed-edge
+level, $\lambda_{\phys}$ is \emph{calibrated} from external evidence
+(Barwick) rather than structurally estimated.
+
+%====================================================================
+\section{Sorting and Commuting Parameters}\label{sec:sorting}
+%====================================================================
+
+\begin{longtable}{@{}p{0.38\linewidth}p{0.18\linewidth}p{0.36\linewidth}@{}}
+\toprule
+\textbf{Description} & \textbf{Symbol} & \textbf{Current value} \\
+\midrule
+\endhead
+Fr\'echet shape (commuting / route) & $\theta$ & $\mathbf{6.83}$ \\
+Production agglomeration elasticity & $\alpha$ & $\mathbf{+0.05}$ (mainline) \\
+Residential amenity elasticity & $\beta$ & $\mathbf{-0.10}$ \\
+\bottomrule
+\end{longtable}
+
+\subsection{Fr\'echet shape $\theta$}
+
+\paragraph{Baseline calibration.}
+$\theta=6.83$ is taken from Allen and Arkolakis (2022) Seattle
+replication, which follows Ahlfeldt et al.\ (2015).  It governs:
+\begin{itemize}[leftmargin=2em]
+  \item route choice within the Fr\'echet framework (v4 \S3.2);
+  \item the commuting gravity exponent in
+        $\ln L_{ij} \propto -\theta\ln\tau_{ij}$;
+  \item the mapping $\lambda_{\AAcal}=\lambda_{\phys}/\theta$.
+\end{itemize}
+
+\paragraph{Internal diagnostic (not used to override baseline).}
+v4 \S6.5 proposes a grid search over
+$\theta\in\{3,\ldots,12\}$: for each candidate, recompute
+$\tau^{\obs}_{ij}(\theta)$ from \eqref{eq:tau_series} and estimate
+\begin{equation}\label{eq:gravity_log}
+  \ln L^{\obs}_{ij}
+  \;=\;
+  -\theta\,\ln\tau^{\obs}_{ij}(\theta) + \mu_i + \nu_j + \varepsilon_{ij},
+\end{equation}
+selecting the $\theta$ at which the regression slope equals the imposed
+$\theta$.  On early square-grid prototypes this diagnostic yielded
+$\hat\theta$ far below $6.83$ (e.g.\ $0.62$--$0.70$); the external
+calibration remains baseline because $\tau^{\obs}_{ij}(\theta)$ is itself
+an equilibrium object.  Outputs archived under
+\texttt{data\_work/outputs/match\_projection\_complete\_v7\_latest/}.
+
+\subsection{Agglomeration elasticities $(\alpha,\beta)$}
+
+\paragraph{Sign convention.}
+The model notes write $\alpha>0$ and $\beta<0$ for the \emph{economic}
+signs of production spillovers and residential congestion.  The AA
+replication code uses iceberg-cost elasticities with \emph{negative}
+numeric values ($\alpha=-0.12$, $\beta=-0.10$).  The level-form solver
+uses the replication signs in \texttt{parameters.py} defaults; the
+gate5 \textbf{mainline} overrides to gross-spillover calibration
+$\alpha=+0.05$, $\beta=-0.10$ (see \texttt{run\_stage2\_gate5.py} and
+\texttt{stage2\_.../parameters.json}).
+
+\paragraph{Sources.}
+\begin{itemize}[leftmargin=2em]
+  \item $\beta=-0.10$: held from AA (2022) Seattle.
+  \item $\alpha=+0.05$: mid-range gross production spillover from the
+        urban / spatial literature (mainline ``pos05'' track); replaces
+        the replication default $-0.12$ for counterfactual analysis.
+\end{itemize}
+
+\paragraph{Sensitivity (converged grid, gate5 bpr).}
+With $\beta=-0.10$ fixed, long-run welfare $\Wbar_{\mathrm{LT}}$ is
+positive in every converged cell, from $+0.29\%$ at $\alpha=0.10$ to
+$+0.37\%$ at $\alpha=-0.12$; the mainline cell gives $+0.32\%$. Short-run
+welfare is $+0.87\%$ in every cell. Long-run physical commuting time rises
+in every converged cell, by $6.7$ to $21.6$ seconds per commuter
+($+9{,}837$ to $+31{,}663$ person-minutes per day), while the short-run
+saving is $42.1$ seconds per commuter throughout. The cell
+$\alpha=0.05,\beta=+0.10$ does not converge. Full grid:
+\texttt{outputs/alpha\_beta\_sensitivity\_bpr\_pos05\_physical\_time\_v1/}.
+
+\paragraph{Estimation status.}
+$(\theta,\alpha,\beta)$ are \textbf{not} jointly estimated in the
+current pipeline.  Planned extensions: sensitivity tables (done),
+optional GMM moments on second moments of $(l^R,l^F)$ changes under
+transport shocks (not implemented).
+
+%====================================================================
+\section{Inversion of Fundamentals}\label{sec:invert}
+%====================================================================
+
+\begin{longtable}{@{}p{0.42\linewidth}p{0.48\linewidth}@{}}
+\toprule
+\textbf{Target object} & \textbf{Status} \\
+\midrule
+\endhead
+$(\ubar_i^{\theta},\Abar_j^{\theta})$ & Recovered (gate5 mainline) \\
+Scalar $\chi$ & Recovered jointly \\
+Normalization & $\mathrm{gmean}(\ubar_i^{\theta})=\mathrm{gmean}(\Abar_j^{\theta})=1$ \\
+\bottomrule
+\end{longtable}
+
+\subsection{Assumption and equations}
+
+\begin{assumption}[Observed allocation is an equilibrium]\label{ass:obs_eq}
+$(L_i^{R,\obs},L_j^{F,\obs})$ equals the equilibrium allocation in
+v4 Definition~4.1 under observed travel costs, calibrated
+$(\theta,\alpha,\beta,\lambda)$, and some baseline fundamentals
+$(\ubar_i,\Abar_j)$.
+\end{assumption}
+
+Under Assumption~\ref{ass:obs_eq}, v4 eqs.\ (invert\_R)--(invert\_F):
+\begin{align}
+  (l_i^{R,\obs})^{1-\beta\theta}
+  &= \chi\sum_j (\tau^{\obs}_{ij})^{-\theta}\,
+     \ubar_i^{\theta}\,\Abar_j^{\theta}\,(l_j^{F,\obs})^{\alpha\theta},
+  \label{eq:invert_R}\\
+  (l_j^{F,\obs})^{1-\alpha\theta}
+  &= \chi\sum_i (\tau^{\obs}_{ij})^{-\theta}\,
+     \ubar_i^{\theta}\,\Abar_j^{\theta}\,(l_i^{R,\obs})^{\beta\theta}.
+  \label{eq:invert_F}
+\end{align}
+
+\subsection{Algorithm}
+
+\texttt{invert\_fundamentals.py} alternates updates on
+$v_i=\ubar_i^{\theta}$ and $w_j=\Abar_j^{\theta}$ with geometric-mean
+normalization each step; recomputes $\chi$ from the implied equation
+constants; stops when $\max|\Delta\log v|,|\Delta\log w|<\texttt{tol}$.
+
+\paragraph{Implementation details.}
+\begin{itemize}[leftmargin=2em]
+  \item $(I-A^{\obs})^{-1}$ computed once with dense linear algebra
+        ($N=1104$).
+  \item Floor $10^{-6}$ on zero shares before normalization.
+  \item Residuals \texttt{resid\_R}, \texttt{resid\_F} logged; large
+        values flag mismatch between data shares and assumed equilibrium.
+\end{itemize}
+
+\paragraph{Outputs (gate5 mainline).}
+\texttt{stage2\_.../fundamentals/} $\rightarrow$
+\texttt{ubar\_theta}, \texttt{abar\_theta}, \texttt{chi}, inversion
+meta JSON.  Fundamentals are \textbf{held fixed} in all counterfactuals.
+
+\paragraph{Diagnostic maps.}
+\texttt{run\_fundamental\_maps\_gate5.py} reports
+$\mathrm{corr}(\ubar_i^{\theta},L_i^{R,\obs})\approx 0.30$ and
+$\mathrm{corr}(\Abar_j^{\theta},L_j^{F,\obs})\approx 0.67$ on gate5.
+
+%====================================================================
+\section{Diagnostic and Reduced-Form Checks}\label{sec:diagnostic}
+%====================================================================
+
+These routines \textbf{do not} overwrite baseline parameters.  They
+provide calibration checks and functional-form guidance.
+
+\subsection{Cross-section congestion regression (model-implied $\hat\Xi$)}
+
+Target (v4 congestion regression):
+\begin{equation}\label{eq:lambda_regression}
+  \ln\!\left(\frac{\tau^{\obs}_{kl}}{\bar\tau_{kl}}\right)
+  \;=\;
+  \lambda_{\AAcal}\,
+  \ln\!\left(\frac{\hat\Xi_{kl}}{n_{kl}}\right)
+  + \eta_{kl} + \varepsilon_{kl}.
+\end{equation}
+
+\paragraph{Procedure.}
+\texttt{lambda\_diagnostic.estimate\_lambda\_cross\_section}:
+\begin{enumerate}[leftmargin=2em]
+  \item Obtain $\hat\Xi_{kl}$ from baseline equilibrium at observed
+        inputs.
+  \item Demean $\ln(\tau^{\obs}/\bar\tau)$ and $\ln(\hat\Xi/n)$ by
+        integer lane bins (proxy for edge fixed effects).
+  \item OLS slope $\Rightarrow$ \texttt{lambda\_hat}.
+\end{enumerate}
+
+\paragraph{Gate5 mainline result}
+(\texttt{stage2\_.../lambda\_diagnostic.json}):
+\begin{center}
+\begin{tabular}{@{}lr@{}}
+\toprule
+$\hat\lambda_{\AAcal}$ & $0.00469$ \\
+Heteroskedasticity-robust s.e. & $(0.00183)$ \\
+$R^2$ & $0.0025$ \\
+$N$ & $2642$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\paragraph{Interpretation.}
+The estimate is an order of magnitude below the AA import ($0.071$) and
+two orders below the Barwick-implied $\lambda_{\AAcal}\approx 0.161$.
+This is expected: $\hat\Xi_{kl}$ is circular (model-assigned, not
+measured), and a single cross-section lacks credible instruments.
+\textbf{Not used} to set mainline $\lambda_{\phys}=1.1$.
+
+\subsection{Reduced-form congestion horse race (P0)}
+
+\texttt{run\_congestion\_reduced\_form\_gate5.py} compares parametric
+families for $\ln(\tau^{\obs}/\tau^{\mathrm{ff}})$ as a function of
+capacity index $z=1/(n_{kl}\ell_{kl})$, including BPR-style proxies
+inferred \emph{only} from $(\tau^{\obs},\tau^{\mathrm{ff}})$ without
+equilibrium traffic.  Outputs (when run):
+\texttt{outputs/congestion\_reduced\_form\_gate5\_v1/}.
+
+\subsection{Equilibrium convergence as implicit diagnostic}
+
+Mainline endogenous baseline (gate5 bpr+pos05):
+\begin{itemize}[leftmargin=2em]
+  \item converged in $65$ outer iterations;
+  \item $\max\log$ change $\approx 10^{-4}$;
+  \item median $\tau/\tau^{\obs}=1.0001$.
+\end{itemize}
+Positive $\alpha=0.05$ requires damped solver
+(\texttt{damping=0.10}, \texttt{max\_outer=500}) in sensitivity cells.
+
+%====================================================================
+\section{Equilibrium Solution and Counterfactuals}\label{sec:equilibrium}
+%====================================================================
+
+Given inverted fundamentals, the level-form solver
+(\texttt{equilibrium\_solve.py}) nests:
+\begin{enumerate}[leftmargin=2em]
+  \item Outer loop on $\tau^{\min}_{kl}$ via \eqref{eq:congestion_anchored};
+  \item Inner share fixed point $(l^R,l^F)$ (v4 eqs.\ eq\_R--eq\_F);
+  \item Market-access fixed point $(\Pi,P)$ (v4 eq.\ E4);
+  \item Flow assignment $\Xi_{kl}$ (v4 eq.\ E5).
+\end{enumerate}
+
+Counterfactuals re-solve with $(\ubar_i^{\theta},\Abar_j^{\theta})$
+fixed, in levels; no exact-hat step is used.  Welfare is the expected
+utility of the Fr\'echet problem,
+\begin{equation}\label{eq:welfare_frechet}
+  \Wbar^{\theta} = \sum_{i,j}\tau_{ij}^{-\theta}\,u_i^{\theta}\,w_j^{\theta},
+  \qquad
+  u_i^{\theta} = \ubar_i^{\theta}(L_i^R)^{\beta\theta},\quad
+  w_j^{\theta} = \Abar_j^{\theta}(L_j^F)^{\alpha\theta}.
+\end{equation}
+The market-access form $\sum_i u_i^{\theta}\Pi_i^{-\theta}$ equals
+\eqref{eq:welfare_frechet} only under a particular normalisation of
+$(\Pi,P)$. The solver does not impose that normalisation, so the
+market-access form is written to the outputs as \texttt{Wbar\_pi\_raw} for
+diagnosis only; its long-run sign is not a welfare result
+(\texttt{Documents/L2\_notes/estimation\_audit\_welfare\_gauge\_20260630.md}).
+
+\paragraph{Physical commuting time.}
+The bilateral index $\tau_{ij}$ is not measured in minutes. Experienced
+commuting time is the additive link-passage average
+\begin{equation}\label{eq:Mbar}
+  \bar M = \frac{1}{\Lbar}\sum_{kl}\Xi_{kl}\,m_{kl},
+\end{equation}
+and the OD-conditional expectation is $M_{ij}=[RBR]_{ij}/R_{ij}$ with
+$R=(I-A)^{-1}$ and $B_{kl}=\sum_{e:k\to l}a_e m_e$. The short-run,
+congestion-feedback, and passage-reallocation terms are defined in
+link-passage space and add exactly (\texttt{tidal\_lane\_diagnostics.py},
+corrected 2026-07-16).
+
+\paragraph{Reported decomposition (mainline top100).}
+Baseline $\bar M=11.30$ minutes. Fixed-location (short-run) time
+$10.60$ minutes, a saving of $42.1$ seconds per commuter or $1{,}031$
+person-hours per AM peak; welfare $+0.87\%$. Full equilibrium (long-run)
+time $11.54$ minutes, $14.4$ seconds per commuter above baseline or
+$+352$ person-hours, with congestion feedback $+650$ and passage
+reallocation $+733$ person-hours; welfare $+0.32\%$. Source:
+\texttt{outputs/tidal\_lane\_diagnostics\_gate5\_bpr\_pos05\_physical\_time\_v2/}.
+
+\paragraph{Open specification problems (recorded 2026-09-26).}
+Two features of the current kernel $A_{kl}=1/m_{kl}$ limit the
+interpretation of levels. First, the resolvent gives $R_{ii}\approx 1.03$
+against a median adjacent $R_{ij}$ of $0.12$, so the model assigns about
+$53\%$ of commuters to intrazonal pairs while the data show $8\%$; $\bar M$
+therefore contains intrazonal walk time and is not comparable to reported
+travel times. Second, with $t_{kl}=m_{kl}^{1/\theta}$ the route kernel does
+not depend on $\theta$, the flow elasticity to each link's time is fixed at
+one, and route cost is the product of link times. Candidate remedies are an
+intrazonal cost $m_{ii}>0$ and a kernel $a_{kl}=\exp(-\rho\kappa m_{kl})$
+with $\rho$ separated from $\theta$ and $\kappa$ estimated from commuting
+gravity; both are trials, not mainline changes
+(\texttt{Documents/L2\_notes/model\_audit\_and\_referee\_review\_20260926.md}).
+
+%====================================================================
+\section{Planned Structural Estimation}\label{sec:planned}
+%====================================================================
+
+Following the Path Dependence notes' split between offline calibration
+and joint GMM, the TidalLanes pipeline \textbf{has not yet} implemented
+a just-identified GMM stage.  Candidate moment blocks:
+
+\subsection{Panel congestion elasticity (priority)}
+
+When Baidu crawl / sensor panel delivers directed flows or densities
+$\{D_{kl,t}\}$:
+\begin{equation}
+  \ln \tau_{kl,t}
+  \;=\;
+  \ln\bar\tau_{kl}
+  + \lambda_{\phys}\ln D_{kl,t}
+  + \eta_{kl} + \delta_t + \varepsilon_{kl,t},
+\end{equation}
+with IVs from weather shocks, policy timing, or upstream demand shifts
+(Yang et al.\ 2020; Barwick et al.\ 2024).  Target: replace external
+$\lambda_{\phys}=1.1$ with a Beijing-specific structural estimate and
+s.e.
+
+\subsection{Commuting gravity ( $\theta$ robustness)}
+
+PPML or IV version of \eqref{eq:gravity_log} following Redding and Sturm
+(2024), using straight-line distance or pre-period network features as
+instruments.  Would complement, not replace, external $\theta=6.83$ unless
+internal and external estimates converge.
+
+\subsection{Sorting parameters $(\alpha,\beta)$}
+
+Possible moments (not yet coded):
+\begin{itemize}[leftmargin=2em]
+  \item Cross-sectional variation in $(l^R,l^F)$ vs.\ model-implied
+        market access under exogenous $\tau$ shocks;
+  \item Second-difference orthogonality of $\Delta\ln\ubar_i$,
+        $\Delta\ln\Abar_j$ to non-local transport improvements (Path
+        Dependence \S3.3 style), adapted to tidal / lane shocks.
+\end{itemize}
+Current practice: $\alpha,\beta$ fixed; extensive sensitivity grid
+(\S\ref{sec:sorting}).
+
+\subsection{Land supply / amenity elasticities}
+
+Not applicable in the current commuting-only v4 scaffold (no explicit
+housing market block).  Deferred to extensions with floorspace data.
+
+%====================================================================
+\section{Results Registry and Reproducibility}\label{sec:registry}
+%====================================================================
+
+\begin{longtable}{@{}p{0.28\linewidth}p{0.34\linewidth}p{0.32\linewidth}@{}}
+\toprule
+\textbf{Analysis} & \textbf{Driver script} & \textbf{Output directory} \\
+\midrule
+\endhead
+Stage2 baseline + CF &
+  \texttt{run\_stage2\_gate5.py} &
+  \texttt{stage2\_endogenous\_edgeproj\_v2\_lcc\_gate5\_bpr\_pos05\_v1/} \\
+Tidal ST/LT diagnostics &
+  \texttt{run\_tidal\_lane\_diagnostics\_gate5.py} &
+  \texttt{tidal\_lane\_diagnostics\_gate5\_bpr\_pos05\_physical\_time\_v2/} \\
+Welfare / sorting decomposition &
+  \texttt{run\_welfare\_sorting\_diagnostics\_gate5.py} &
+  \texttt{welfare\_sorting\_diagnostics\_gate5\_bpr\_pos05\_v1/} \\
+$\alpha,\beta$ sensitivity &
+  \texttt{run\_alpha\_beta\_sensitivity\_bpr\_gate5.py} &
+  \texttt{alpha\_beta\_sensitivity\_bpr\_pos05\_physical\_time\_v1/} \\
+Policy comparison P1--P5 (P6, P7 withdrawn) &
+  \texttt{run\_policy\_comparison\_gate5.py} &
+  \texttt{policy\_comparison\_gate5\_bpr\_pos05\_auditfix\_v1/} \\
+Exog vs.\ endog CF table &
+  \texttt{run\_exog\_endog\_comparison\_gate5.py} &
+  \texttt{exog\_endog\_comparison\_gate5\_bpr\_pos05\_v1/} \\
+Fundamental maps &
+  \texttt{run\_fundamental\_maps\_gate5.py} &
+  \texttt{fundamental\_maps\_gate5\_bpr\_pos05\_v1/} \\
+Full numerical summary &
+  --- &
+  \texttt{Documents/L2\_notes/model\_and\_results\_summary\_20260928.md} \\
+\bottomrule
+\end{longtable}
+
+\paragraph{Canonical reproduction (mainline).}
+\begin{verbatim}
+cd data_work
+python3 src/model/full_estimation/run_stage2_gate5.py \
+  --pair-selection score_bpr_st --alpha 0.05 --beta -0.10 \
+  --output-name stage2_endogenous_edgeproj_v2_lcc_gate5_bpr_pos05_v1
+python3 src/model/full_estimation/run_tidal_lane_diagnostics_gate5.py \
+  --pair-selection score_bpr_st --max-outer 500 \
+  --output-name tidal_lane_diagnostics_gate5_bpr_pos05_physical_time_v2
+python3 src/model/full_estimation/run_welfare_sorting_diagnostics_gate5.py \
+  --tracks pos05 --pair-selection score_bpr_st
+\end{verbatim}
+
+%====================================================================
+\section{Parameter Summary Table}\label{sec:summary_table}
+%====================================================================
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Parameter & Mainline value & Method & Override? \\
+\midrule
+$\theta$ & $6.83$ & AA (2022) Seattle / ARSW (2015) & External \\
+$\alpha$ & $+0.05$ & Literature gross spillover (pos05) & Sensitivity \\
+$\beta$ & $-0.10$ & AA (2022) Seattle & Sensitivity \\
+$\lambda_{\phys}$ & $1.1$ & Barwick et al.\ (2024) mapping & $0.572$ band \\
+$\lambda_{\AAcal}$ & $0.0714$ & $\delta_1/\theta$ (legacy code default) & Legacy form only \\
+$(\ubar_i,\Abar_j)$ & inverted & Assumption~\ref{ass:obs_eq} & Fixed in CF \\
+$\kappa$ & data-dependent & Spectral-radius bound & Algorithm \\
+Pair selection & \texttt{score\_bpr\_st} & Mainline rule & Robustness \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+%====================================================================
+\section*{References}
+\addcontentsline{toc}{section}{References}
+%====================================================================
+
+\begin{itemize}[leftmargin=2em]
+  \item Ahlfeldt, G. M., Redding, S. J., Sturm, D. M., Wolf, N. (2015).
+        ``The Economics of Density: Evidence from the Berlin Wall.''
+        \emph{Econometrica}, 83(6), 2127--2189.
+  \item Allen, T., Arkolakis, C. (2022). ``The Welfare Effects of
+        Transportation Infrastructure Improvements.''
+        \emph{Review of Economic Studies}, 89(6), 2911--2957.
+  \item Barwick, P. J., Li, S., Lin, L. (2024). ``Traffic Congestion,
+        Ambient Air Pollution, and Fuel Consumption: Evidence from
+        Beijing.'' \emph{American Economic Review}.
+  \item Redding, S. J., Sturm, D. M. (2024). ``Neighborhood Effects:
+        Evidence from Wartime Destruction in London.'' NBER WP 32333.
+  \item Yang, J., Purevjav, A. O., Li, S. (2020). ``The Marginal Cost
+        of Traffic Congestion and Road Pricing: Evidence from a Natural
+        Experiment in Beijing.'' \emph{AEJ: Economic Policy}, 12(1),
+        418--453.
+\end{itemize}
+
+\end{document}

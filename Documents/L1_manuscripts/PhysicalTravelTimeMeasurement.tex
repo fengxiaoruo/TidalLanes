@@ -1,0 +1,238 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs,mathtools}
+\usepackage{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue,citecolor=blue]{hyperref}
+
+\newcommand{\R}{\mathcal R}
+\newcommand{\E}{\mathcal E}
+\newcommand{\Lbar}{\bar L}
+\newcommand{\obs}{\mathrm{obs}}
+\newcommand{\ff}{\mathrm{ff}}
+
+\title{Physical Travel Time in the Directed Route Model}
+\author{}
+\date{July 16, 2026}
+
+\begin{document}
+\maketitle
+
+\section{Locked notation}
+
+Three cost objects enter the model:
+\begin{align*}
+m_{kl}
+&:= \text{physical travel time on directed link $(k,l)$, in minutes},\\
+t_{kl}
+&:=m_{kl}^{1/\theta}
+   \quad\text{(link-level iceberg cost)},\\
+\tau_{ij}
+&:=\left[
+  \sum_{r\in\R_{ij}}
+  \prod_{(k,l)\in r}t_{kl}^{-\theta}
+  \right]^{-1/\theta}
+   \quad\text{(all-route bilateral cost index)}.
+\end{align*}
+The bilateral index $\tau_{ij}$ is not physical origin--destination travel
+time. Its level therefore cannot be converted into seconds by multiplying by
+60.
+
+\section{Physical link time from the speed data}
+
+Raw link length is measured in kilometres and raw speed is measured in
+kilometres per hour. Physical time is consequently
+\begin{equation}
+  m_a^q
+  =60\frac{\ell_a}{v_a^q},
+  \qquad q\in\{\obs,\ff\},
+  \label{eq:segment_time}
+\end{equation}
+where 60 converts hours into minutes. For an adjacent directed grid pair
+$(k,l)$, segment minutes are added along the selected raw-road path $p_{kl}$:
+\begin{equation}
+  m_{kl}^q
+  =\sum_{a\in p_{kl}}m_a^q.
+  \label{eq:grid_time}
+\end{equation}
+
+\section{Physical time and iceberg cost}
+
+For route $r\in\R_{ij}$, physical time remains additive:
+\begin{equation}
+  M_{ij,r}
+  :=\sum_{(k,l)\in r}m_{kl}.
+  \label{eq:route_minutes}
+\end{equation}
+Iceberg costs compound across links:
+\begin{equation}
+  C_{ij,r}
+  :=\prod_{(k,l)\in r}t_{kl}
+  =\prod_{(k,l)\in r}m_{kl}^{1/\theta}.
+  \label{eq:route_iceberg}
+\end{equation}
+The product in \eqref{eq:route_iceberg} follows the iceberg-cost convention.
+The transformation $t_{kl}=m_{kl}^{1/\theta}$ maps each link's minutes into
+that convention; it does not replace the physical sum in
+\eqref{eq:route_minutes}.
+
+Conditional on origin $i$ and destination $j$, the route probability is
+\begin{equation}
+  \rho_{ij,r}
+  =\frac{C_{ij,r}^{-\theta}}
+  {\sum_{s\in\R_{ij}}C_{ij,s}^{-\theta}}.
+  \label{eq:route_probability}
+\end{equation}
+Under the maintained mapping,
+\begin{equation}
+  C_{ij,r}^{-\theta}
+  =\prod_{(k,l)\in r}m_{kl}^{-1}.
+  \label{eq:theta_cancel}
+\end{equation}
+Equation \eqref{eq:theta_cancel} locates the role of the exponent. Recovering
+minutes from a link-level iceberg cost requires $m_{kl}=t_{kl}^{\theta}$.
+No additional $\theta$ power enters the additive route-time sum.
+
+\section{Expected physical minutes conditional on an OD pair}
+
+Expected physical time for an $i\to j$ commuter is
+\begin{equation}
+  M_{ij}
+  :=\sum_{r\in\R_{ij}}\rho_{ij,r}M_{ij,r}.
+  \label{eq:expected_od_minutes}
+\end{equation}
+This object differs from $\tau_{ij}$ and from $\tau_{ij}^{\theta}$.
+
+The matrix representation avoids enumerating routes. Let the implemented
+directed-edge kernel be
+\begin{equation}
+  A_{kl}
+  =\sum_{e:k\to l}\frac{1}{\zeta m_e},
+  \qquad
+  R=(I-A)^{-1},
+  \label{eq:resolvent}
+\end{equation}
+where $\zeta$ is the common route-diffusion normalization used to satisfy the
+spectral-radius condition. Define
+\begin{equation}
+  B_{kl}
+  =\sum_{e:k\to l}A_e m_e.
+  \label{eq:reward_matrix}
+\end{equation}
+The numerator of expected route minutes sums each link-minute reward over all
+routes:
+\begin{equation}
+  M_{ij}
+  =\frac{(RBR)_{ij}}{R_{ij}}.
+  \label{eq:matrix_minutes}
+\end{equation}
+
+\section{Aggregation across commuters}
+
+Let $L_{ij,r}$ denote commuters choosing residence $i$, workplace $j$, and
+route $r$. Directed link traffic is the expected number of link passages:
+\begin{equation}
+  \Xi_{kl}
+  =\sum_{i,j}\sum_{r\in\R_{ij}}
+  L_{ij,r}\,N_{kl}(r),
+  \label{eq:link_passages}
+\end{equation}
+where $N_{kl}(r)$ counts the number of times route $r$ traverses directed
+link $(k,l)$. Total person-minutes can be aggregated by commuter-route or by
+directed link:
+\begin{align}
+  \sum_{i,j}\sum_{r\in\R_{ij}}L_{ij,r}M_{ij,r}
+  &=\sum_{k,l}\Xi_{kl}m_{kl}.
+  \label{eq:person_minutes_identity}
+\end{align}
+Average physical commuting time is therefore
+\begin{equation}
+  \bar M
+  =\frac{1}{\Lbar}\sum_{k,l}\Xi_{kl}m_{kl}.
+  \label{eq:average_minutes}
+\end{equation}
+For scenario $h\in\{ST,LT\}$, seconds saved per commuter and total
+person-hours saved during one AM peak are
+\begin{align}
+  S_h^{\mathrm{sec}}
+  &=-60\left(\bar M^h-\bar M^0\right),
+  \label{eq:seconds_saved}\\
+  S_h^{\mathrm{ph}}
+  &=-\frac{\Lbar}{60}\left(\bar M^h-\bar M^0\right).
+  \label{eq:person_hours_saved}
+\end{align}
+
+\section{Short-run and long-run decomposition}
+
+The implemented link-passage decomposition is exact. The short-run term is
+the complete change in physical time after route traffic and congestion
+re-equilibrate with residence and workplace marginals fixed:
+\begin{equation}
+  D^{ST}=\bar M^{ST}-\bar M^0.
+  \label{eq:st_change}
+\end{equation}
+The subsequent long-run adjustment is separated into a link-time effect at
+short-run passages and a passage-reallocation effect evaluated at long-run
+minutes:
+\begin{align}
+  G^{LT}
+  &=\frac{1}{\Lbar}\sum_{k,l}
+    \Xi_{kl}^{ST}\left(m_{kl}^{LT}-m_{kl}^{ST}\right),
+  \label{eq:lt_network}\\
+  R^{LT}
+  &=\frac{1}{\Lbar}\sum_{k,l}
+    m_{kl}^{LT}\left(\Xi_{kl}^{LT}-\Xi_{kl}^{ST}\right).
+  \label{eq:lt_reallocation}
+\end{align}
+These terms satisfy
+\begin{equation}
+  \bar M^{LT}-\bar M^0=D^{ST}+G^{LT}+R^{LT}.
+  \label{eq:decomposition_identity}
+\end{equation}
+
+\section{Mainline results}
+
+Table \ref{tab:physical_results} reports the top-100 tidal-lane
+counterfactual under the anchored-congestion mainline.
+\begin{table}[ht]
+\centering
+\caption{Expected physical commuting time}
+\label{tab:physical_results}
+\begin{tabular}{lrrr}
+\toprule
+ & Baseline & Short run & Long run \\
+\midrule
+Average physical time (minutes) & 11.298 & 10.596 & 11.538 \\
+Change from baseline (minutes) & 0.000 & $-0.702$ & 0.240 \\
+Seconds saved per commuter & 0.0 & 42.1 & $-14.4$ \\
+Person-hours saved per AM peak & 0.0 & 1,031 & $-352$ \\
+Expected-utility welfare change (percent) & 0.00 & 0.87 & 0.32 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The short-run physical-time gain is 42.1 seconds per commuter. Additional
+network feedback contributes 26.6 seconds and long-run link-passage
+reallocation contributes 30.0 seconds in the opposite direction. Average
+physical time is consequently 14.4 seconds above baseline in the long run,
+although expected utility remains 0.32 percent above baseline. Welfare also
+loads productivity, amenities, wages, and access, so its sign need not match
+the sign of average physical travel time.
+
+\section{Implementation and numerical check}
+
+Headline physical-time results are computed from
+\eqref{eq:average_minutes} using the model's equilibrium arrays
+\texttt{Xi\_kl} and \texttt{tau\_min\_kl}. The variable
+\texttt{tau\_min\_kl} is $m_{kl}$ despite its legacy code name.
+
+The solver floors very small entries of $R=(I-A)^{-1}$ at a numerical
+constant. Reconstructing every $M_{ij}$ from the floored matrix through
+\eqref{eq:matrix_minutes} therefore differs slightly in counterfactual
+changes and more substantially in levels for remote OD pairs. The reported
+minutes exploit the link-passage identity in \eqref{eq:average_minutes}; the
+OD-matrix reconstruction is retained as a diagnostic until the resolvent
+floor is revised and the equality in \eqref{eq:person_minutes_identity} is
+restored numerically.
+
+\end{document}

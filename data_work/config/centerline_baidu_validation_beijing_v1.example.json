@@ -1,0 +1,44 @@
+{
+  "version_id": "centerline_baidu_validation_beijing_v1",
+  "output_dir": "data_work/outputs",
+  "baseline_network_version_id": "manual_centerline_rules_v11",
+  "crawl": {
+    "api": "directionlite/v1/driving",
+    "api_url": "https://api.map.baidu.com/directionlite/v1/driving",
+    "coord_type": "wgs84",
+    "ret_coordtype": "gcj02",
+    "max_waypoints": 10,
+    "min_waypoint_spacing_m": 120.0,
+    "tactics_by_panel": {
+      "FREE": 0,
+      "AM": 2,
+      "PM": 2
+    },
+    "panels": ["FREE", "AM", "PM"],
+    "sleep_sec": 0.25,
+    "retry_count": 2,
+    "steps_info": 0
+  },
+  "ak_rate_limit": {
+    "enabled": true,
+    "min_interval_sec": 0.35,
+    "lock_path": "data_work/outputs/.baidu_ak_global.lock",
+    "note": "与 raw 爬取共用锁文件，避免并行时 QPS 叠加超限。"
+  },
+  "schedule": {
+    "mode": "formal_week",
+    "timezone": "Asia/Shanghai",
+    "days": 5,
+    "start_free_hhmm": "02:30",
+    "start_am_hhmm": "07:30",
+    "start_pm_hhmm": "17:30",
+    "steps_info_first_day_only": true,
+    "note": "正式爬取用 scripts/run_centerline_validation_week.sh；仅 d01 开启 steps_info=1 保存路径，d02+ 只存 duration/distance。"
+  },
+  "comparison": {
+    "inferred_speed_master": "centerline_speed_master.parquet",
+    "baseline_flag": "keep_baseline",
+    "travel_time_formula": "travel_time_min = (cl_len_m / 1000) / cl_speed_kmh * 60",
+    "match_keys": ["skel_dir", "cline_id", "dir"]
+  }
+}

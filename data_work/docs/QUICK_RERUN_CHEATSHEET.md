@@ -9,7 +9,7 @@ Use this when you already know what you changed and only want the command.
 Run from repo root:
 
 ```bash
-/Users/fxr/Desktop/TidalLanes
+/Users/fxr/Dropbox/Projects/TidalLanes
 ```
 
 Default version:

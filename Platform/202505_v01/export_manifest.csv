@@ -1,0 +1,6 @@
+dataset,grain,time_scope,output_unit,required_qc,status
+hw_population,primary_home_grid x primary_work_grid x sample,202505,unique SIM identifiers counted internally,matched joint marginals; suppressed and outside counts,planned
+departure_od,date x slot30 x grid_o/d x purpose x mode x rail_detected x sample x od_basis,month ordinary weekdays; target week separate,trips; within-cell distinct people; duration sums,conflict keys; exact windows; day denominators; suppression,planned
+rn_pressure,passage_date x slot10 x RN pair x purpose x mode x sample,20250519-23 passage days,valid transitions; within-cell trips and people,source date clock join; counts ordering; full route coverage,planned
+daily_participation,HW grid pair x day x purpose x sample x mode,ordinary weekday month,unique trip-day and person-day counts,unique cohort denominator; no cross-slot distinct sums,planned
+qc_coverage,stage x date x reason x sample,each stage,counts and omitted mass,no individual exports; suppression compliance,planned

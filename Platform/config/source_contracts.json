@@ -1,0 +1,130 @@
+{
+  "raw": {
+    "move_month": {
+      "known_from": "SubwayMobility NG103C",
+      "keys": [
+        "city",
+        "date",
+        "uid",
+        "move_id"
+      ],
+      "fields": [
+        "stime",
+        "etime",
+        "start_poi",
+        "end_poi",
+        "start_ptype",
+        "end_ptype",
+        "mode",
+        "distance",
+        "time",
+        "start_grid_id",
+        "end_grid_id"
+      ],
+      "needs_live_verification": [
+        "start_poi/end_poi schema and completeness",
+        "conflicting trip keys",
+        "stime/etime type"
+      ]
+    },
+    "stay_poi": {
+      "known_from": "SubwayMobility NG10",
+      "keys": [
+        "city",
+        "date",
+        "uid",
+        "poi_id"
+      ],
+      "fields": [
+        "ptype",
+        "days_poi",
+        "weighted_centroid_lon",
+        "weighted_centroid_lat",
+        "final_grid_id"
+      ],
+      "needs_live_verification": [
+        "uniqueness",
+        "material home/work rank ties",
+        "missing point geometry"
+      ]
+    },
+    "user_attribute": {
+      "known_from": "SubwayMobility NG12",
+      "keys": [
+        "city",
+        "date",
+        "uid"
+      ],
+      "fields": [
+        "age",
+        "is_core",
+        "weight",
+        "gw"
+      ],
+      "needs_live_verification": [
+        "duplicate monthly keys",
+        "age code distribution",
+        "weights missingness"
+      ]
+    },
+    "move_rn": {
+      "known_from": "Speed 19_build_week_source_passages",
+      "keys": [
+        "city",
+        "date",
+        "uid",
+        "moi_id",
+        "rn_seq"
+      ],
+      "fields": [
+        "rn_id",
+        "next_rn_id",
+        "time",
+        "is_end",
+        "route_id"
+      ],
+      "needs_live_verification": [
+        "date coverage",
+        "moi_id to move_id link",
+        "time conversion and duplicate route choices"
+      ]
+    },
+    "route_node": {
+      "known_from": "Speed RN dictionary",
+      "needs_live_verification": [
+        "account schema",
+        "route_year rule",
+        "coordinates",
+        "dictionary duplicate keys"
+      ]
+    }
+  },
+  "reuse_read_only": [
+    {
+      "table": "sm25m05_ng_v01_user_month_internal",
+      "purpose": "funnel and home/work benchmark only; do not treat as frozen primary input",
+      "action": "metadata/row-count audit; no overwrite"
+    },
+    {
+      "table": "speed202505_clean_drive_trip",
+      "purpose": "check Speed cleaning and join keys only",
+      "action": "inspect current source file and live schema before reuse"
+    },
+    {
+      "table_pattern": "speed202505_pair_passage_week_srcYYYYMMDD",
+      "purpose": "Speed SQL 19 source-day passage tables, name observed in code; live presence/schema not verified",
+      "action": "source-contract audit only; no overwrite; do not assume source day equals passage day"
+    }
+  ],
+  "own_tables": [
+    "tl25m05_v01_poi_internal",
+    "tl25m05_v01_person_internal",
+    "tl25m05_v01_trip_internal",
+    "tl25m05_v01_trip_purpose_internal",
+    "tl25m05_v01_hw_od_internal",
+    "tl25m05_v01_departure_od_internal",
+    "tl25m05_v01_passage_internal",
+    "tl25m05_v01_rn_pressure_internal"
+  ],
+  "rule": "No external DROP/CREATE/INSERT; own version prefix only. Source contracts immutable once executed; new version for changes."
+}

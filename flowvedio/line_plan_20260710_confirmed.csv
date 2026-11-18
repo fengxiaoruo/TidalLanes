@@ -1,0 +1,6 @@
+group,mode,line_name,x1,y1,x2,y2,geo_direction,notes
+outbound,all,outbound_left,300,700,900,700,south_to_north,用户确认；正常与潮汐开启时段相同
+outbound,all,outbound_right,900,700,1700,700,north_to_south,用户确认；正常与潮汐开启时段相同
+inbound,day,inbound_day,300,700,1050,700,raw_crossing_direction,按用户坐标解释为一条白天线
+inbound,night,inbound_night_left,150,700,650,700,raw_crossing_direction,按用户坐标解释为夜间左段
+inbound,night,inbound_night_right,650,700,1100,700,raw_crossing_direction,按用户坐标解释为夜间右段

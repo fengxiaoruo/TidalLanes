@@ -132,6 +132,100 @@ def save_simple_map(path: Path, gdf_lines=None, gdf_polys=None, title="", color=
     plt.close(fig)
 
 
+def centerline_lengths_m(centerline: gpd.GeoDataFrame) -> pd.Series:
+    if "length_m" in centerline.columns:
+        vals = pd.to_numeric(centerline["length_m"], errors="coerce")
+    else:
+        vals = centerline.geometry.length.astype(float)
+    return vals.dropna()
+
+
+def build_length_bin_edges(*, x_min: float = 1.0, x_max: float = 10000.0) -> np.ndarray:
+    fine = [
+        2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 18, 20, 25, 30, 35, 40, 45, 50,
+        60, 70, 80, 90, 100, 125, 150, 175, 200, 250, 300, 350, 400, 450, 500,
+    ]
+    coarse = [600, 700, 800, 900, 1000, 1200, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]
+    edges = [x_min]
+    edges.extend(b for b in fine if x_min < b <= x_max)
+    edges.extend(b for b in coarse if b <= x_max)
+    if edges[-1] < x_max:
+        edges.append(x_max)
+    return np.array(sorted(set(edges)), dtype=float)
+
+
+def choose_length_display_cap(all_len: pd.Series, baseline_len: pd.Series, *, hard_cap: float = 10000.0) -> float:
+    positive = pd.concat([all_len, baseline_len], ignore_index=True)
+    positive = positive[positive > 0]
+    if positive.empty:
+        return hard_cap
+    soft_cap = float(positive.quantile(0.99))
+    cap = min(float(positive.max()), max(soft_cap, 3000.0), hard_cap)
+    return cap
+
+
+def _plot_length_density_panel(ax, lengths: pd.Series, *, color: str, title: str, bins: np.ndarray):
+    vals = lengths[(lengths > 0) & np.isfinite(lengths)].astype(float)
+    ax.hist(
+        vals,
+        bins=bins,
+        density=True,
+        color=color,
+        alpha=0.92,
+        edgecolor="white",
+        linewidth=0.6,
+    )
+    ax.set_xscale("log")
+    ax.set_title(title)
+    ax.set_xlabel("Centerline length, meters (log scale)")
+    ax.set_ylabel("Density")
+    ax.grid(True, axis="y", alpha=0.25, linewidth=0.8)
+    ax.grid(True, axis="x", which="both", alpha=0.15, linewidth=0.6)
+
+
+def plot_centerline_length_density(path: Path, centerline: gpd.GeoDataFrame):
+    all_len = centerline_lengths_m(centerline)
+    baseline_mask = centerline["keep_baseline"].fillna(False) if "keep_baseline" in centerline.columns else pd.Series(False, index=centerline.index)
+    baseline_len = centerline_lengths_m(centerline.loc[baseline_mask])
+
+    positive_all = all_len[all_len > 0]
+    positive_base = baseline_len[baseline_len > 0]
+    if positive_all.empty or positive_base.empty:
+        raise ValueError("Need positive centerline lengths for length distribution plot.")
+
+    display_cap = choose_length_display_cap(positive_all, positive_base, hard_cap=10000.0)
+    bins = build_length_bin_edges(x_min=1.0, x_max=display_cap)
+    n_all_excluded = int((positive_all > display_cap).sum())
+    n_base_excluded = int((positive_base > display_cap).sum())
+
+    fig, axes = plt.subplots(1, 2, figsize=(12.5, 4.8), dpi=220, sharex=True)
+    _plot_length_density_panel(
+        axes[0],
+        positive_all[positive_all <= display_cap],
+        color="#9ca3af",
+        title=f"All undirected centerlines (N={len(positive_all):,})",
+        bins=bins,
+    )
+    _plot_length_density_panel(
+        axes[1],
+        positive_base[positive_base <= display_cap],
+        color="#3182bd",
+        title=f"Baseline-kept (length >= 50 m, N={len(positive_base):,})",
+        bins=bins,
+    )
+    fig.suptitle("Centerline length distribution", y=1.02, fontsize=13)
+    note = (
+        "One observation per undirected centerline. "
+        "Bins are fine below 500 m and wider in the tail. "
+        f"Display truncated at {display_cap:,.0f} m "
+        f"(excludes {n_all_excluded:,} all / {n_base_excluded:,} baseline segments)."
+    )
+    fig.text(0.5, -0.03, note, ha="center", va="top", fontsize=9, color="#4b5563")
+    fig.tight_layout()
+    fig.savefig(path, bbox_inches="tight")
+    plt.close(fig)
+
+
 def plot_cdf(path: Path, raw, raw_split, centerline, cl_dir):
     fig, ax = plt.subplots(figsize=(7, 5), dpi=200)
     datasets = [
@@ -379,6 +473,11 @@ def run(version_id: str, output_dir: str):
     save_simple_map(figures_dir / "map_buffer_surface_15km.png", gdf_polys=gpd.clip(road_surface_gdf, roi), title=f"Buffered road surface ({int(BUF_WIDTH)}m)")
     save_simple_map(figures_dir / "map_centerline_15km.png", gdf_lines=gpd.clip(centerline[["cline_id", "geometry"]], roi), title="Centerline (15km)", draw_nodes=True)
     plot_cdf(figures_dir / "fig_length_cdf_4networks.png", raw, raw_split, centerline, cl_dir)
+    plot_centerline_length_density(figures_dir / "fig_centerline_length_density_all_vs_baseline.png", centerline)
+    plot_centerline_length_density(
+        paper_appendix_dir / "fig_centerline_length_density_all_vs_baseline.png",
+        centerline,
+    )
     plot_split_match_map_full_extent(figures_dir / "map_raw_split_matched_vs_unmatched.png", raw_split)
     plot_split_match_map(figures_dir / "map_raw_split_matched_vs_unmatched_15km.png", raw_split, roi)
     plot_undirected_coverage_4classes(figures_dir / "map_undirected_centerline_coverage_4classes.png", raw_split, centerline, cl_dir)

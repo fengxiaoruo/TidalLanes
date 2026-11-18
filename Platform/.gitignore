@@ -1,0 +1,8 @@
+reference_inputs/*.csv
+reference_inputs/manifest.json
+runs/**/query-results/*
+!runs/**/query-results/.gitkeep
+runs/**/submissions/*
+!runs/**/submissions/.gitkeep
+runs/**/checks/*
+!runs/**/checks/.gitkeep

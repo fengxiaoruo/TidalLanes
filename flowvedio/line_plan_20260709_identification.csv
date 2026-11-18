@@ -1,0 +1,7 @@
+label,line_name,line,lanes,direction,treated_delta_lanes,note
+outbound_pre,south_to_north,"500,600,1000,600",3,south_to_north,0,出城1621第3分钟前；南往北3车道
+outbound_pre,north_to_south,"1050,600,1500,600",4,north_to_south,0,出城1621第3分钟前；北往南4车道
+outbound_post,south_to_north,"500,600,1150,600",4,south_to_north,1,潮汐开通后；南往北4车道
+outbound_post,north_to_south,"1150,600,1500,600",3,north_to_south,-1,潮汐开通后；北往南3车道
+inbound_post,north_to_south,"380,800,750,800",3,north_to_south,,进城机位；北往南3车道
+inbound_post,south_to_north,"750,800,1400,800",4,south_to_north,,进城机位；南往北4车道

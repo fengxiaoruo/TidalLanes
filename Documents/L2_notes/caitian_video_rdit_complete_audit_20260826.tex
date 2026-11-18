@@ -1,0 +1,452 @@
+\documentclass[11pt,a4paper]{ctexart}
+
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,threeparttable,tabularx,array,longtable}
+\usepackage{graphicx,float,caption,subcaption,pdflscape}
+\usepackage[authoryear,round]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{microtype}
+\Urlmuskip=0mu plus 1mu
+
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0.25em}
+\setlist[itemize]{leftmargin=2em,itemsep=0.2em,topsep=0.2em}
+\captionsetup{font=small,labelfont=bf}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\rdroot}{../../flowvedio/batch_outputs/20260723_24_state_dependent_recognition_v5/analysis_basic_v1}
+\newcommand{\risk}[1]{\textcolor{red!65!black}{#1}}
+\newcommand{\caution}[1]{\textcolor{orange!65!black}{#1}}
+\newcommand{\ok}[1]{\textcolor{blue!65!black}{#1}}
+
+\title{彩田路潮汐车道视频 RDiT：方法审计、完整结果与复现说明}
+\author{}
+\date{2026年8月26日}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+本文档整理2026年7月23日和24日彩田路出城摄像头的潮汐车道开通与恢复分析，并依据时间断点回归的识别要求审计现有结果。现有程序系统比较bin宽度、带宽、局部多项式、断点两侧趋势、kernel、donut和HAC推断。7月24日开通和恢复的方向流量差具有方向相反且量级突出的跳变，符合方向性容量重新配置的工程预期。该证据仍属于探索性interrupted time series。7月24日开通缺少断点前最近约23分钟的稳定观测，且断点前后更换视频和geometry；系统假断点的5\%显著率达到17\%至24\%，表明分钟流量存在未被当前HAC完全解决的时间序列结构。现阶段可以报告方向流量reduced form，不能将其解释为模型中的速度--流量弹性，也不宜把单日估计写成正式因果RDiT。
+\end{abstract}
+
+\tableofcontents
+\clearpage
+
+\section{审计结论}
+
+\subsection{可以保留的结果}
+
+方向性容量在开通和恢复时发生相反变化。7月24日开通的60分钟基准规格给出北向流量增加14.59辆/分钟、南向流量减少7.35辆/分钟，北向减南向增加21.93辆/分钟。7月24日恢复的对应估计为北向减少11.22、南向增加3.54，北向减南向减少14.76辆/分钟。两个事件的方向差在带宽、HAC lag和局部线性变体中保持符号，系统假断点中没有方向差估计达到同等绝对量级。
+
+该组结果支持一个有限结论：视频记录中的稳定状态切换与方向流量重新配置同时出现。双向总流量没有在开通时显著提高，单车道流量也没有在获益方向出现稳定的正向跳变。证据更接近方向性容量分配，而不是道路总吞吐量上升。
+
+\subsection{阻止正式因果解释的问题}
+
+\begin{enumerate}[leftmargin=2.4em]
+  \item \risk{7月24日开通不是局部断点比较。} 最近的有效pre观测位于断点前23.02分钟。16:07:43至16:26:46没有录像，其后的操作尾段被删除。回归系数依赖从更早pre趋势向断点外推。
+  \item \risk{7月24日开通同时改变视频和geometry。} 固定北向和固定南向物理区域也在断点处上升，说明共同需求变化或测量变化不能被排除。
+  \item \risk{序列相关推断仍不充分。} 基准残差的Ljung--Box检验在多项outcome上拒绝无序列相关；系统假断点的5\%显著率为17\%至24\%。HAC修正不能消除同期冲击或函数形式偏误。
+  \item \risk{缺少同钟点未处理日。} 两个日期都接受潮汐车道切换，不能控制自然晚高峰的非线性时间路径。两个方向也不是未处理组，因为一个方向增加车道时另一个方向同时减少车道。
+  \item \caution{恢复事件的post窗口不对称。} 7月23日和24日恢复在60分钟带宽下分别只有30和33个post bins，估计依赖不对称支持域。
+  \item \caution{没有天气、事故和施工协变量。} 固定车道outcome可以检验部分共同变化，但不能替代对同期道路状态的观测。
+\end{enumerate}
+
+\subsection{建议的结果定位}
+
+主文可以称为“视频流量的探索性RDiT或带操作期缺口的interrupted time series”。主estimand是从pre和post稳定状态趋势外推到稳定运行完成时刻的流量水平差。该estimand不是施工开始时的即时效应，也不是标准横截面RD意义下的局部平均处理效应。正式因果分析需要相同机位、相同geometry、断点附近连续覆盖的多个工作日，最好加入同钟点未开通日或同步控制道路。
+
+\section{数据、事件与样本}
+
+\subsection{观测单位和计数线}
+
+分析仅纳入出城方向摄像头，不区分拍摄设备。车辆事件来自统一的near gate crossing，避免远线漏检造成的方向差异。观测被聚合为1、2或5分钟bin；完整bin要求录像覆盖达到名义时长的90\%。总方向流量允许普通和三区域geometry进入。固定车道与潮汐区outcome只在能够划分fixed north、tidal variable和fixed south三个物理区域的geometry中定义，普通geometry对应值记为missing，不补零。
+
+\begin{table}[H]
+\centering
+\caption{四次状态切换与60分钟窗口的有效支持域}
+\label{tab:event_support}
+\begin{threeparttable}
+\begin{tabular}{llrrrrl}
+\toprule
+事件 & 断点后状态 & Pre & Post & 最近pre & 最近post & 主要测量问题 \\
+\midrule
+7/23开通 & 向北开放 & 41 & 60 & $-16.57$ & $0.43$ & pre内混合普通与三区域geometry \\
+7/23恢复 & 向南开放 & 44 & 30 & $-16.58$ & $0.42$ & post仅30分钟 \\
+7/24开通 & 向北开放 & 37 & 60 & $-23.02$ & $0.98$ & 录像缺口，跨视频与geometry \\
+7/24恢复 & 向南开放 & 51 & 33 & $-9.68$ & $0.32$ & post仅33分钟 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}[flushleft]\footnotesize
+\item 注：Pre和Post为完整1分钟bin数量。“最近pre/post”是相对稳定运行完成时刻的分钟数。操作期全部排除，不插值、不记为零流量。
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\subsection{变量定义}
+
+\begin{longtable}{p{0.28\textwidth}p{0.64\textwidth}}
+\caption{结果变量和处理变量定义}\label{tab:variables}\\
+\toprule
+变量 & 定义 \\
+\midrule
+\endfirsthead
+\toprule
+变量 & 定义 \\
+\midrule
+\endhead
+$r_t$ & bin起点到稳定运行完成时刻的分钟数。\\
+$Post_t$ & 稳定运行完成后取1。操作期不属于pre或post稳定样本。\\
+$q^N_t,q^S_t$ & near gate测得的北向和南向车辆/分钟。\\
+$q^N_t+q^S_t$ & 双向总流量。两种状态的道路总车道数均为7。\\
+$q^N_t-q^S_t$ & 北向减南向流量，衡量方向性重新配置。\\
+$s^N_t$ & 北向份额，$q^N_t/(q^N_t+q^S_t)$。\\
+Log方向比 & $\log[(q^N_t+0.5)/(q^S_t+0.5)]$。0.5只用于处理零计数。\\
+$q^{N,F}_t,q^{S,F}_t$ & 北向和南向固定物理区域流量。两区域分别按3条固定车道解释。\\
+$q^{T}_t$ & 潮汐可变物理区域内两方向流量之和。该区域的方向归属在切换时机械改变。\\
+$n^N_t,n^S_t$ & 向北开放时为$(4,3)$，向南开放时为$(3,4)$。\\
+$q^d_t/n^d_t$ & 方向$d$的单位车道流量。它是容量利用率分解，不是速度--流量弹性。\\
+获益方向 & 断点后获得一条车道的方向。开通事件为北向，恢复事件为南向。\\
+\bottomrule
+\end{longtable}
+
+\section{估计方法和specification矩阵}
+
+\subsection{基准局部线性规格}
+
+每个事件和outcome分别估计：
+\begin{equation}
+Y_t=\alpha+\tau Post_t+\beta_-r_t+\Delta\beta\,(Post_t\times r_t)+\varepsilon_t,
+\qquad |r_t|\leq h.
+\label{eq:baseline}
+\end{equation}
+其中$\tau$是两条拟合趋势在稳定运行完成时刻的水平差，$\beta_-$是pre斜率，$\beta_-+\Delta\beta$是post斜率。基准采用1分钟bin、$h=60$分钟、uniform kernel、断点两侧不同斜率和HAC标准误，HAC最大lag为5分钟。
+
+当断点前存在操作期或录像缺口时，式\eqref{eq:baseline}的$\tau$由较远的稳定状态观测外推得到。它不再是由任意接近零点的左右极限直接支持的标准RD跳变。Donut规格进一步删除post稳定期最初2或5分钟，适合检验启动尾段，但会继续改变estimand。
+
+\begin{table}[H]
+\centering
+\caption{已完成的specification矩阵}
+\label{tab:spec_matrix}
+\begin{tabularx}{\textwidth}{p{0.18\textwidth}X X}
+\toprule
+方法 & Specification & 作用 \\
+\midrule
+基准RDiT & 1分钟bin，60分钟带宽，局部线性，两侧斜率，uniform kernel，HAC(5) & 与旧v2结果精确复核，报告水平和趋势变化。\\
+带宽与聚合 & bin为1/2/5分钟；带宽为10/15/20/30/37/45/60分钟 & 检查支持域和局部趋势敏感性。小带宽在操作缺口存在时可能没有足够pre。\\
+函数形式 & 局部常数、局部线性、局部二次；共同或两侧趋势 & 主解释限制为局部常数或线性。局部二次只作压力测试。\\
+Kernel与推断 & uniform或triangular；HAC或HC1；HAC lag为0/1/3/5/10/15 & 检查权重和时间序列推断敏感性。\\
+Donut & 排除操作期；另删除post稳定期0/2/5分钟 & 检查结果是否由启动尾段驱动。\\
+方向重配置 & $q^N-q^S$、北向份额、log方向比 & 将共同总流量变化与方向重新配置区分。\\
+固定区域 & 固定北向、固定南向及其差 & control-style outcome；受spillover和测量变化影响，不是严格控制组。\\
+单车道结果 & $q^d/n^d$、获益方向减另一方向、固定区每车道流量 & 描述容量利用率。车道数变化进入分母，存在机械变换。\\
+系统假断点 & 连续稳定录像内每5分钟设置候选cutoff，$h=15$分钟，局部线性HAC(5) & 检查普通时间波动是否频繁产生显著跳变。\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+完整搜索保留37,560条总流量及区域outcome估计，单车道supplement保留34,920条估计。由于搜索维度较多，显著性比例仅用于稳定性描述，不按最小$p$值挑选主规格。
+
+\section{完整结果}
+
+\subsection{方向总流量基准结果}
+
+\begin{table}[H]
+\centering
+\caption{60分钟基准规格：方向流量和方向差}
+\label{tab:main_results}
+\begin{threeparttable}
+\begin{tabular}{llrrrrr}
+\toprule
+事件 & Outcome & Pre/Post & $\hat\tau$ & HAC SE & $p$值 & 方向 \\
+\midrule
+7/23开通 & 北向总流量 & 41/60 & 2.481 & 2.984 & 0.408 & 正 \\
+            & 南向总流量 & 41/60 & 1.779 & 9.796 & 0.856 & 正 \\
+            & 双向总流量 & 41/60 & 4.260 & 11.339 & 0.708 & 正 \\
+            & 北向减南向 & 41/60 & 0.703 & 9.008 & 0.938 & 正 \\
+\addlinespace
+7/23恢复 & 北向总流量 & 44/30 & 2.401 & 6.102 & 0.695 & 正 \\
+            & 南向总流量 & 44/30 & 2.519 & 2.542 & 0.325 & 正 \\
+            & 双向总流量 & 44/30 & 4.920 & 4.630 & 0.292 & 正 \\
+            & 北向减南向 & 44/30 & $-0.118$ & 8.120 & 0.988 & 负 \\
+\addlinespace
+7/24开通 & 北向总流量 & 37/60 & 14.588 & 2.696 & $<0.001$ & 正 \\
+            & 南向总流量 & 37/60 & $-7.346$ & 3.005 & 0.016 & 负 \\
+            & 双向总流量 & 37/60 & 7.243 & 4.447 & 0.107 & 正 \\
+            & 北向减南向 & 37/60 & 21.934 & 3.582 & $<0.001$ & 正 \\
+\addlinespace
+7/24恢复 & 北向总流量 & 51/33 & $-11.221$ & 2.536 & $<0.001$ & 负 \\
+            & 南向总流量 & 51/33 & 3.543 & 1.684 & 0.039 & 正 \\
+            & 双向总流量 & 51/33 & $-7.679$ & 3.257 & 0.021 & 负 \\
+            & 北向减南向 & 51/33 & $-14.764$ & 2.814 & $<0.001$ & 负 \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}[flushleft]\footnotesize
+\item 注：单位为车辆/分钟。开通后北向增加一条车道，恢复后南向增加一条车道。$p$值来自HAC(5)。
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+7月24日的两个事件提供方向一致的reduced-form pattern。开通时北向相对南向增加，恢复时该差值反向变化。7月23日开通和恢复的方向差接近零，不能作为重复性证据。按本文设定，拍摄设备或视频文件变化不构成识别威胁；三区域outcome仍依赖逐段geometry标定。
+
+操作期点采用覆盖整条可见道路的横断面计数线，方向由车辆穿越方向确定。该口径保留操作期内识别到的全部车辆类别，可能包含操作车辆，因此只描述实施路径，不用于估计政策跳变。7月24日开通在16:07:43至16:26:46没有录像，图中只出现16:26:46至16:29:01的操作尾段。
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260723_opening__north_total__with_operation.pdf}
+\caption{7月23日开通}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260723_recovery__north_total__with_operation.pdf}
+\caption{7月23日恢复}
+\end{subfigure}
+
+\medskip
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260724_opening__north_total__with_operation.pdf}
+\caption{7月24日开通}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260724_recovery__north_total__with_operation.pdf}
+\caption{7月24日恢复}
+\end{subfigure}
+\caption{7月23日和24日北向总流量的事件研究图。蓝色圆点为稳定状态，紫色菱形为有录像且覆盖至少1分钟的操作期5分钟bin，灰色区域为操作期或无录像区间。红线只使用稳定期5分钟bin拟合；表\ref{tab:main_results}采用稳定期1分钟bin。}
+\label{fig:north_total_event_studies}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260723_opening__south_total__with_operation.pdf}
+\caption{7月23日开通}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260723_recovery__south_total__with_operation.pdf}
+\caption{7月23日恢复}
+\end{subfigure}
+
+\medskip
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260724_opening__south_total__with_operation.pdf}
+\caption{7月24日开通}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260724_recovery__south_total__with_operation.pdf}
+\caption{7月24日恢复}
+\end{subfigure}
+\caption{7月23日和24日南向总流量的事件研究图。蓝色圆点为稳定状态，紫色菱形为有录像且覆盖至少1分钟的操作期5分钟bin，灰色区域为操作期或无录像区间。红线只使用稳定期5分钟bin拟合；表\ref{tab:main_results}采用稳定期1分钟bin。}
+\label{fig:south_total_event_studies}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260723_opening__north_minus_south__with_operation.pdf}
+\caption{7月23日开通}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260723_recovery__north_minus_south__with_operation.pdf}
+\caption{7月23日恢复}
+\end{subfigure}
+
+\medskip
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260724_opening__north_minus_south__with_operation.pdf}
+\caption{7月24日开通}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260724_recovery__north_minus_south__with_operation.pdf}
+\caption{7月24日恢复}
+\end{subfigure}
+\caption{7月23日和24日北向减南向流量的事件研究图。蓝色圆点为稳定状态，紫色菱形为有录像且覆盖至少1分钟的操作期5分钟bin，灰色区域为操作期或无录像区间。红线只使用稳定期5分钟bin拟合；表\ref{tab:main_results}采用稳定期1分钟bin。四个面板采用各自事件窗口的纵轴范围。}
+\label{fig:key_event_studies}
+\end{figure}
+
+\subsection{水平跳变与趋势变化}
+
+式\eqref{eq:baseline}同时估计水平跳变和趋势变化。7月24日开通的南向pre趋势为每分钟$-0.209$辆/分钟，post相对斜率增加0.199，两个系数分别在1\%和5\%附近显著。该结果说明南向流量在pre阶段已经下降，断点系数依赖趋势外推。7月24日恢复的主要outcome没有显著的post趋势变化，水平差更容易解释为稳定状态之间的切换，但自然高峰路径仍未被控制。
+
+\begin{table}[H]
+\centering
+\caption{7月24日基准规格的趋势参数}
+\label{tab:slope_results}
+\begin{tabular}{llrrrr}
+\toprule
+事件 & Outcome & Pre斜率 & $p$值 & 斜率变化 & $p$值 \\
+\midrule
+开通 & 北向总流量 & $-0.063$ & 0.162 & 0.147 & 0.055 \\
+开通 & 南向总流量 & $-0.209$ & 0.005 & 0.199 & 0.011 \\
+开通 & 北向减南向 & 0.146 & 0.065 & $-0.052$ & 0.597 \\
+恢复 & 北向总流量 & $-0.010$ & 0.818 & $-0.005$ & 0.951 \\
+恢复 & 南向总流量 & $-0.060$ & 0.039 & 0.016 & 0.861 \\
+恢复 & 北向减南向 & 0.049 & 0.280 & $-0.022$ & 0.868 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{带宽稳健性}
+
+7月24日开通在小于30分钟的带宽中没有足够pre支持。30分钟规格只有7个pre bins，37分钟带宽开始覆盖更多pre稳定观测。北向总流量和方向差在30、37、45及60分钟下保持正向；精确幅度随pre趋势和支持域变化。恢复事件的北向和方向差在可估计带宽中保持负向。
+
+带宽稳健性在这里有三个作用。第一，它检查估计是否由某一段较远的日内趋势驱动。较窄带宽更接近切换时刻，理论上减少平滑时间趋势造成的偏误，但样本更少、标准误更大；较宽带宽增加精度，却要求局部线性趋势在更长时间内成立。第二，它揭示名义带宽与实际支持域的区别。由于操作期被排除，7月24日开通即使采用30分钟带宽，断点附近仍没有连续pre观测，因此不能把较窄带宽自动解释为更局部的比较。第三，它检验方向和数量级是否稳定。若系数在合理带宽下保持同号且幅度接近，证据更可信；若只在单一带宽显著、随窗口剧烈变化，则更可能来自趋势外推或偶然波动。
+
+带宽稳健性不能修复录像缺口，也不能控制天气、事故或其他同时发生的冲击。它是对局部趋势设定和样本选择的敏感性检验，不是额外的识别来源。操作期紫色点同样不进入任何带宽回归，因此加入这些点不会改变图中的红线或表\ref{tab:main_results}的系数。
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_specification_search_v1/figures/20260724_opening__bandwidth_robustness.pdf}
+\caption{7月24日开通}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_specification_search_v1/figures/20260724_recovery__bandwidth_robustness.pdf}
+\caption{7月24日恢复}
+\end{subfigure}
+\caption{局部线性、两侧斜率、uniform kernel和HAC(5)下的带宽敏感性。误差棒为95\%置信区间。}
+\label{fig:bandwidth}
+\end{figure}
+
+\subsection{单车道流量}
+
+单位车道流量把方向总流量除以断点处机械变化的车道数。获得车道方向从3条变4条，即使总流量不变，该变量也会下降25\%。因此，单位车道结果用于描述新增容量是否被额外流量吸收，不作为独立的policy treatment effect。
+
+\begin{table}[H]
+\centering
+\caption{60分钟基准规格：断点后获益方向的单位车道流量}
+\label{tab:per_lane}
+\begin{tabular}{lrrrrrr}
+\toprule
+事件 & 获益方向跳变 & SE & $p$值 & 获益减另一方向 & SE & $p$值 \\
+\midrule
+7/23开通 & $-3.397$ & 0.970 & $<0.001$ & $-5.979$ & 2.289 & 0.010 \\
+7/23恢复 & $-1.667$ & 0.698 & 0.020 & $-6.219$ & 2.252 & 0.007 \\
+7/24开通 & 0.474 & 0.780 & 0.544 & $-0.086$ & 0.939 & 0.927 \\
+7/24恢复 & $-0.916$ & 0.478 & 0.059 & $-1.218$ & 0.830 & 0.146 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+7月24日开通的北向总流量显著增加，北向每车道流量没有显著变化。这与新增北向容量被额外流量吸收、单车道负载大致稳定相容。7月24日恢复后南向总流量增加，但单位车道流量下降，说明增量不足以填满从3条到4条的容量变化。没有统一的速度或旅行时间之前，这些结果不能证明拥堵下降。
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_per_lane_supplement_v1/figures/20260724_opening__per_lane_event_study.pdf}
+\caption{7月24日开通}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_per_lane_supplement_v1/figures/20260724_recovery__per_lane_event_study.pdf}
+\caption{7月24日恢复}
+\end{subfigure}
+\caption{单车道流量及固定区域对照。图中拟合采用5分钟bin，完整回归表采用1分钟bin。}
+\label{fig:per_lane}
+\end{figure}
+
+\section{时间序列推断和假断点审计}
+
+\subsection{残差序列相关}
+
+HAC(5)是现有基准推断，但多个outcome的残差在lag 5或10仍拒绝无序列相关。部分残差呈负一阶相关，HAC lag增加时标准误反而缩小。7月24日开通北向总流量的HAC标准误在lag 0至15之间由4.35降至约2.68；恢复北向总流量由3.35降至1.94。结果的显著性没有因更长lag消失，但该方向并不构成保守性保证。
+
+更可靠的正式推断需要多个日期，并按日期聚类或采用基于事件日的randomization inference。当前只有两个日期，日期聚类的渐近近似没有意义。单日分钟级HAC的$p$值应被视为描述性精度指标。
+
+\subsection{系统假断点}
+
+连续稳定录像中每5分钟设置一个pseudo cutoff，要求断点两侧各有15分钟完整覆盖，并排除真实操作和断点附近30分钟。共得到59个cutoff、每个cutoff五个outcome，共295条估计。
+
+\begin{table}[H]
+\centering
+\caption{15分钟系统假断点结果}
+\label{tab:placebo}
+\begin{tabular}{lrrrrr}
+\toprule
+Outcome & Cutoffs & 中位跳变 & 5分位 & 95分位 & $p<0.05$比例 \\
+\midrule
+北向总流量 & 59 & 1.151 & $-8.146$ & 8.577 & 0.169 \\
+南向总流量 & 59 & 0.365 & $-3.699$ & 3.766 & 0.237 \\
+双向总流量 & 59 & 1.321 & $-11.661$ & 9.410 & 0.203 \\
+北向减南向 & 59 & 0.569 & $-9.983$ & 10.235 & 0.220 \\
+北向份额 & 59 & 0.002 & $-0.052$ & 0.058 & 0.203 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+假断点显著率远高于5\%，说明局部线性HAC(5)在本样本中容易把普通时间波动判为断点。按绝对值比较，7月24日开通北向和南向的经验尾部比例分别为0.017和0.034，恢复对应为0.034和0.153；两个事件的方向差均超过所有59个pseudo cutoff。方向差在录像内部异常突出，但经验比较没有控制真实断点的不同带宽、支持域和视频变化，不能作为正式随机化检验。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{\rdroot/outbound_rdit_method_audit_v1/figures/placebo_distributions_vs_24jul_actual.pdf}
+\caption{系统假断点分布与7月24日实际估计。实际估计采用60分钟带宽，pseudo cutoff采用15分钟带宽，因此本图只用于量级诊断。}
+\label{fig:placebo}
+\end{figure}
+
+\section{与RDiT方法要求的逐项对照}
+
+\begin{longtable}{p{0.25\textwidth}p{0.16\textwidth}p{0.51\textwidth}}
+\caption{方法要求、完成状态与剩余问题}\label{tab:audit_checklist}\\
+\toprule
+要求 & 状态 & 审计结论 \\
+\midrule
+\endfirsthead
+\toprule
+要求 & 状态 & 审计结论 \\
+\midrule
+\endhead
+原始散点、分箱均值和两侧拟合 & \ok{已完成} & 四事件、全部outcome均有事件研究图；灰色区域明确标记操作期或无稳定录像时段。\\
+局部线性主规格 & \ok{已完成} & 1分钟bin、两侧斜率为主。局部二次只作完整搜索，不应进入主结论。\\
+多个带宽 & \ok{已完成} & 10至60分钟均已尝试；应同时披露实际pre/post bins，不能只写名义带宽。\\
+Donut RDiT & \ok{已完成} & 操作期全部删除，并比较post稳定期0/2/5分钟donut。Estimand是稳定状态趋势外推差。\\
+序列相关修正 & \caution{部分完成} & 已有HAC/HC1和lag敏感性；残差诊断与假断点拒绝名义推断充分性。缺少多日聚类或事件日随机化推断。\\
+系统假断点 & \ok{本次补充} & 59个cutoff表明普通时间波动频繁产生显著跳变，必须降低因果表述。\\
+协变量连续性 & \risk{缺失} & 没有天气、事故、临时施工或同步道路状态。固定车道outcome只能作为不完全placebo。\\
+提前反应 & \caution{部分处理} & 实际施工期被删除，但无法检验司机在操作开始前的路线调整；录像缺口进一步限制检验。\\
+同期未处理组 & \risk{缺失} & 对向车流同时接受$-1$车道处理，固定区域受spillover。没有同钟点未处理日或控制道路。\\
+Augmented local linear & \risk{不可实施} & 当前只有两天且无外部协变量，无法用长样本可靠估计季节性或协变量关系。\\
+处理时间精度 & \ok{已完成} & transition start和stable completion由视频人工核定；分析以stable completion为cutoff并排除操作期。\\
+测量口径稳定 & \caution{部分满足} & 按研究设定，拍摄设备或视频文件变化不构成识别威胁，相关误差忽略。统一near gate保持总方向流量口径；三区域outcome仍需依赖各段geometry标定。\\
+速度或旅行时间 & \risk{尚不可用} & 23/24尚无统一物理时间口径，只能估计flow reduced form，不能识别模型$\lambda$。\\
+\bottomrule
+\end{longtable}
+
+\section{推荐的下一版设计}
+
+第一优先级是补采相同切换时刻的多个工作日，并保留断点前后连续录像。拍摄设备可以变化，但应继续使用统一near gate计数定义，并保存足够画面以标定三区域geometry。每个事件日应记录天气、事故、施工和异常操作。若部分日期不实施潮汐切换，可以估计带未处理日的difference-in-discontinuities：
+\begin{equation}
+\bigl(Y_{\mathrm{treated,post}}-Y_{\mathrm{treated,pre}}\bigr)
+-\bigl(Y_{\mathrm{control,post}}-Y_{\mathrm{control,pre}}\bigr).
+\end{equation}
+
+第二优先级是预先锁定主outcome和主规格。建议主outcome为获益方向减另一方向的流量、获益方向份额和log方向比；方向总流量作为分解，双向总流量和单位车道流量作为辅助。主规格采用局部线性、30或45分钟连续支持域、1或5分钟bin，并依据事件日数量选择日期聚类或randomization inference。带宽应由连续可用支持域决定，不能把跨23分钟缺口的60分钟规格称为局部比较。
+
+第三优先级是统一旅行时间测量。只有在相同物理gate、匹配率连续和距离口径一致后，才能估计
+\[
+\log m_{dt}=\alpha_d+\lambda\log(q_{dt}/n_{dt})+\varepsilon_{dt},
+\]
+并考虑以车道变化作为单位车道流量的工具变量。当前flow RDiT不提供模型中的速度--流量弹性。
+
+\section{复现路径}
+
+\begin{itemize}
+  \item 总流量完整搜索脚本：\code{flowvedio/analyze_outbound_rdit_specification_search_v1.py}。
+  \item 单车道补充脚本：\code{flowvedio/analyze_outbound_rdit_per_lane_supplement_v1.py}。
+  \item 方法审计脚本：\code{flowvedio/audit_outbound_rdit_methods_v1.py}。
+  \item 总流量输出：\nolinkurl{flowvedio/batch_outputs/20260723_24_state_dependent_recognition_v5/analysis_basic_v1/outbound_rdit_specification_search_v1/}。
+  \item 单车道输出：\nolinkurl{flowvedio/batch_outputs/20260723_24_state_dependent_recognition_v5/analysis_basic_v1/outbound_rdit_per_lane_supplement_v1/}。
+  \item 方法审计输出：\nolinkurl{flowvedio/batch_outputs/20260723_24_state_dependent_recognition_v5/analysis_basic_v1/outbound_rdit_method_audit_v1/}。
+\end{itemize}
+
+\section{最终判断}
+
+现有分析没有遗漏基础RDiT应有的图形、局部线性、带宽、donut和HAC变体，本次补充了趋势变化、序列相关诊断、HAC lag敏感性和系统假断点。新增审计改变了证据强度判断。按本文更新后的研究设定，拍摄设备或视频文件变化可以忽略。7月24日开通和恢复的方向差确实是当前录像中最突出的变化，但高假阳性率和开通事件的23分钟左侧缺口仍阻止正式因果解释；三区域outcome另需依赖geometry标定。现阶段最稳妥的表述是“潮汐状态切换附近出现与方向性车道重新配置一致的探索性流量证据”。
+
+\begin{thebibliography}{9}
+\bibitem[Hausman and Rapson(2018)]{HausmanRapson2018}
+Hausman, Catherine, and David S. Rapson. 2018.
+``Regression Discontinuity in Time: Considerations for Empirical Applications.''
+\emph{Annual Review of Resource Economics} 10: 533--552.
+\url{https://doi.org/10.1146/annurev-resource-121517-033306}.
+\end{thebibliography}
+
+\end{document}

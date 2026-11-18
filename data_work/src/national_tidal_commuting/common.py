@@ -397,3 +397,11 @@ def abs_log_ratio(a, b):
     if pd.isna(a) or pd.isna(b) or a <= 0 or b <= 0:
         return np.nan
     return abs(math.log(a / b))
+
+
+def directional_minmax_ratio(a, b):
+    """min(two-way duration) / max(two-way duration); in [0, 1], lower = more asymmetric."""
+    if pd.isna(a) or pd.isna(b) or a <= 0 or b <= 0:
+        return np.nan
+    lo, hi = min(float(a), float(b)), max(float(a), float(b))
+    return lo / hi

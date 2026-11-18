@@ -27,7 +27,7 @@ That means the normal workflow is:
 All commands below assume you run them from the repo root:
 
 ```bash
-/Users/fxr/Desktop/TidalLanes
+/Users/fxr/Dropbox/Projects/TidalLanes
 ```
 
 Use the current validated version as the baseline:

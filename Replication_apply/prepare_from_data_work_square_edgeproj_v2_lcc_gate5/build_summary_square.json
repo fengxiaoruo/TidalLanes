@@ -1,0 +1,9 @@
+{
+  "source_version": "model_input_edgeproj_v2_lcc_gate5_v1",
+  "scope": "largest_connected_component_detour_gate_5",
+  "node_rows": 1104,
+  "edge_rows": 2642,
+  "od_rows": 310525,
+  "traffic_formula": "lanes * max(tau_obs/tau_ff, 1)^(1/delta1)",
+  "delta1": 0.488
+}

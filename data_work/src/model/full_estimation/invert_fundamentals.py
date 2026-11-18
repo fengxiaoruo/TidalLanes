@@ -144,7 +144,11 @@ def invert_fundamentals(
     A = np.zeros((N, N), dtype=float)
     np.add.at(A, (prim.edge_i, prim.edge_j), inv)
     tau_inv_theta = sla.solve(np.eye(N) - A, np.eye(N), check_finite=False)
-    tau_inv_theta = np.clip(tau_inv_theta, EPS, None)
+    eta = float(getattr(params, "route_eta", 1.0))
+    if eta == 1.0:
+        tau_inv_theta = np.clip(tau_inv_theta, EPS, None)
+    else:  # nested Frechet: tau^-theta = R^eta (see equilibrium_solve._resolvent_and_tau)
+        tau_inv_theta = np.clip(np.clip(tau_inv_theta, 1e-300, None) ** eta, EPS, None)
 
     v = np.ones(N); w = np.ones(N)
     pR = 1.0 - beta * theta

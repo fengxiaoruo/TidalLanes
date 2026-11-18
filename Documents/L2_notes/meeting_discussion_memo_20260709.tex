@@ -1,0 +1,340 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{xeCJK}
+\setCJKmainfont{Songti SC}
+\setmainfont{Times New Roman}
+
+\title{合作者会议讨论要点\\[0.4em]
+\large 当前设定、已有尝试与待定选项}
+\author{TidalLanes 内部说明}
+\date{2026-07-09}
+
+\begin{document}
+\maketitle
+
+\noindent
+本文按讨论顺序整理当前需要拍板的问题。每一节先写清问题，再写现行选择与已有数字，最后列出可选方案。主规格除非另注，均指
+\texttt{model\_input\_edgeproj\_v2\_lcc\_gate5\_v1}，
+$\alpha=+0.05$，$\beta=-0.10$，
+anchored BPR，$\lambda_{\mathrm{phys}}=1.1$，
+潮汐选边 \texttt{score\_bpr\_st}，top\,100。
+
+\tableofcontents
+\vspace{1em}
+
+%---------------------------------------------------------------------
+\section{网络连通性与 detour gate（$G=5$）}
+%---------------------------------------------------------------------
+
+\subsection*{问题}
+结构模型只能在连通的有向图上求解。早期 centerline 成本下，最大连通分量只覆盖约 $64\%$ 的居民；孤立格会污染反事实符号。edge-projection 路由修好后，相邻格之间仍会出现极长绕行（河、封闭快速路等），边级不对称会被这些机械绕行放大。
+
+\subsection*{$G=5$ 指什么}
+在取最大连通分量（LCC）之前，对\textbf{相邻格子}之间的边施加绕行门槛：若该边的路由长度超过两格心直线距离的 $G$ 倍，则丢掉该边。现行取 $G=5$。被丢掉的格子对仍可通过多跳路径相连；门槛主要清理边级描述对象，而不是切断城市连通性。
+
+\subsection*{现行选择}
+锁定 \texttt{model\_input\_edgeproj\_v2\_lcc\_gate5\_v1}：
+edgeproj\_v2 $\to$ detour gate $G=5$ $\to$ LCC。
+节点 $N=1104$，有向边 $2642$，道路通勤 $\bar L=88{,}110$（约占全市道路通勤的 $92.6\%$）。
+
+\subsection*{已有对照}
+\begin{center}
+\begin{tabular}{lrrr}
+\toprule
+版本 & 节点 & 边 & 道路通勤覆盖 \\
+\midrule
+edgeproj，无 gate & 1153 & 3198 & $91{,}134$（$95.8\%$） \\
+edgeproj，$G=5$+LCC（主） & 1104 & 2642 & $88{,}110$（$92.6\%$） \\
+\bottomrule
+\end{tabular}
+\end{center}
+相对无 gate：$G=5$ 丢掉约 $4\%$ 的格子和约 $3\%$ 的道路通勤；边时间 p99 从约 $100$ 分钟降到约 $30$ 分钟；极端不对称份额（双向比 $<0.5$）从 $15.6\%$ 降到 $8.9\%$。centerline 方案因无真实路由、覆盖差，不作主输入。
+
+\subsection*{待定选项}
+\begin{enumerate}[nosep]
+  \item 维持 $G=5$ 主线；无 gate 与 centerline\_lcc 仅作稳健性。
+  \item 调整 $G$（例如 $3$ 或 $8$）并重跑描述统计与 Stage\,2 smoke。
+  \item 在 Data 节明确报告外围丢掉对职住分布的影响。
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{参数路线}
+%---------------------------------------------------------------------
+
+\subsection*{问题}
+主结果依赖外生校准的 $(\theta,\alpha,\beta,\lambda_{\mathrm{phys}})$。
+截面上用模型流量反推的拥堵弹性远小于校准值，说明不能靠截面回归代替校准；北京本地的 $\theta$ 也尚未在 model-consistent 成本下正式估计。本轮 draft 需要决定：继续「外生校准 + 敏感性附录」，还是立刻启动本地估计。
+
+\subsection*{现行选择}
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+参数 & 主值 & 来源 / 备注 \\
+\midrule
+$\theta$ & $6.83$ & Allen--Arkolakis (2022) Seattle / Ahlfeldt 等 \\
+$\alpha$ & $+0.05$ & 主线 gross-spillover 设定 \\
+$\beta$ & $-0.10$ & AA Seattle \\
+$\lambda_{\mathrm{phys}}$ & $1.1$ & 北京 speed--density 文献校准 \\
+拥堵形式 & anchored BPR & 见第~\ref{sec:anchor} 节 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{已有尝试}
+\paragraph{$\theta$ 敏感性。}
+对 $\theta\in\{3,5,6.83,8,10\}$ 逐个重做 fundamentals 反演、baseline 与潮汐 top\,100。
+$\theta=6.83$ 与主线一致：短跑 $\bar W$ $+0.871\%$，长跑 $+0.324\%$。
+政策符号在网格内稳定；较低 $\theta$ 时 OD 成本分解的 route 项会失真（例如 $\theta=3$ 时长跑 route 分解可到数百秒），但 $\bar W$ 百分比仍可解释。早期 square 原型上 $\ln L_{ij}\propto -\theta\ln\tau_{ij}$ 的网格搜索曾给出 $\hat\theta\approx 0.6$--$0.7$，因 $\tau$ 本身随 $\theta$ 变化，不作北京点估计。
+
+\paragraph{$\alpha,\beta$ 敏感性。}
+约 $18$ 格扫描，绝大多数收敛。收敛格内长跑 $\bar W$ 均为正；通勤 person-min 的符号约在 $\alpha\approx 0.04$--$0.05$（$\beta=-0.10$）附近过零，与 $\bar W$ 过零不同步。
+
+\paragraph{$\lambda$ 截面诊断。}
+用模型分配流量对观测拥堵做截面回归，得到的 $\hat\lambda$ 约在 $0.005$--$0.01$ 量级，与校准值 $1.1$ 相差约两个数量级。该诊断说明模型 $\Xi$ 不是真实车流密度的好代理，不能用来「估出」主线 $\lambda$。
+
+\paragraph{OD 拟合（与 $\theta$ 相关）。}
+Stage\,1 在 gate5 上：居住/工作边际拟合极好，全 OD 矩阵 L1 约 $72\%$（去对角约 $51\%$）。主要误差来自区内流（观测约 $8\%$，模型约 $53\%$）。在区内流未处理前，本地 $\theta$ 估计容易被 $T_{ii}$ 扭曲。
+
+\subsection*{若把北京 PPML / 结构校准放到下一阶段，具体做什么}
+建议拆成可执行步骤（不必本轮 draft 完成）：
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{先处理区内流。} 明确 $i=j$ 的数据含义；在 workplace choice 中剔除或单独参数化同格项，再谈 $\theta$。
+  \item \textbf{构造 model-consistent 双边成本。} 对每个候选 $\theta$，用锁定网络重算 $\tau_{ij}^{\mathrm{obs}}(\theta)$（Leontief / 路径加总与主模型一致）。
+  \item \textbf{PPML 重力。} 估计
+  \[
+    L_{ij}=\exp\bigl(\mu_i+\nu_j-\theta\log\tau_{ij}(\theta)\bigr)+\varepsilon_{ij},
+  \]
+  在候选网格上寻找「回归斜率接近所施加 $\theta$」的不动点；或直接用现有 $\theta$ 敏感性网格，按拟合与经济合理性选点。
+  \item \textbf{IV（可选加强）。} 用历史路网、环路/轨道开通等外生成本变动识别 $\theta$，避免 $\tau$ 与误差相关。
+  \item \textbf{决策规则。} 仅当本地估计与外部 $6.83$ 接近时替换主值；否则主值仍用 $6.83$，本地结果进附录。
+\end{enumerate}
+$\lambda_{\mathrm{phys}}$ 的下一阶段对应物是：有定向路段流量（或可靠代理）后的 panel / IV，而不是再做一次截面 $\Xi$ 回归。
+
+\subsection*{待定选项}
+\begin{enumerate}[nosep]
+  \item 本轮锁定 $\theta=6.83$ + $\theta$ 网格附录；本地 PPML 下一阶段。
+  \item 本轮启动 PPML（需先定区内流处理与负责人）。
+  \item $\lambda=1.1$ 维持主值，附 $\lambda=0.57$ band；或等待路段流量再估。
+  \item $\alpha,\beta$ 维持 pos05，或改用另一组文献校准值。
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Free-flow 口径}
+%---------------------------------------------------------------------
+
+\subsection*{问题}
+自由流时间 $\tau^{\mathrm{ff}}$ 进入 BPR / anchored 的基准负荷。现行夜均窗口仍可能含残留拥堵；约 $8\%$ 的边出现 $\tau^{\mathrm{obs}}<\tau^{\mathrm{ff}}$，在模型里被 floor（或 $x_{\mathrm{obs}}=0$），会压缩这些边的可调拥堵空间，并可能影响扩张类反事实与政策排序。
+
+\subsection*{现行选择}
+百度速度，$22{:}00$--$06{:}00$，全日夜均。
+
+\subsection*{待定选项}
+\begin{enumerate}[nosep]
+  \item 更窄深夜窗（例如 $01{:}00$--$05{:}00$）。
+  \item 工作日 / 周末拆分。
+  \item 高分位速度（上包络或 p90--p95）。
+  \item 工作日深夜 + 高分位组合。
+\end{enumerate}
+无论选哪一种，统一检查：$\tau^{\mathrm{obs}}/\tau^{\mathrm{ff}}$ 尾部、floor 份额、路径成本、$\bar W$、以及 P1--P4 政策排序是否翻转。
+
+%---------------------------------------------------------------------
+\section{道路 OD 人口口径}
+%---------------------------------------------------------------------
+
+\subsection*{问题}
+模型中的双边流 $L_{ij}$ 用哪一列：直接的小客车计数，还是总人口乘方式份额？水平会改变 $\bar L$ 与 $\Xi$ 的尺度；在 anchored 设定下，水平尺度大部分被消掉，但百分比效应仍可能移动。
+
+\subsection*{现行选择}
+主线使用 direct \texttt{type\_car}（写入 \texttt{commuters\_road}），$\bar L=88{,}110$。
+
+\subsection*{已有尝试（2026-07-02 car-ratio pilot）}
+\[
+  \texttt{commuters\_road}=\texttt{pop}\times\texttt{car\_share},
+\]
+份额按 OD 对 $\to$ 出发格 $\to$ 工作格 $\to$ 距离/核心分箱 $\to$ 全市 分层回退，并对小样本向全市收缩。
+结果：$\bar L$ 升至约 $1.65\times 10^6$（约 $\times 18.7$）；政策方向不变；潮汐与均匀提速等反事实的 $\bar W$ 变化幅度大约缩小 $5$--$10\%$；baseline 的 median $\tau/\tau^{\mathrm{obs}}$ 仍约 $1$。
+当时判断差别不足以改主表，主线与 slides 未切换。
+
+\subsection*{待定选项}
+\begin{enumerate}[nosep]
+  \item 确认主线继续用 \texttt{type\_car}。
+  \item 是否补做 car+bus 版本：$({\tt type\_car}+{\tt type\_bus})/{\tt identified}\times{\tt pop}$。
+  \item 是否补 grid 级 identified vs pop 的覆盖诊断（不换主线也可做）。
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{对称成本叙事：两套不同的实验}
+\label{sec:symmetry}
+%---------------------------------------------------------------------
+
+\subsection*{问题}
+「对称 vs 定向」在项目里做过不止一种实验。slides 上目前强调的对象，与最初想讲的对象并不相同。需要先分清，再决定主文/slides 用哪一套。
+
+\subsection*{两套实验分别是什么}
+
+\paragraph{A. 用对称速度完整重估（最初的问题）。}
+把观测的有向速度（或时间）改成对称对象（例如双向几何平均或调和平均），\textbf{用新的成本面重新反演 fundamentals}，再解均衡。算法上主要变化进入 $(\bar u_i,\bar A_j)$；观测的居住/就业边际仍被拟合。问的是：文献若只能看到对称成本，推断出的经济地理与随后的政策评价会差多少。
+
+\paragraph{B. 固定 fundamentals，只改成本（slides 上更常见的展示）。}
+在已估计的定向模型上，把成本改成对称（或做对称成本冲击），\textbf{不重新吸收到 fundamentals}。问的是：同一套偏好/生产率下，成本面本身的局部变化有多大。这与 A 不是同一句话：A 允许推断对象随测量假设而变；B 把推断对象钉住，只动成本。
+
+旧版 endogenous CF1（只改求解初值、拥堵锚点仍用有向观测）属于实现不完整的 B，不能解释为「方向性被拥堵反馈吸收」。
+
+\subsection*{顺着 A 做过的结果（完整重估 / 重反演）}
+
+\paragraph{Scheme B（2026-06-26，速度调和平均后重反演）。}
+同一套观测边际下，对称化后 fundamentals 移动很小：
+$\mathrm{std}(\Delta\ln\bar A_j)\approx 0.029$，$\mathrm{std}(\Delta\ln\bar u_i)\approx 0.030$；
+与就业分布、到就业中心距离的相关也很弱。
+当时的解读是：边级不对称强，但 OD 层流加权双边比已接近对称（约 $0.976$），对称测量对经济地理的修正有限。
+
+\paragraph{Stage\,1 re-invert（gate5，几何对称）。}
+定向世界与对称世界都拟合同一套边际；二者预测 OD 的 L1 约 $2.5\%$；各自相对观测 OD 的 L1 都约 $72\%$（对称化几乎不改善对数据的 OD 拟合）。福利与 fundamentals 有差异，但量级仍是「校准世界之间的差别」，不是「复现北京 OD」。
+
+\paragraph{Symmetric-input full re-estimation（2026-07-01）。}
+输入改为互易边的几何平均时间（观测与 free-flow 一并对称化），其余网络、OD、参数不变，\textbf{全套重估}。
+Baseline $\bar W$ 仅差约 $+0.035\%$：成本面差异大部分被反演进 $\bar u^\theta,\bar A^\theta$。
+有内容的差别出现在反事实层：各自按本世界选廊时，潮汐 top-$K$ 与定向主线的重叠有限（top\,100 约 $57\%$）；同一物理廊道上的评价偏差较小，自选廊道时的 OD 成本与 sorting 偏差更大。
+Place-based 冲击（生产率/amenity）在两世界之间的福利差很小；定向双边成本冲击的 sorting 分解差别更清楚。
+
+\textbf{小结（A）。} 完整重估后，baseline 拟合与福利水平几乎被 fundamentals 吸收掉；对称假设的影响主要留在「选哪条廊、政策怎样改 sorting」，而不是「baseline $\bar W$ 差一大截」。
+
+\subsection*{B 类结果（供对照，避免与 A 混读）}
+在固定定向反演结果、对成本做对称化或对称冲击时，可以出现约 $1\%$ 量级的 $\bar W$ 变动和几个百分点的 residence/workplace dissimilarity。这回答的是成本冲击本身，不是「用对称数据估完整个模型」之后还剩多少。若 slides 用 B 的数字讲 A 的故事，会夸大或讲错对象。
+
+\subsection*{待定选项}
+\begin{enumerate}[nosep]
+  \item 主叙事回到 A：完整重估下 baseline 接近，差别在政策选廊与 sorting；slides 改用 re-estimation / Scheme B 数字。
+  \item 保留 B 作为「成本冲击」机制页，但标题与口述明确写「fundamentals 固定」。
+  \item 两套都保留，正文用 A，附录放 B。
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{拥堵技术：车流单位与观测锚定}
+\label{sec:anchor}
+%---------------------------------------------------------------------
+
+\subsection*{问题}
+模型流量 $\Xi$ 是通勤质量单位，不是车/公里/车道。水平形式 $\tau=\tau^{\mathrm{ff}}(\Xi/n)^{\lambda}$ 在 $\lambda=1.1$ 下会把 $\Xi/n$ 的十个数量级放大成离谱的边时间（曾出现约 $69\%$ 的边快于自由流）。同时并不观测真实路段车流。
+
+\subsection*{现行选择}
+观测锚定（exact-hat 思路）并结合 BPR：
+基准再现 $\tau^{\mathrm{obs}}$；$\lambda$ 或 BPR 形状只作用于相对基准的偏离
+$(\Xi/\Xi_{\mathrm{obs}})(n_{\mathrm{obs}}/n)$。
+主线 $\lambda_{\mathrm{phys}}=1.1$。
+
+\subsection*{已有对照（早期 square 诊断）}
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+形式 & 基准是否等于观测 & 数值性态 & 备注 \\
+\midrule
+水平 power & 否 & 差（$\kappa\sim 10^4$） & 不可用 \\
+自由流 floor & 否 & 改善 & 仍无基准锚定 \\
+观测锚定 & 是 & 好（$\kappa\sim 1.5$） & 现行逻辑 \\
+\bottomrule
+\end{tabular}
+\end{center}
+代价：基准拟合是施加的，不能再当验证；验证应来自反事实反应（例如潮汐开通前后）。诱导需求仍依赖模型 $\Xi$ 的变动。
+
+\subsection*{待定选项}
+\begin{enumerate}[nosep]
+  \item 维持锚定，slides 写明锚定方程（避免写成简单 power）。
+  \item 收紧 free-flow（第~3 节）后重跑，再看 floor 份额与政策序。
+  \item 有定向流量后再估 $\lambda$；或用 OD 路径分配负荷作 $\Xi_{\mathrm{obs}}$ 的数据侧代理。
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{反事实与政策对比做到哪一层}
+%---------------------------------------------------------------------
+
+\subsection*{问题}
+潮汐主结果已有；与扩容、定价的对比框架也已跑通。需要定 draft 前的深度：只报潮汐，还是加上同预算扩容与成本归一；组合选边（固定 $K$ 条边的 greedy）是否本轮就做。
+
+\subsection*{现行主结果（bpr+pos05，top\,100）}
+短跑直接效应约 $-1.63$ 秒/人；长跑通勤账近似打平（约 $+0.065$ 秒）；$\bar W$ 短跑 $+0.87\%$，长跑 $+0.32\%$。
+选边已从纯时间不对称 \texttt{asym} 改为 \texttt{score\_bpr\_st}（按基准流量加权的 BPR 延误差）。
+
+政策对比（长跑 $\bar W$）：qdelay 扩容 $+0.444\%$ $>$ 同廊扩容 $+0.382\%$ $>$ 潮汐 $+0.324\%$（净 lane-km 为 $0$）$>$ 同预算均匀扩容 $+0.100\%$。
+First-best 定价实现仍有问题（toll 与收入会计），不宜作主表。qdelay 方案的 lane-km 与同廊方案未严格对齐。
+
+城市扩张相关：已有 fringe 通行、外围 amenity、枢纽可达与枢纽生产率等背景冲击后再加潮汐的组合实验；人口规模 $\bar L$ 增长的正式反事实尚未作为主规格落地。
+
+\subsection*{待定选项（按深度）}
+\begin{enumerate}[nosep]
+  \item 潮汐 ST/LT 分解 + 选边说明（已有）。
+  \item 加上同廊扩容 / 均匀扩容对照；修正或降级未对齐预算的方案。
+  \item 成本归一（$\Delta\bar W$ per lane-km；货币成本用数量级）。
+  \item 定价对照：cordon 可进附录；first-best 修好前不进主表。
+  \item 固定 $K$ 条边的组合选边（greedy / local search）：加分项，可放下一阶段。
+  \item 城市扩张：在人口增长、fringe、住房供给中选一条做主，其余附录。
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{职住分离与全国描述}
+%---------------------------------------------------------------------
+
+\subsection*{问题}
+方向性拥堵的需求侧来源是职住分离与向心通勤。已有北京格网与全国乡镇的描述，需决定是动机图还是独立小节，以及是否做跨城解释。
+
+\subsection*{现行材料}
+北京研究格网 Duncan $D=0.26$（随机下限约 $0.004$）；全国乡镇口径下北京约 $0.20$，在样本城中居前。
+早高峰核心相对反向：约 $74.5\%$ 向中心，inbound/reverse 约 $2.9\times$。
+全国 township 对与深圳 grid 流加权不对称已有描述；深圳结果定位为跨尺度事实，不作因果或福利结论。全国拥堵指数--不对称散点尚未收尾。
+
+\subsection*{待定选项}
+\begin{enumerate}[nosep]
+  \item 仅作 Model 前的动机图。
+  \item 独立描述小节。
+  \item 跨城小节：需求侧职住分离，供给侧方式份额与路网。
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{Reduced-form 与数据购买}
+%---------------------------------------------------------------------
+
+\subsection*{问题}
+结构参数中的 $\lambda$ 与潮汐冲击幅度，最终需要路段级前后速度来约束。深圳侧设计已有，缺 control 段与部分廊道的真 pre/post。
+
+\subsection*{现行设计与缺口}
+\begin{itemize}[nosep]
+  \item Treatment：留仙大道（学苑大道--福龙路，西向东）。
+  \item Control：龙珠大道（原茶光路段），西向东；购买须写别名与坐标范围。
+  \item 辅助：龙珠大道更远端，查溢出或共同冲击，不作主对照。
+  \item 留仙仅 treatment 的时序已出，不能无 control 时写成政策效应。
+  \item 彩田路、红岭路：需补真正开通前后的多周速度。
+\end{itemize}
+
+\subsection*{待定选项}
+\begin{enumerate}[nosep]
+  \item 是否购买龙珠大道（原茶光路段）开通前后 $10$ 分钟速度。
+  \item 彩田 / 红岭 pre/post 的负责与周数目标。
+  \item DID 进主文还是等 control 齐后再写。
+\end{enumerate}
+
+%---------------------------------------------------------------------
+\section{建议讨论顺序}
+%---------------------------------------------------------------------
+
+\begin{enumerate}[leftmargin=*]
+  \item 连通性与 $G=5$（通常确认维持）。
+  \item 参数路线：本轮锁校准还是启动本地 $\theta$；$\lambda$ 是否维持外生。
+  \item Free-flow 口径与检查责任人。
+  \item OD 口径：确认 type\_car；是否补 car+bus。
+  \item 对称叙事：主讲完整重估（A）还是固定 fundamentals 的成本冲击（B）。
+  \item 锚定写法是否接受为 draft 技术前提。
+  \item 政策对比 draft 做到哪一层；组合选边是否推迟。
+  \item 职住 / 全国描述的篇幅。
+  \item Reduced-form 买数据与排期。
+\end{enumerate}
+
+\vspace{1em}
+\noindent
+会后可将上表决定写入 \texttt{nextstep.md}（决定、负责人、输出路径、下次会前交付）。
+
+\end{document}

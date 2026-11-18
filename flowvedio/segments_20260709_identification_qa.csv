@@ -1,0 +1,4 @@
+video,start,end,label,regime,analysis_sample,event_window,keep,note
+出城方向1621开始.MOV,00:00,02:45,outbound_pre,pre,1,event,1,QA：未开通潮汐车道
+出城方向1621开始.MOV,03:30,08:30,outbound_post,post,1,event,1,QA：开通后出城机位
+进城方向1623开始.MOV,00:00,05:00,inbound_post,post,1,later_window,1,QA：进城机位

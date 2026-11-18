@@ -38,6 +38,11 @@ from .build_raw_connected_v1_grid_travel_time import (
 
 DELTA1 = 0.488
 LANES_FALLBACK = 2.0
+LANE_MAP = {
+    2: 6.0,  # expressway
+    3: 4.0,  # arterial
+    4: 2.0,  # secondary arterial
+}
 
 
 def parse_args():
@@ -307,57 +312,26 @@ def build_graph_csr(split_edges: gpd.GeoDataFrame, n_total: int):
     return coo_matrix((w, (rows, cols)), shape=(n_total, n_total)).tocsr()
 
 
-def build_raw_edge_lane_lookup(baseline_root: Path) -> tuple[dict[str, float], float]:
+def build_raw_edge_lane_lookup(baseline_root: Path) -> tuple[dict[str, float], float, dict[str, object]]:
     data_dir = baseline_root / "data"
-    match_path = data_dir / "raw_to_centerline_match_master.parquet"
-    lane_path = data_dir / "centerline_lane_master.parquet"
     seg_path = data_dir / "raw_segment_master.parquet"
-
-    lane_master = pd.read_parquet(lane_path)[["cline_id", "dir", "lane_est_length_weighted"]].copy()
-    lane_master["lane_est_length_weighted"] = pd.to_numeric(
-        lane_master["lane_est_length_weighted"], errors="coerce"
-    )
-    lane_master = lane_master[lane_master["lane_est_length_weighted"].notna()].copy()
-
-    match = pd.read_parquet(match_path)[
-        ["raw_edge_id", "matched_final", "cline_id_final", "dir_final", "s_from", "s_to"]
-    ].copy()
-    match = match[pd.to_numeric(match["matched_final"], errors="coerce") == 1].copy()
-    match["matched_length_m"] = pd.to_numeric(match["s_to"], errors="coerce") - pd.to_numeric(
-        match["s_from"], errors="coerce"
-    )
-    match["matched_length_m"] = pd.to_numeric(match["matched_length_m"], errors="coerce")
-    match = match[match["matched_length_m"] > 0].copy()
-    match = match.merge(
-        lane_master,
-        left_on=["cline_id_final", "dir_final"],
-        right_on=["cline_id", "dir"],
-        how="left",
-    )
-    match = match[match["lane_est_length_weighted"].notna()].copy()
-    match["lane_w"] = match["lane_est_length_weighted"] * match["matched_length_m"]
-    lane_by_match = (
-        match.groupby("raw_edge_id", as_index=False)
-        .agg(lane_w=("lane_w", "sum"), len_w=("matched_length_m", "sum"))
-    )
-    lane_by_match["lane_est"] = np.where(
-        lane_by_match["len_w"] > 0,
-        lane_by_match["lane_w"] / lane_by_match["len_w"],
-        np.nan,
-    )
 
     seg = pd.read_parquet(seg_path)
     road_class_source = "road_class" if "road_class" in seg.columns else "roadtype"
     seg["road_class_num"] = pd.to_numeric(seg.get(road_class_source), errors="coerce")
     seg["lane_est_segment"] = pd.to_numeric(seg.get("road_class_lane_mean"), errors="coerce")
-    seg["lane_est_segment"] = seg["lane_est_segment"].fillna(seg["road_class_num"].map({2: 6.0, 3: 4.0, 4: 2.0}))
+    seg["lane_est_segment"] = seg["lane_est_segment"].fillna(seg["road_class_num"].map(LANE_MAP))
     seg["length_m"] = pd.to_numeric(seg.get("length_m"), errors="coerce")
     seg_use = seg[
-        seg["raw_edge_id"].notna() & seg["lane_est_segment"].notna() & seg["length_m"].notna() & (seg["length_m"] > 0)
+        seg["roadseg_id"].notna()
+        & seg["lane_est_segment"].notna()
+        & (seg["lane_est_segment"] > 0)
+        & seg["length_m"].notna()
+        & (seg["length_m"] > 0)
     ].copy()
     seg_use["lane_w"] = seg_use["lane_est_segment"] * seg_use["length_m"]
     lane_by_seg = (
-        seg_use.groupby("raw_edge_id", as_index=False)
+        seg_use.groupby("roadseg_id", as_index=False)
         .agg(lane_w=("lane_w", "sum"), len_w=("length_m", "sum"))
     )
     lane_by_seg["lane_est"] = np.where(
@@ -367,18 +341,41 @@ def build_raw_edge_lane_lookup(baseline_root: Path) -> tuple[dict[str, float], f
     )
 
     lane_lookup: dict[str, float] = {}
+    roadseg_keys = 0
     for r in lane_by_seg.itertuples(index=False):
         if np.isfinite(r.lane_est):
-            lane_lookup[str(r.raw_edge_id)] = float(r.lane_est)
-    for r in lane_by_match.itertuples(index=False):
-        if np.isfinite(r.lane_est):
-            lane_lookup[str(r.raw_edge_id)] = float(r.lane_est)
+            lane_lookup[str(r.roadseg_id)] = float(r.lane_est)
+            roadseg_keys += 1
+
+    raw_edge_alias_keys = 0
+    if "raw_edge_id" in seg_use.columns:
+        alias = seg_use[["raw_edge_id", "roadseg_id"]].dropna().drop_duplicates().copy()
+        for r in alias.itertuples(index=False):
+            val = lane_lookup.get(str(r.roadseg_id))
+            if val is not None:
+                lane_lookup.setdefault(str(r.raw_edge_id), float(val))
+                raw_edge_alias_keys += 1
 
     lane_values = np.array([v for v in lane_lookup.values() if np.isfinite(v)], dtype=float)
-    lane_fallback = float(np.nanmean(lane_values)) if lane_values.size else 2.0
-    if not np.isfinite(lane_fallback) or lane_fallback <= 0:
-        lane_fallback = 2.0
-    return lane_lookup, lane_fallback
+    lane_fallback = float(LANES_FALLBACK)
+    info = {
+        "lane_source": "raw_segment_master.roadseg_id road_class_lane_mean",
+        "lane_map": LANE_MAP,
+        "raw_segment_rows": int(len(seg)),
+        "raw_segment_valid_lane_rows": int(len(seg_use)),
+        "roadseg_lane_keys": int(roadseg_keys),
+        "raw_edge_id_alias_keys": int(raw_edge_alias_keys),
+        "lane_lookup_total_keys": int(len(lane_lookup)),
+        "lane_value_mean_over_lookup_keys": float(np.nanmean(lane_values)) if lane_values.size else np.nan,
+        "lane_fallback_only_for_all_missing_paths": lane_fallback,
+        "missing_lane_rule": "unlinked/manual road edges stay NaN and are skipped in path lane aggregation",
+    }
+    return lane_lookup, lane_fallback, info
+
+
+def map_road_lanes(edge_ids: pd.Series, lane_lookup: dict[str, float]) -> pd.Series:
+    lanes = pd.to_numeric(edge_ids.astype(str).map(lane_lookup), errors="coerce")
+    return lanes.where(np.isfinite(lanes) & (lanes > 0), np.nan)
 
 
 def compute_grid_costs_adjacent_pairwise(
@@ -403,9 +400,7 @@ def compute_grid_costs_adjacent_pairwise(
     edge_time_lookup = road_edges.set_index("edge_id")["travel_time_min"].to_dict()
     edge_ff_time_lookup = road_edges.set_index("edge_id")["tau_ff_min"].to_dict()
     edge_length_lookup = road_edges.set_index("edge_id")["length_m"].to_dict()
-    road_lane = road_edges["edge_id"].astype(str).map(lane_lookup)
-    road_lane = pd.to_numeric(road_lane, errors="coerce").fillna(lane_fallback)
-    road_lane = np.where(np.isfinite(road_lane) & (road_lane > 0), road_lane, lane_fallback)
+    road_lane = map_road_lanes(road_edges["edge_id"], lane_lookup)
     connectors = connectors.copy()
     connectors["host_edge_time_min"] = connectors["host_edge_id"].map(edge_time_lookup).fillna(0.0)
     connectors["host_edge_ff_time_min"] = connectors["host_edge_id"].map(edge_ff_time_lookup).fillna(0.0)
@@ -445,7 +440,12 @@ def compute_grid_costs_adjacent_pairwise(
                 "route_avg_speed_kmh": np.nan,
                 "lane_est_path_raw_edgeproj_len_weighted": np.nan,
                 "lane_est_path_raw_edgeproj_bottleneck": np.nan,
+                "lane_path_support_len_m": np.nan,
+                "lane_path_total_road_len_m": np.nan,
+                "lane_path_support_share": np.nan,
+                "lane_path_all_missing_flag": np.nan,
                 "lane_resolved_for_bpr": np.nan,
+                "lane_resolved_source": "missing_route",
                 "xi_bpr_edgeproj": np.nan,
             })
             continue
@@ -458,8 +458,7 @@ def compute_grid_costs_adjacent_pairwise(
         cff_h = (home_conn["connector_ff_time_min"] + home_conn["outbound_edge_ff_time"]).to_numpy(dtype=float)
         cl_h = (home_conn["connector_dist_m"] + home_conn["outbound_edge_length"]).to_numpy(dtype=float)
         cl_h_road = home_conn["outbound_edge_length"].to_numpy(dtype=float)
-        lane_h = home_conn["host_edge_id"].astype(str).map(lane_lookup)
-        lane_h = pd.to_numeric(lane_h, errors="coerce").fillna(lane_fallback).to_numpy(dtype=float)
+        lane_h = map_road_lanes(home_conn["host_edge_id"], lane_lookup).to_numpy(dtype=float)
         # upstream road node -> WORK (inbound road portion + connector dist)
         ci_w = work_conn["from_node_id"].map(road_node_map).to_numpy(dtype=int)
         cj_w = np.full(len(work_conn), WORK_IDX, dtype=int)
@@ -467,8 +466,7 @@ def compute_grid_costs_adjacent_pairwise(
         cff_w = (work_conn["inbound_edge_ff_time"] + work_conn["connector_ff_time_min"]).to_numpy(dtype=float)
         cl_w = (work_conn["inbound_edge_length"] + work_conn["connector_dist_m"]).to_numpy(dtype=float)
         cl_w_road = work_conn["inbound_edge_length"].to_numpy(dtype=float)
-        lane_w = work_conn["host_edge_id"].astype(str).map(lane_lookup)
-        lane_w = pd.to_numeric(lane_w, errors="coerce").fillna(lane_fallback).to_numpy(dtype=float)
+        lane_w = map_road_lanes(work_conn["host_edge_id"], lane_lookup).to_numpy(dtype=float)
         all_rows = np.concatenate([road_rows, ci_h, ci_w])
         all_cols = np.concatenate([road_cols, cj_h, cj_w])
         all_wts = np.concatenate([road_wts, cw_h, cw_w])
@@ -507,6 +505,9 @@ def compute_grid_costs_adjacent_pairwise(
         route_ff_min: float = np.nan
         lane_est_path_weighted: float = np.nan
         lane_est_path_bottleneck: float = np.nan
+        lane_support_len_m: float = np.nan
+        lane_total_road_len_m: float = np.nan
+        lane_path_all_missing_flag: float = np.nan
         if np.isfinite(tt):
             path_nodes: list[int] = []
             cur = WORK_IDX
@@ -523,23 +524,40 @@ def compute_grid_costs_adjacent_pairwise(
                 route_ff_min = float(sum(ff_time_dict.get(k, 0.0) for k in arc_keys))
                 lane_weight_sum = 0.0
                 lane_len_sum = 0.0
+                total_road_len_sum = 0.0
                 lane_vals_path: list[float] = []
                 for k in arc_keys:
                     seg_road_len = float(road_len_dict.get(k, 0.0))
                     seg_lane = float(lane_dict.get(k, np.nan))
+                    if seg_road_len > 0:
+                        total_road_len_sum += seg_road_len
                     if seg_road_len > 0 and np.isfinite(seg_lane) and seg_lane > 0:
                         lane_weight_sum += seg_road_len * seg_lane
                         lane_len_sum += seg_road_len
                         lane_vals_path.append(seg_lane)
+                lane_total_road_len_m = total_road_len_sum
+                lane_support_len_m = lane_len_sum
+                lane_path_all_missing_flag = float(lane_len_sum <= 0)
                 if lane_len_sum > 0:
                     lane_est_path_weighted = lane_weight_sum / lane_len_sum
                 if lane_vals_path:
                     lane_est_path_bottleneck = float(np.min(lane_vals_path))
-        lane_resolved = lane_est_path_weighted
-        if not (np.isfinite(lane_resolved) and lane_resolved > 0):
-            lane_resolved = lane_est_path_bottleneck
-        if not (np.isfinite(lane_resolved) and lane_resolved > 0):
-            lane_resolved = LANES_FALLBACK
+        lane_resolved = np.nan
+        lane_resolved_source = "missing_route"
+        if np.isfinite(tt):
+            lane_resolved = lane_est_path_weighted
+            lane_resolved_source = "path_len_weighted"
+            if not (np.isfinite(lane_resolved) and lane_resolved > 0):
+                lane_resolved = lane_est_path_bottleneck
+                lane_resolved_source = "path_bottleneck"
+            if not (np.isfinite(lane_resolved) and lane_resolved > 0):
+                lane_resolved = LANES_FALLBACK
+                lane_resolved_source = "all_missing_fallback"
+        lane_support_share = (
+            lane_support_len_m / lane_total_road_len_m
+            if np.isfinite(lane_support_len_m) and np.isfinite(lane_total_road_len_m) and lane_total_road_len_m > 0
+            else np.nan
+        )
         congestion_ratio = (
             max(tt, route_ff_min) / route_ff_min
             if np.isfinite(tt) and np.isfinite(route_ff_min) and route_ff_min > 0
@@ -566,7 +584,12 @@ def compute_grid_costs_adjacent_pairwise(
             "route_avg_speed_kmh": avg_speed,
             "lane_est_path_raw_edgeproj_len_weighted": lane_est_path_weighted,
             "lane_est_path_raw_edgeproj_bottleneck": lane_est_path_bottleneck,
+            "lane_path_support_len_m": lane_support_len_m,
+            "lane_path_total_road_len_m": lane_total_road_len_m,
+            "lane_path_support_share": lane_support_share,
+            "lane_path_all_missing_flag": lane_path_all_missing_flag,
             "lane_resolved_for_bpr": lane_resolved,
+            "lane_resolved_source": lane_resolved_source,
             "xi_bpr_edgeproj": xi_bpr,
         })
     return pd.DataFrame(out_rows)
@@ -744,7 +767,15 @@ def main():
     road_edges.to_csv(data_dir / f"raw_connected_road_edges_{args.period}.csv", index=False)
     node_df = build_node_lookup(nodes, road_edges)
     node_df.to_csv(data_dir / "raw_connected_road_nodes_usable.csv", index=False)
-    lane_lookup, lane_fallback = build_raw_edge_lane_lookup(baseline_root=baseline_root)
+    lane_lookup, lane_fallback, lane_lookup_info = build_raw_edge_lane_lookup(baseline_root=baseline_root)
+    road_lane = map_road_lanes(road_edges["edge_id"], lane_lookup)
+    lane_lookup_info.update(
+        {
+            "road_edges_with_lane": int(road_lane.notna().sum()),
+            "road_edges_total": int(len(road_edges)),
+            "road_edge_lane_hit_share": float(road_lane.notna().mean()) if len(road_edges) else np.nan,
+        }
+    )
 
     grid_types = GRID_TYPES if args.grid_type == "all" else (args.grid_type,)
     summaries = []
@@ -806,8 +837,9 @@ def main():
         "speed_stats": speed_stats,
         "cleaned_road_edges": int(len(road_edges)),
         "usable_road_nodes": int(len(node_df)),
-        "path_lane_source": "path-based raw-edge lane proxy from centerline match + road class fallback",
+        "path_lane_source": "path-based raw roadseg_id lane proxy from raw road_class/roadtype; unlinked/manual edges are missing",
         "path_lane_fallback": lane_fallback,
+        "lane_lookup": lane_lookup_info,
         "path_tau_obs_source": f"raw_connected_v1 edgeproj path using {speed_stats.get('period_speed_source')}",
         "path_tau_ff_source": "same realized edgeproj path using speed_ff_kmh from 22:00-05:00 speed table; missing free-flow speed falls back to period speed",
         "xi_bpr_formula": "lane_resolved_for_bpr * max(tau_obs/tau_ff, 1)^(1/delta1)",

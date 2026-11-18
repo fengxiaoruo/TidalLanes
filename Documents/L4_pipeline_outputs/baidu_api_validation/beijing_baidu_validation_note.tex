@@ -1,0 +1,276 @@
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[UTF8,fontset=fandol]{ctex}
+\usepackage{amsmath,amssymb,graphicx,booktabs,tabularx,setspace}
+\renewcommand{\figurename}{Figure}
+\renewcommand{\tablename}{Table}
+\title{北京路网：百度 API 爬取验证（Raw 与 Centerline）\\ \large v6（2026-06-03，本轮爬取定稿；Raw 12/15 + Centerline 15/15）}
+\author{Xiaoruo Feng}
+\date{2026年06月03日}
+
+\begin{document}
+\maketitle
+
+\section*{数据覆盖范围}
+
+\textbf{本版快照：v6（2026-06-03，本轮爬取定稿；Raw 12/15 + Centerline 15/15）}。 Raw 正式周 \texttt{formal\_week\_20260528}：5 天 pooled，bind\_ok$\cap$direct $\approx$ 72,528 条/panel（完整 session 12/15；未完整 panel 的 api\_ok 行仍纳入 pooled 分析）。 Centerline 正式周 \texttt{formal\_week\_20260527}：15/15 完整 session，每 panel 59,450 条；bind\_ok$\cap$inferred $\approx$ 15,233 条/panel。 爬取进度见表~\ref{tab:crawl_progress}；规模见表~\ref{tab:crawl_inventory}。
+
+Raw 正式周：12/15 个 day$\times$panel 达到 api\_ok$\ge$99\%；Centerline：15/15 全部完成。\textbf{本轮爬取已结束}，缺失 panel 不补跑；验证使用各 session 中全部 api\_ok 行。 Raw 未完整 panel：d04 PM（api\_ok 30\%）；d05 AM（api\_ok 86\%）；d05 PM（api\_ok 0\%）。 验证统计：Raw 与 Centerline 均基于正式周 best session pooled（api\_ok 行参与分析）；Spatial 几何指标仅 d01（含 route path）。
+
+\begin{table}[h!]
+\centering
+\caption{Formal-week crawl progress (best session per day $\times$ panel)}
+\label{tab:crawl_progress}
+\footnotesize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{lccc|ccc}
+\toprule
+ & \multicolumn{3}{c|}{Raw (\texttt{formal\_week\_20260528})} & \multicolumn{3}{c}{Centerline (\texttt{formal\_week\_20260527})} \\
+Day & FREE & AM & PM & FREE & AM & PM \\
+\midrule
+d01 & \checkmark (23,799) & \checkmark (23,799) & \checkmark (23,799) & \checkmark (11,890) & \checkmark (11,890) & \checkmark (11,890) \\
+d02 & \checkmark (23,799) & \checkmark (23,799) & \checkmark (23,799) & \checkmark (11,890) & \checkmark (11,890) & \checkmark (11,890) \\
+d03 & \checkmark (23,799) & \checkmark (23,799) & \checkmark (23,799) & \checkmark (11,890) & \checkmark (11,890) & \checkmark (11,890) \\
+d04 & \checkmark (23,799) & \checkmark (23,799) & 部分 30\% & \checkmark (11,890) & \checkmark (11,890) & \checkmark (11,890) \\
+d05 & \checkmark (23,799) & 部分 86\% & 进行中 47\% & \checkmark (11,890) & \checkmark (11,890) & \checkmark (11,890) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\caption{Crawl inventory: two validation layers (formal week, best session per day$\times$panel)}
+\label{tab:crawl_inventory}
+\footnotesize
+\begin{tabular}{llrrl}
+\toprule
+Layer & Week label & Units / panel & Rows / panel (5d pooled) & Notes \\
+\midrule
+Raw segment & \texttt{formal\_week\_20260528} & 23,799 segments & 118,995 max & Day1 route path; d02+ duration only \\
+Centerline & \texttt{formal\_week\_20260527} & 11,890 directed CL & 59,450 & Day1 route path; dense gap-fill d02--d05 \\
+\multicolumn{5}{l}{\textit{Complete day$\times$panel sessions: Raw 12/15; Centerline 15/15.}} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{两套爬取链路说明}
+
+\textbf{Raw segment 层}（week label: \\texttt{formal\_week\_20260528}）：在 baseline raw segment 上，每条路段带固定途经点调用 DirectionLite；共 23,799 条/panel。Day1 保存 route path；Day2--5 仅 duration/distance。对照基准为百度 speed CSV weekday 聚合。Bind\\_ok 约 84\\%。\\
+\textbf{Centerline 层}（week label: \\texttt{formal\_week\_20260527}）：在 baseline directed centerline 上爬取，共 11,890 条/panel；Day2--5 采用 dense orchestrator 补跑。对照基准为 stage03 raw speed 聚合推断 travel time。Bind\\_ok 约 31\\%。\\
+\textbf{共同设定}：Panel 为 FREE（02:30）、AM/PM（07:30/17:30 躲避拥堵）；Bind QC 为 distance/length $\\in [0.6,1.8]$。
+
+\section*{验证目的}
+
+\textbf{Raw 链路}：baseline raw segment 上，带途经点的 DirectionLite API 行程时间 vs \texttt{speed\_Beijing\_all\_wgs84.csv} 直接观测。\\
+\textbf{Centerline 链路}：baseline directed centerline 上，API 行程时间 vs stage03 raw speed 聚合推断的 travel time。\\
+Panel 定义：FREE（深夜常规）、AM（7--9 时躲避拥堵）、PM（17--19 时躲避拥堵，weekday）。\\
+Bind QC：$\mathrm{distance}/\mathrm{length}\in[0.6,1.8]$。\\
+Crawl 标签：raw = \\texttt{formal\_week\_20260528}；centerline = \\texttt{formal\_week\_20260527}。
+
+\section*{1.\ 爬取 travel cost 能否复刻已有数据？（Raw 基准）}
+
+核心问题：API 路由返回的 duration 是否与百度直接给我们的路段 speed CSV 在统计意义上显著相关、可用于复刻现有观测？
+
+\begin{table}[h!]
+\centering
+\caption{Panel-level validation summary (bind\_ok subsets)}
+\label{tab:panel_summary}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{llrrrrr}
+\toprule
+Layer & Panel & $n$ & Bind OK & Med.\ ratio & Share $\in [0.8,1.25]$ & $r$ \\
+\midrule
+Raw & FREE & 109,805 & 92.8\% & 1.34 & 29.3\% & 0.89 \\
+Raw & AM & 106,981 & 90.3\% & 1.47 & 25.6\% & 0.84 \\
+Raw & PM & 72,528 & 68.6\% & 1.37 & 28.2\% & 0.85 \\
+Centerline & FREE & 15,260 & 31.0\% & 1.46 & 31.1\% & 0.92 \\
+Centerline & AM & 15,258 & 31.0\% & 1.48 & 28.5\% & 0.88 \\
+Centerline & PM & 15,233 & 31.0\% & 1.53 & 27.8\% & 0.89 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Raw 层（FREE、AM、PM）bind\_ok 占比约 84\%，明显高于 centerline 层（约 31\%）。在 bind\_ok$\cap$direct speed 子样本中，Pearson 相关 $r$ 为 0.84--0.89；median API/direct ratio 为 1.34--1.47。MAE 约 0.30--0.45 分钟。API 爬取可\textbf{复刻直接观测的主要横截面排序}，但 level 系统性偏高，需 bind QC 或 scale 校准。
+
+\begin{table}[h!]
+\centering
+\caption{Raw API crawl cross-day stability (bind ok, direct speed matched)}
+\label{tab:raw_stability}
+\footnotesize
+\begin{tabular}{lrrrr}
+\toprule
+Panel & n (ge2 days) & Med.\ CV & Share CV le 0.15 & Med.\ max/min \\
+\midrule
+AM & 21,989 & 0.140 & 53.5\% & 1.46 \\
+FREE & 21,989 & 0.156 & 48.1\% & 1.52 \\
+PM & 21,986 & 0.127 & 57.7\% & 1.35 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_raw_day_panel_bind_ok.png}
+\caption{Raw 正式周：bind\_ok 占比按 crawl day（约 93\%，跨日稳定）。}
+\label{fig:raw_day_bind}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_raw_api_vs_direct_scatter.png}
+\caption{Raw segment：API 行程时间 vs 直接 speed CSV 反推行程时间（bind\_ok）。虚线为 45$^\circ$ 线。}
+\label{fig:raw_scatter}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_raw_bland_altman.png}
+\caption{Raw segment：Bland--Altman 图（API $-$ direct）。}
+\label{fig:raw_ba}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.88\textwidth]{figures/fig_raw_time_ratio_hist.png}
+\caption{Raw segment：API/direct 行程时间比分布（bind\_ok）。灰色带为 $[0.8,1.25]$。}
+\label{fig:raw_ratio}
+\end{figure}
+
+\section*{2.\ 爬取道路是否与 baseline shp 为同一条底层道路？}
+
+\subsection*{2.1 统计指标}
+
+Bind ratio 衡量 API 返回距离与 baseline 几何长度的比值；spatial pass 定义为 mean distance $\le 80$\,m 且 baseline overlap $\ge 50\%$（50\,m buffer，route path 经 GCJ$\rightarrow$WGS 校正）。
+
+\begin{table}[h!]
+\centering
+\caption{Spatial fit summary (50\,m buffer; GCJ$\rightarrow$WGS corrected routes)}
+\label{tab:spatial_summary}
+\footnotesize
+\begin{tabular}{lrrrr}
+\toprule
+Layer & Panel & Spatial pass & Med.\ overlap & Med.\ mean dist (m) \\
+\midrule
+Centerline & AM & 29.1\% & 0.05 & 106.6 \\
+Centerline & FREE & 30.3\% & 0.07 & 109.1 \\
+Centerline & PM & 28.8\% & 0.04 & 105.5 \\
+Raw segment & AM & 28.7\% & 0.00 & 101.2 \\
+Raw segment & FREE & 26.7\% & 0.00 & 109.4 \\
+Raw segment & PM & 28.0\% & 0.00 & 107.6 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Centerline 与 raw 两层的 spatial pass 分别为约 29\\% 与 28\\%（d01 route path 子样本）；median overlap 接近 0。
+\textbf{这不等于绑到了错误道路}：许多 API 返回路径与 baseline 几何 \textbf{平行}（对向或相邻车道），在 50\,m buffer 下 overlap 指标非常保守。
+Raw 层 bind\_ok 高达 93\%，说明 API 返回距离与 segment 长度更一致；centerline 层 bind\_ok 仅 31\%，主要因为 centerline 更长、更易触发绕路或平行走廊。
+仍需结合地图叠加（图~\ref{fig:cl_map}）判断：平行走廊会同时压低 overlap 并抬高 distance/length。
+
+\subsection*{2.2 路网地图可视化}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.78\textwidth]{figures/fig_cl_network_overlay.png}
+\caption{Centerline baseline（蓝）与 bind\_ok 的百度 API 路线（橙）叠加，天安门 10\,km 范围；虚线环为 5/10\,km。}
+\label{fig:cl_map}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_cl_spatial_scatter.png}
+\caption{Centerline：bind ratio vs 空间 overlap（平行走廊常表现为低 overlap + 可接受 bind ratio）。}
+\label{fig:cl_spatial}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_raw_spatial_scatter.png}
+\caption{Raw segment：bind ratio vs 空间 overlap。}
+\label{fig:raw_spatial}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_cl_dist_ratio.png}
+\caption{Centerline：distance/length 分布（bind QC 带灰色阴影）。约 31\% 落入 $[0.6,1.8]$。}
+\label{fig:cl_bind}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_raw_dist_ratio.png}
+\caption{Raw segment：distance/length 分布。约 93\% 落入 bind QC。}
+\label{fig:raw_bind}
+\end{figure}
+
+\section*{3.\ Centerline 聚合速度质量（API crawl vs raw aggregate）}
+
+在认为 centerline API crawl 可作为外部 ground truth 的前提下，将 crawl 结果与 stage03 由 raw speed 聚合得到的 inferred travel time 对照，以评估 aggregation 是否合理。
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_cl_api_vs_inferred_scatter.png}
+\caption{Centerline：API crawl vs inferred travel time（bind\_ok$\cap$inferred）。}
+\label{fig:cl_agg_scatter}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_cl_inferred_vs_cl_api_scatter.png}
+\caption{Matched centerlines：inferred vs centerline API crawl（跨 raw segment 匹配汇总）。}
+\label{fig:cl_cross}
+\end{figure}
+
+Bind\_ok$\cap$inferred 子样本中（正式周 pooled），centerline 三 panel 的 $r=0.88$--0.92，
+median ratio 约 1.46--1.53；约 28--31\% 落在 $[0.8,1.25]$。
+bind\_ok 占比稳定在 31\%（5 日间无明显漂移）。
+跨日稳定性（表~\\ref{tab:cl_stability}）：median CV 约 0.10--0.13，60--70\\% centerline 的 5 日 CV $\\le 0.15$。
+这与 raw 层“相关强但 level 偏高”一致，并额外混入 centerline 聚合与绑路噪声。
+在 matched centerlines 子样本中，centerline API / inferred 的 median ratio 为 AM=1.47, FREE=1.42, PM=1.54；对应相关系数为 AM $r=0.90$, FREE $r=0.94$, PM $r=0.90$。
+
+\begin{table}[h!]
+\centering
+\caption{Centerline API crawl cross-day stability (bind ok, inferred matched)}
+\label{tab:cl_stability}
+\footnotesize
+\begin{tabular}{lrrrr}
+\toprule
+Panel & n (ge2 days) & Med.\ CV & Share CV le 0.15 & Med.\ max/min \\
+\midrule
+AM & 3,054 & 0.125 & 59.3\% & 1.42 \\
+FREE & 3,063 & 0.113 & 65.7\% & 1.36 \\
+PM & 3,051 & 0.099 & 70.4\% & 1.32 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig_cl_day_panel_bind_ok.png}
+\caption{Centerline 正式周：bind\_ok 占比按 crawl day（稳定 $\approx 31\%$）。}
+\label{fig:cl_day_bind}
+\end{figure}
+
+\section*{阶段性结论（当前快照）}
+
+\begin{enumerate}
+  \item \textbf{API 可复刻直接观测（Raw）}：正式周 pooled 下 segment 爬取与 speed CSV 高度相关（$r=0.84$--0.89）；bind\\_ok $\\approx$84\\%；level 系统性偏高。
+  \item \textbf{几何对齐（Spatial）}：spatial pass Raw $28\\%$ / Centerline $29\\%$；overlap 指标偏保守，平行走廊是主要解释。
+  \item \textbf{聚合质量（Centerline）}：正式周 pooled 下 inferred 与 API crawl 排序一致（$r=0.88$--0.92）；aggregation 在排序上合理，level 校准仍需改进；API 爬取跨日稳定（median CV $\le 0.13$）。
+\end{enumerate}
+
+\section*{复现命令}
+
+\begin{verbatim}
+cd data_work
+python -m src.raw_baidu_validation.plot_validation_diagnostics \\
+  --formal-week formal_week_20260528 --formal-days 5 --panels FREE,AM,PM
+python -m src.centerline_baidu_validation.plot_validation_diagnostics \\
+  --formal-week formal_week_20260527 --formal-days 5 --reference-label ""
+python -m src.baidu_validation_common.build_unified_validation_note \\
+  --raw-label formal_week_20260528 --centerline-label formal_week_20260527 \\
+  --raw-panels FREE,AM,PM --tex-name beijing_baidu_validation_note.tex
+\end{verbatim}
+
+\end{document}

@@ -1,0 +1,371 @@
+\documentclass[11pt,a4paper]{ctexart}
+
+\usepackage[margin=2.15cm]{geometry}
+\usepackage{amsmath,amssymb,booktabs,threeparttable,tabularx,array,longtable}
+\usepackage{graphicx,float,caption,subcaption}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,urlcolor=blue!55!black]{hyperref}
+\usepackage{xcolor,enumitem,microtype}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0.22em}
+\setlist[itemize]{leftmargin=2em,itemsep=0.15em,topsep=0.2em}
+\captionsetup{font=small,labelfont=bf}
+\newcommand{\rdroot}{../../flowvedio/batch_outputs/20260723_24_state_dependent_recognition_v5/analysis_basic_v1}
+\newcommand{\detroot}{\rdroot/outbound_random_detection_audit_v1}
+
+\title{RDiT Analysis of Caitian Tidal Lanes}
+\author{}
+\date{August 27, 2026}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+本文整理2026年7月23日和24日彩田路潮汐车道视频数据及其时间断点分析。第2至4节说明原始视频、车辆识别、分钟流量构造和变量定义。第5节给出四次车道切换附近的原始方向流量，第6节报告RDiT specification和基准估计，第7节进一步考察单位车道流量。最后一节总结当前证据的解释范围，并提出控制组、多工作日采集和速度测量方面的下一步安排。
+
+\section{原始数据与样本标记}
+
+\subsection{数据类型与覆盖}
+
+原始数据为手机或相机录制的MOV视频，分辨率均为$1920\times1080$。文件级时间由本地创建时间、视频时长和人工校正共同恢复。原始清单含18个视频文件，覆盖7月23日14:41--22:17和7月24日14:42--22:16的若干连续区间。本文只利用能够观察出城侧道路横断面的片段。拍摄设备变化按当前研究约定忽略，但不同片段仍需分别标定计数线和物理区域。
+
+\begin{table}[H]
+\centering
+\caption{原始视频的主要类型、时长与标记}
+\label{tab:raw_data}
+\begin{threeparttable}
+\begin{tabularx}{\textwidth}{p{0.16\textwidth}p{0.18\textwidth}p{0.16\textwidth}X}
+\toprule
+日期与时段 & 原始时长 & 所属类别 & 标记与处理 \\
+\midrule
+7/23 下午 & 14:41--18:17 & 向南开放、开通操作、向北开放 & 开通操作期15分25秒有录像；稳定运行片段进入开通RDiT。\\
+7/23 晚间 & 20:11--22:17 & 向北开放、恢复操作、向南开放 & 13.3秒短片排除；恢复操作期15分钟有录像；稳定片段进入恢复RDiT。\\
+7/24 下午 & 14:42--18:31 & 向南开放、开通操作、向北开放 & 16:07:43--16:26:46无录像；仅保留16:26:46--16:29:01操作尾段；最近有效pre距断点23.02分钟。\\
+7/24 晚间 & 20:02--22:16 & 向北开放、恢复操作、向南开放 & 恢复操作期21:34:16--21:42:41有录像；稳定片段进入恢复RDiT。\\
+\bottomrule
+\end{tabularx}
+\begin{tablenotes}[flushleft]\footnotesize
+\item 注：稳定状态分为向北开放和向南开放，分别对应北向4条、南向3条车道以及北向3条、南向4条车道。操作期是两种稳定状态之间的车道切换过程。无录像区间记为缺失，不补零、不插值。
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{四次潮汐车道操作的时间设置}
+\label{tab:event_timing}
+\begin{tabularx}{\textwidth}{p{0.16\textwidth}p{0.19\textwidth}p{0.19\textwidth}p{0.13\textwidth}X}
+\toprule
+事件 & 开始实施 & 稳定运行完成 & 持续时间 & 录像情况 \\
+\midrule
+7/23开通 & 16:11:09 & 16:26:34 & 15分25秒 & 操作期有录像。\\
+7/23恢复 & 21:31:35 & 21:46:35 & 15分钟 & 操作期有录像。\\
+7/24开通 & 16:07:43 & 16:29:01 & 21分18秒 & 16:07:43--16:26:46无录像，仅保留其后的操作尾段。\\
+7/24恢复 & 21:34:16 & 21:42:41 & 8分25秒 & 操作期有录像。\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+图\ref{fig:detection_examples}给出车辆识别的代表性画面。检测框记录车辆类别、置信度和轨迹编号；同一车辆轨迹穿越近端计数线（near gate）时形成一条方向计数事件。白天与夜间、向北开放与向南开放状态均保留在人工抽检样本中。
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_collaborator_report_v1/detection_examples_annotated/sample_01_annotated.jpg}
+\caption{7月23日下午，向南开放}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_collaborator_report_v1/detection_examples_annotated/sample_04_annotated.jpg}
+\caption{7月23日下午，向北开放}
+\end{subfigure}
+
+\medskip
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_collaborator_report_v1/detection_examples_annotated/sample_06_annotated.jpg}
+\caption{7月24日下午，向南开放}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_collaborator_report_v1/detection_examples_annotated/sample_08_annotated.jpg}
+\caption{7月24日晚间，向北开放}
+\end{subfigure}
+\caption{车辆检测与计数线示例。红线为近端计数线（near gate），白线为远端辅助线。检测框用于形成逐车轨迹，回归数据来自轨迹穿越近端计数线时形成的方向计数事件，而不是单帧检测框数量。}
+\label{fig:detection_examples}
+\end{figure}
+
+视频首先被转换为逐车轨迹。轨迹穿越近端计数线时形成方向计数事件，用于计算流量；逐帧可见车辆数用于衡量画面覆盖路段内的车辆存量，同一车辆依次穿越两条计数线的时间差用于构造区间旅行时间。本文使用方向计数事件构造主要结果。操作期由于车道边界移动，计数线覆盖整条可见道路；车辆按实际穿越方向计入北向或南向。操作车辆也可能被识别，因此操作期点只作描述，不进入回归。
+
+\subsection{事件窗口与估计样本}
+
+断点定义为潮汐车道完成切换并进入稳定运行的时刻。操作期全部排除。车辆计数按1分钟汇总。某一分钟至少包含54秒（90\%）有效录像时才予以保留，并按实际录像时长换算为每分钟流量；覆盖不足54秒的分钟记为缺失，不作为零流量处理。60分钟窗口的实际支持域如下。
+
+\begin{table}[H]
+\centering
+\caption{四次事件的有效1分钟bin}
+\label{tab:support}
+\begin{tabular}{llrrrrl}
+\toprule
+事件 & 断点后状态 & Pre & Post & 最近pre & 最近post & 主要标记 \\
+\midrule
+7/23开通 & 向北开放 & 41 & 60 & $-16.57$ & $0.43$ & 操作期排除 \\
+7/23恢复 & 向南开放 & 44 & 30 & $-16.58$ & $0.42$ & post较短 \\
+7/24开通 & 向北开放 & 37 & 60 & $-23.02$ & $0.98$ & pre侧录像缺口 \\
+7/24恢复 & 向南开放 & 51 & 33 & $-9.68$ & $0.32$ & post较短 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{数据基本处理过程}
+
+逐车轨迹穿越近端计数线时形成方向计数事件，行驶方向由轨迹在画面中的运动方向确定。这些事件按本地时钟聚合为1、2或5分钟bin。北向和南向总流量只需要判断车辆的实际行驶方向，因此计数线覆盖整条道路即可。分区域流量还需要判断车辆经过固定北向区域、潮汐可变区域还是固定南向区域。由于不同视频的机位和透视关系不同，这三个区域在画面中的边界必须逐段标定。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{\rdroot/outbound_rdit_collaborator_report_v1/detection_examples_annotated/region_definition_annotated.jpg}
+\caption{固定方向区域与潮汐可变区域。蓝色为固定北向区域，绿色为固定南向区域，黄色为潮汐可变区域。白色箭头表示图示状态下的行驶方向；潮汐可变区域的方向随开通和恢复而切换。红线为形成方向计数事件的近端计数线。}
+\label{fig:region_definition}
+\end{figure}
+
+图\ref{fig:region_definition}给出三个物理区域的定义。固定北向区域中的车道始终服务北向车辆，固定南向区域中的车道始终服务南向车辆。中间的潮汐可变区域在向北开放时服务北向车辆，恢复后改为服务南向车辆。固定区域因此表示方向不随潮汐状态变化的道路部分，并不表示其流量不受潮汐车道影响。
+
+数据处理依次完成四步：第一，恢复视频的本地起止时刻并标记稳定期、操作期和无录像期；第二，各段视频均计入小客车、摩托车、客车和货车，并设置功能一致的近端计数线，使不同视频片段采用相同的车辆计数口径；第三，将方向计数事件合并为连续时间序列并检查bin覆盖；第四，以稳定运行完成时刻对齐四次事件，构造pre和post样本。操作期观测在图中单独标出，并从所有计量分析样本中排除。
+
+\section{变量定义}
+
+\begin{table}[H]
+\centering
+\caption{核心变量}
+\label{tab:variables}
+\begin{tabularx}{\textwidth}{p{0.25\textwidth}X}
+\toprule
+变量 & 定义 \\
+\midrule
+$r_t$ & 第$t$个bin到稳定运行完成时刻的分钟数。\\
+$Post_t$ & 稳定运行完成后取1；操作期和无录像期不进入样本。\\
+$q^N_t,q^S_t$ & 北向和南向车辆/分钟。\\
+$q^N_t+q^S_t$ & 双向总流量。道路总车道数始终为7。\\
+$q^N_t-q^S_t$ & 北向减南向流量，刻画方向性重新配置。\\
+$n^N_t,n^S_t$ & 向北开放时为$(4,3)$，向南开放时为$(3,4)$。\\
+$q^d_t/n^d_t$ & 方向$d$的单位车道流量，单位为车辆/分钟/车道。\\
+获益方向 & 断点后增加一条车道的方向，开通为北向，恢复为南向。\\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\clearpage
+\section{Flow Scatterplots}
+
+蓝色圆点是稳定状态的5分钟bin，紫色菱形是录像覆盖至少1分钟的操作期bin，灰色区域对应操作期或无稳定录像区间。红线只利用稳定状态的5分钟bin拟合，不包含紫色点。回归表使用1分钟bin。为保持日期内比较清晰，图\ref{fig:raw_23}集中列出7月23日，图\ref{fig:raw_24}集中列出7月24日；左图为开通，右图为恢复。
+
+\subsection{7月23日}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.485\textwidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260723_opening__north_total__with_operation.pdf}\hfill
+\includegraphics[width=0.485\textwidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260723_recovery__north_total__with_operation.pdf}
+\caption{7月23日北向（进城，福田往龙华）总流量。左图为开通，右图为恢复。}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.485\textwidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260723_opening__south_total__with_operation.pdf}\hfill
+\includegraphics[width=0.485\textwidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260723_recovery__south_total__with_operation.pdf}
+\caption{7月23日南向（出城，龙华往福田）总流量。左图为开通，右图为恢复。}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.485\textwidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260723_opening__north_minus_south__with_operation.pdf}\hfill
+\includegraphics[width=0.485\textwidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260723_recovery__north_minus_south__with_operation.pdf}
+\caption{7月23日北向减南向流量。左图为开通，右图为恢复。}
+\label{fig:raw_23}
+\end{figure}
+
+7月23日的原始散点在方向上大体符合潮汐车道重新配置的预期。开通后，北向流量整体较高，南向流量整体较低；恢复后，北向流量下降，南向流量有所回升。上述比较反映的是断点两侧观测值的整体变化，尚未控制各自的时间趋势。后文的RDiT估计将两侧趋势外推至稳定运行完成时刻，所得方向性证据较弱，因此本节只将图形模式作为描述性结果。
+
+\subsection{7月24日}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.485\textwidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260724_opening__north_total__with_operation.pdf}\hfill
+\includegraphics[width=0.485\textwidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260724_recovery__north_total__with_operation.pdf}
+\caption{7月24日北向（进城，福田往龙华）总流量。左图为开通，右图为恢复。}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.485\textwidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260724_opening__south_total__with_operation.pdf}\hfill
+\includegraphics[width=0.485\textwidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260724_recovery__south_total__with_operation.pdf}
+\caption{7月24日南向（出城，龙华往福田）总流量。左图为开通，右图为恢复。}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.485\textwidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260724_opening__north_minus_south__with_operation.pdf}\hfill
+\includegraphics[width=0.485\textwidth]{\rdroot/outbound_rdit_operation_overlay_v1/figures/event_studies/20260724_recovery__north_minus_south__with_operation.pdf}
+\caption{7月24日北向减南向流量。左图为开通，右图为恢复。}
+\label{fig:raw_24}
+\end{figure}
+
+7月24日的原始散点呈现出更清晰的方向性变化。开通后，北向流量整体上升，南向流量明显下降，北向减南向流量相应增加；恢复后，北向流量下降，南向流量有所回升，方向差随之反转。上述图形模式与潮汐车道在两个方向之间重新配置通行能力的预期一致。
+
+\section{RDiT Regression}
+
+\subsection{Specification and Estimation}
+
+每次事件和每个结果变量分别估计局部线性模型：
+\begin{equation}
+Y_t=\alpha+\beta^{RD}Post_t+\gamma_-r_t+\Delta\gamma(Post_t\times r_t)+\varepsilon_t,
+\qquad |r_t|\le h.
+\label{eq:rdit}
+\end{equation}
+其中$\beta^{RD}$是两条稳定状态趋势在断点处的水平差，$\gamma_-$是pre趋势，$\gamma_-+\Delta\gamma$是post趋势。本文基准采用1分钟bin、$h=60$分钟、uniform kernel、断点两侧不同斜率和HAC(5)标准误。符号$\beta^{RD}$只用于标记目标系数，不改变其含义。
+
+四次事件均排除操作期，并比较断点两侧稳定状态趋势在$r_t=0$时的预测值。由于断点定义为稳定运行完成时刻，pre趋势需要跨过操作期延伸至断点。操作期越长，断点处的pre预测值通常越依赖趋势斜率。7月24日开通的操作期最长，因此其估计对pre趋势设定更为敏感。
+
+\subsection{估计结果}
+
+\begin{table}[H]
+\centering
+\caption{60分钟基准规格}
+\label{tab:baseline}
+\begin{threeparttable}
+\begin{tabular}{llrrrr}
+\toprule
+事件 & Outcome & $N_{\mathrm{pre}}/N_{\mathrm{post}}$ & $\widehat\beta^{RD}$ & HAC SE & $p$值 \\
+\midrule
+7/23开通 & 北向 & 41/60 & 2.481 & 2.984 & 0.408 \\
+ & 南向 & 41/60 & 1.779 & 9.796 & 0.856 \\
+ & 双向总量 & 41/60 & 4.260 & 11.339 & 0.708 \\
+ & 北向减南向 & 41/60 & 0.703 & 9.008 & 0.938 \\
+\addlinespace
+7/23恢复 & 北向 & 44/30 & 2.401 & 6.102 & 0.695 \\
+ & 南向 & 44/30 & 2.519 & 2.542 & 0.325 \\
+ & 双向总量 & 44/30 & 4.920 & 4.630 & 0.292 \\
+ & 北向减南向 & 44/30 & $-0.118$ & 8.120 & 0.988 \\
+\addlinespace
+7/24开通 & 北向 & 37/60 & 14.588 & 2.696 & $<0.001$ \\
+ & 南向 & 37/60 & $-7.346$ & 3.005 & 0.016 \\
+ & 双向总量 & 37/60 & 7.243 & 4.447 & 0.107 \\
+ & 北向减南向 & 37/60 & 21.934 & 3.582 & $<0.001$ \\
+\addlinespace
+7/24恢复 & 北向 & 51/33 & $-11.221$ & 2.536 & $<0.001$ \\
+ & 南向 & 51/33 & 3.543 & 1.684 & 0.039 \\
+ & 双向总量 & 51/33 & $-7.679$ & 3.257 & 0.021 \\
+ & 北向减南向 & 51/33 & $-14.764$ & 2.814 & $<0.001$ \\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}[flushleft]\footnotesize
+\item 注：$N_{\mathrm{pre}}$和$N_{\mathrm{post}}$分别为断点前后的有效1分钟bin数量。结果变量的单位为车辆/分钟。$p$值采用HAC(5)。操作期观测不进入估计。
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.49\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_collaborator_report_v1/baseline_flow_coefficients_60min_20260723.pdf}
+\caption{7月23日}
+\label{fig:coefficients_23}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_collaborator_report_v1/baseline_flow_coefficients_60min_20260724.pdf}
+\caption{7月24日}
+\label{fig:coefficients_24}
+\end{subfigure}
+\caption{基准RDiT系数与95\%置信区间。蓝色圆点为开通，红色方点为恢复。}
+\end{figure}
+
+图\ref{fig:coefficients_23}表明，7月23日开通和恢复的北向、南向及方向差估计均不显著，无法从该日的RDiT结果中识别出精确的方向性变化。
+
+图\ref{fig:coefficients_24}给出更明确的方向性结果。开通后，北向流量增加14.59辆/分钟，南向流量减少7.35辆/分钟，北向减南向流量增加21.93辆/分钟。恢复后，北向流量减少11.22辆/分钟，南向流量增加3.54辆/分钟，北向减南向流量下降14.76辆/分钟。两次事件的估计方向均与车道重新配置一致。双向总流量在开通后增加7.24辆/分钟，但统计上不显著；恢复后减少7.68辆/分钟，且统计上显著。因此，7月24日的主要结果是方向流量重新分配，而不是道路总吞吐量持续增加。
+
+\section{单位车道流量}
+
+方向$d$的单位车道流量定义为$q^d_t/n^d_t$。车道数在断点处机械变化，因此该结果回答的是每条可用车道承载多少流量。若总流量不变，获益方向从3条增至4条时，单位车道流量会机械下降25\%。它不是独立的政策处理变量，也不是模型中的速度--流量弹性。
+
+\begin{table}[H]
+\centering
+\caption{单位车道流量的60分钟基准规格}
+\label{tab:per_lane}
+\begin{tabular}{lrrrr}
+\toprule
+事件 & 获益方向每车道 & $p$值 & 获益减另一方向每车道 & $p$值 \\
+\midrule
+7/23开通 & $-3.397$ & $<0.001$ & $-5.979$ & 0.010 \\
+7/23恢复 & $-1.667$ & 0.020 & $-6.219$ & 0.007 \\
+7/24开通 & 0.474 & 0.544 & $-0.086$ & 0.927 \\
+7/24恢复 & $-0.916$ & 0.059 & $-1.218$ & 0.146 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+操作过程中方向车道数正在变化，无法定义与稳定状态完全相同的单位车道流量。图\ref{fig:per_lane_23_open}至图\ref{fig:per_lane_24_recovery}仍标出紫色操作期点，但只将当时的方向总流量除以操作前稳定状态车道数。该归一化用于定位流量路径，不代表操作期每条实际开放车道的负载，也不进入回归。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{\rdroot/outbound_rdit_collaborator_report_v1/20260723_opening__per_lane_with_operation.pdf}
+\caption{7月23日开通的单位车道流量。紫色菱形为操作期方向流量除以操作前稳定状态车道数，红线和RDiT估计只使用稳定状态。}
+\label{fig:per_lane_23_open}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{\rdroot/outbound_rdit_collaborator_report_v1/20260723_recovery__per_lane_with_operation.pdf}
+\caption{7月23日恢复的单位车道流量。紫色菱形为操作期方向流量除以操作前稳定状态车道数，红线和RDiT估计只使用稳定状态。}
+\label{fig:per_lane_23_recovery}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{\rdroot/outbound_rdit_collaborator_report_v1/20260724_opening__per_lane_with_operation.pdf}
+\caption{7月24日开通的单位车道流量。紫色菱形为16:26:46之后可见操作尾段的描述性归一值；16:07:43--16:26:46没有录像。}
+\label{fig:per_lane_24_open}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{\rdroot/outbound_rdit_collaborator_report_v1/20260724_recovery__per_lane_with_operation.pdf}
+\caption{7月24日恢复的单位车道流量。紫色菱形为操作期方向流量除以操作前稳定状态车道数，红线和RDiT估计只使用稳定状态。}
+\label{fig:per_lane_24_recovery}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{0.49\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_collaborator_report_v1/baseline_per_lane_coefficients_60min_20260723.pdf}
+\caption{7月23日}
+\label{fig:per_lane_coefficients_23}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.49\textwidth}
+\includegraphics[width=\linewidth]{\rdroot/outbound_rdit_collaborator_report_v1/baseline_per_lane_coefficients_60min_20260724.pdf}
+\caption{7月24日}
+\label{fig:per_lane_coefficients_24}
+\end{subfigure}
+\caption{单位车道流量的基准RDiT系数与95\%置信区间。蓝色圆点为开通，红色方点为恢复。}
+\end{figure}
+
+7月24日开通后，北向车道数由3条增至4条，北向总流量增加14.59辆/分钟；北向单位车道流量仅增加0.47辆/分钟/车道，且统计上不显著。这表明总流量增幅大致随车道容量同步扩大，平均每条北向车道承载的流量没有明显变化。恢复后，南向车道数由3条增至4条，南向总流量增加3.54辆/分钟，但南向单位车道流量下降0.92辆/分钟/车道。此时总流量的增幅小于车道数的增幅，新增南向车道降低了平均每条车道的流量。上述结果只刻画单位车道的流量负载；在缺少统一速度或旅行时间的情况下，不能据此判断拥堵是否缓解。
+
+\section{Conclusion and Next Steps}
+
+\subsection{Summary}
+
+原始散点显示，7月23日和24日的方向流量变化总体符合潮汐车道重新配置的预期，其中7月24日的模式更清楚。基准RDiT估计中，7月23日各方向结果均不显著。7月24日开通后，北向增加14.59辆/分钟、南向减少7.35辆/分钟，方向差增加21.93辆/分钟；恢复后，北向减少11.22辆/分钟、南向增加3.54辆/分钟，方向差下降14.76辆/分钟。双向总流量没有持续增加，因此核心结果是方向流量重新分配，而不是道路总吞吐量上升。
+
+单位车道结果进一步表明，7月24日开通后北向总流量的增幅大致与新增车道容量同步，平均每条北向车道的流量没有明显变化；恢复后，南向总流量增幅小于车道数增幅，平均每条南向车道的流量下降。现有视频尚不能提供统一速度或旅行时间，因而无法判断拥堵是否缓解。
+
+当前证据仍有三项限制。7月24日开通的pre趋势需要跨过较长操作期延伸至断点；研究尚无未受车道切换影响的严格控制组；分钟流量存在序列相关，现有$p$值应视为描述性精度指标。因此，本报告支持的结论限于稳定状态切换附近出现了方向流量重新配置。
+
+\subsection{Next Steps}
+
+\subsubsection{平行路段控制组}
+
+后续采集应同步拍摄一条需求结构和高峰时段相近、但不实施方向车道切换的平行路段。该路段用于控制晚高峰期间共同的需求变化和非线性时间趋势，并可与彩田路构造断点差分设计。控制路段需要采用相同的录像时段、车辆识别方法和分钟流量口径。
+
+\subsubsection{多工作日采集与速度测量}
+
+后续采集应覆盖多个普通工作日，并保留断点前后各60分钟的稳定录像和完整操作过程。天气、事故、施工等同期事件应按日期记录，以检验结果能否跨工作日重复。
+
+速度测量需要设置两条物理间距已知的计数线。车辆通过两线的时间差可转换为区间速度，进而与单位车道流量构成速度--流量面板，用于估计模型所需的速度--流量弹性。在完成该测量前，现有视频结果应解释为flow reduced form。
+
+\end{document}

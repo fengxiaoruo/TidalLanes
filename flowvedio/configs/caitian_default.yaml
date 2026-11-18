@@ -1,0 +1,40 @@
+profiles:
+  horizontal_mainline:
+    method: bytetrack
+    model: /Users/fxr/Dropbox/Projects/TidalLanes/flowvedio/models/yolo11s.pt
+    rotate: none
+    line_ratio: [0.3385417, 0.7592593, 0.5104167, 0.2777778]
+    imgsz: 1280
+    conf: 0.16
+    stride: 2
+    note: Legacy landscape profile calibrated on the first Caitian Road test video.
+  horizontal_inbound_left:
+    method: bytetrack
+    model: /Users/fxr/Dropbox/Projects/TidalLanes/flowvedio/models/yolo11s.pt
+    rotate: none
+    line_ratio: [0.3385417, 0.7592593, 0.5104167, 0.2777778]
+    imgsz: 1280
+    conf: 0.16
+    stride: 2
+    note: Landscape left-carriageway profile. Auto-selects when the filename contains 进城 or 入城.
+  horizontal_outbound_right:
+    method: bytetrack
+    model: /Users/fxr/Dropbox/Projects/TidalLanes/flowvedio/models/yolo11s.pt
+    rotate: none
+    line_ratio: [0.5390625, 0.5879630, 0.8437500, 0.7314815]
+    imgsz: 1280
+    conf: 0.16
+    stride: 2
+    note: Landscape right-carriageway profile. Auto-selects when the filename contains 出城.
+  vertical_rotated_dense:
+    method: simpletrack
+    model: /Users/fxr/Dropbox/Projects/TidalLanes/flowvedio/models/yolo11m.pt
+    rotate: cw90
+    line_ratio: [0.5538618, 0.1268116, 0.6382114, 0.9420290]
+    imgsz: 1600
+    conf: 0.05
+    stride: 2
+    max_distance: 45
+    min_iou: 0.02
+    max_missed: 8
+    note: Portrait videos are rotated clockwise before counting; inspect line_preview and annotated video.

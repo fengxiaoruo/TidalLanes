@@ -1,0 +1,3576 @@
+[
+  {
+    "id": "0001",
+    "file": "202505_v01/00_audit/TL25M05_V01_0001_schema_move_month.sql",
+    "kind": "read_only_probe",
+    "depends_on": [],
+    "status": "satisfied_by_reference",
+    "local_ready": true,
+    "sha256": "cbf840e6727be302684279ec0da89e50ce569f45c64a64aaf3f5d447448928f7",
+    "reference": {
+      "path": "/Users/fxr/Library/CloudStorage/Dropbox/Projects/Projects_FengGu/Speed/Road_processing/GPS data/Speed202505/00_schema_audit/exports/00_columns/00_move_month_columns.csv",
+      "sha256": "9fdf89a9bace0246e56a15cceed8cb8bb1f2dc94440c64e9ebacd2977a3bf002",
+      "note": "Field names only (no types) from Speed 00_schema_audit"
+    }
+  },
+  {
+    "id": "0002",
+    "file": "202505_v01/00_audit/TL25M05_V01_0002_schema_stay_poi.sql",
+    "kind": "read_only_probe",
+    "depends_on": [],
+    "status": "satisfied_by_reference",
+    "local_ready": true,
+    "sha256": "35dfdd8688c4f9cad8def9ac2d6e767736eeffe771f2716b1e9e4cace6762d98",
+    "reference": {
+      "path": "/Users/fxr/Library/CloudStorage/Dropbox/Projects/Projects_FengGu/Speed/Road_processing/GPS data/Speed202505/00_schema_audit/exports/00_columns/00_stay_poi_columns.csv",
+      "sha256": "9240234ba6cce7454891d91b7deff37e7a83fa3d61b07a2f293f5bf3f2500e18",
+      "note": "Field names only (no types) from Speed 00_schema_audit"
+    }
+  },
+  {
+    "id": "0003",
+    "file": "202505_v01/00_audit/TL25M05_V01_0003_schema_user_attribute.sql",
+    "kind": "read_only_probe",
+    "depends_on": [],
+    "status": "satisfied_by_reference",
+    "local_ready": true,
+    "sha256": "84ee484a4d583a8fdbc9821c892268fef7ebdb7a227e7416b1999c6fd7a907ef",
+    "reference": {
+      "path": "/Users/fxr/Library/CloudStorage/Dropbox/Projects/Projects_FengGu/Speed/Road_processing/GPS data/Speed202505/00_schema_audit/exports/00_columns/00_user_attribute_columns.csv",
+      "sha256": "2bd10f877ebb3d8f83738b60bd9e82a2b7243798f0472e45693e92d29835d78d",
+      "note": "Field names only (no types) from Speed 00_schema_audit"
+    }
+  },
+  {
+    "id": "0004",
+    "file": "202505_v01/00_audit/TL25M05_V01_0004_schema_move_rn.sql",
+    "kind": "read_only_probe",
+    "depends_on": [],
+    "status": "satisfied_by_reference",
+    "local_ready": true,
+    "sha256": "e1d51b1884d1e0b47900c39271592af546a85596378de382d6b0dde6bbd268a9",
+    "reference": {
+      "path": "/Users/fxr/Library/CloudStorage/Dropbox/Projects/Projects_FengGu/Speed/Road_processing/GPS data/Speed202505/00_schema_audit/exports/00_columns/00_move_rn_columns.csv",
+      "sha256": "c88c87982f16160db697abae7f5a682e82270ba9e4b7bf51e3a61cf737e29b6f",
+      "note": "Field names only (no types) from Speed 00_schema_audit"
+    }
+  },
+  {
+    "id": "0005",
+    "file": "202505_v01/00_audit/TL25M05_V01_0005_schema_route_node.sql",
+    "kind": "read_only_probe",
+    "depends_on": [],
+    "status": "satisfied_by_reference",
+    "local_ready": true,
+    "sha256": "4ad36c9e29cf203f8df9e1c78753fdbd7130be1082ac5bdfc884e5ef8b4147fa",
+    "reference": {
+      "path": "/Users/fxr/Library/CloudStorage/Dropbox/Projects/Projects_FengGu/Speed/Road_processing/GPS data/Speed202505/00_schema_audit/exports/00_columns/00_route_node_columns.csv",
+      "sha256": "2bf462f7b9b336d7163416c8c685993522884130d2d9a1d6ded57e52fe28a749",
+      "note": "Field names only (no types) from Speed 00_schema_audit"
+    }
+  },
+  {
+    "id": "0006",
+    "file": "202505_v01/00_audit/TL25M05_V01_0006_move_coverage.sql",
+    "kind": "read_only_probe",
+    "depends_on": [
+      "0001"
+    ],
+    "status": "needs_review",
+    "local_ready": true,
+    "sha256": "c7d23da2dad66009a93b15a22a2e1b7bf0c1b461833695dd7d6a12ac8c429c6c",
+    "taskid": "2eb57935d71e4b84ce3a0cf80179570f",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0006_move_coverage.csv",
+      "n_rows": 10,
+      "sha256": "247b3f37e748e5d7b9cdaa0d4e5d37c78c9130fbee7797ce6d37e2fc74298347"
+    },
+    "qc": "platform returned 10 of 24 hour groups (dataCount=10); 0012 shows the partition has all 24 hours. Cause of truncation unknown. Usable only for the 10 returned hours."
+  },
+  {
+    "id": "0006B",
+    "file": "202505_v01/00_audit/TL25M05_V01_0006B_move_coverage_noorder.sql",
+    "kind": "read_only_probe",
+    "depends_on": [
+      "0001"
+    ],
+    "status": "needs_review",
+    "local_ready": true,
+    "sha256": "b6c0f78b82eae6f5a7e9d0570bdb81e89105fdf9ac5358ae4a4f3a7f6e57e287",
+    "taskid": "3961e3dfd48ee46f7913a5327dbe81c2",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0006B_move_coverage_noorder.csv",
+      "n_rows": 10,
+      "sha256": "5b683e691e24d941a589d978578d3782f7949d401b853fe238fced2c29acf8b7"
+    },
+    "platform_end": "2026-10-30 10:39:58",
+    "qc": "platform returned 10 of 24 hour groups (dataCount=10); 0012 shows the partition has all 24 hours. Cause of truncation unknown. Usable only for the 10 returned hours."
+  },
+  {
+    "id": "0007",
+    "file": "202505_v01/00_audit/TL25M05_V01_0007_rn_coverage.sql",
+    "kind": "read_only_probe",
+    "depends_on": [
+      "0004"
+    ],
+    "status": "satisfied_by_reference",
+    "local_ready": true,
+    "sha256": "f2e76d168253c6e0b6c4a39217537d5fe473270591a0fe70385c7ab2d8cded6a",
+    "reference": {
+      "path": "/Users/fxr/Library/CloudStorage/Dropbox/Projects/Projects_FengGu/Speed/Road_processing/GPS data/Speed202505/00_schema_audit/exports/01_inventory/01_move_rn_daily.csv",
+      "sha256": "b4d70836fcc42601cf2b07370bb30cd1a2d6ce336f2c48d659768df8274ed16c",
+      "note": "Speed 01 inventory plus 04_time and PLATFORM_NOTES cover move_rn date coverage, time extrema and moi_id anchor match"
+    }
+  },
+  {
+    "id": "0008",
+    "file": "202505_v01/00_audit/TL25M05_V01_0008_time_fixture.sql",
+    "kind": "read_only_probe",
+    "depends_on": [],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "10f0f6cb6316b2a7f70082e419426adf8eaa6fc9e0e9e93df2674a472d04728f",
+    "taskid": "2f717ddeb1c9f82a3f6530ef1631257c",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0008_time_fixture.csv",
+      "n_rows": 12,
+      "sha256": "8e135cf885e1336442ea27f4c7a67f1262e2761cd3c9d264cde61ae73799d297"
+    },
+    "qc": "12/12 fixtures match period, slot10, slot30"
+  },
+  {
+    "id": "0009",
+    "file": "202505_v01/00_audit/TL25M05_V01_0009_geo_function.sql",
+    "kind": "read_only_probe",
+    "depends_on": [],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "0e5ff6f52da572b432a05afaa5aa270738c2e2d8dcb67f9e354a5c67846e061e",
+    "taskid": "8f9ee87a90775566cd4ea303c6b8a151",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0009_geo_function.csv",
+      "n_rows": 1,
+      "sha256": "8815ac9f17aba8e3527288350c3faba63d9679239fec48627595843ad99c8a3d"
+    },
+    "qc": "ST_Contains interior=true, boundary=false"
+  },
+  {
+    "id": "0010",
+    "file": "202505_v01/00_audit/TL25M05_V01_0010_speed_passage_inventory.sql",
+    "kind": "read_only_probe",
+    "depends_on": [],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "92223fc9cd7ce66c3cdbcad4aa4add099b1f07cb4dc6ca0ac0e2408f5286d31e",
+    "taskid": "f32fb3755099722a7645645201935639",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0010_speed_passage_inventory.csv",
+      "n_rows": 2,
+      "sha256": "0cc4e2d8e725031bd927dcb88b408c4eda82a7348756f7676bd7eca1edca7e26"
+    },
+    "qc": "Speed day19_all and src20250520 exist; each source date spans passage d-1 and d"
+  },
+  {
+    "id": "0011",
+    "file": "202505_v01/00_audit/TL25M05_V01_0011_order_by_row_test.sql",
+    "kind": "read_only_probe",
+    "depends_on": [],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "3de83bc9d4117b5228bfef9e65f146f762c69f6ea242c0669232e84255edd9b1",
+    "taskid": "96a43f6c69301ac91535db0b37b3c16d",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0011_order_by_row_test.csv",
+      "n_rows": 12,
+      "sha256": "8e135cf885e1336442ea27f4c7a67f1262e2761cd3c9d264cde61ae73799d297"
+    },
+    "platform_end": "2026-10-30 10:06:39"
+  },
+  {
+    "id": "0012",
+    "file": "202505_v01/00_audit/TL25M05_V01_0012_move_hour_by_date.sql",
+    "kind": "read_only_probe",
+    "depends_on": [],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "a3d6b1f665a15c41bfb8c1e05518566bcc049268affd9b217e0818f254e4357e",
+    "taskid": "8fa26c4462a8b799d7995cc75eedbd0d",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0012_move_hour_by_date.csv",
+      "n_rows": 72,
+      "sha256": "5c315ddad1e726c748fe63331ffd2b8f5ab0c6356032e818aee8a160d628f83b"
+    },
+    "platform_end": "2026-10-31 11:07:59",
+    "qc": "complete: 24 raw hours on each date; 20250506 total 31,206,477 equals SubwayMobility NG03 trip keys; 20250519 32,356,236; 20250520 32,871,695"
+  },
+  {
+    "id": "0020G1",
+    "file": "202505_v01/01_geo_inputs/TL25M05_V01_0020G1_grid_upload.sql",
+    "kind": "public_reference_upload",
+    "depends_on": [
+      "0009"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "rows": 756,
+    "sha256": "2f583f30b04e0a3c5172a3db7829bcc164d63797f43ac6d35e4f61630f7043ca",
+    "taskid": "871600d578346470cf7b1c036c3c4d2a",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0020G1_grid_upload.csv",
+      "n_rows": 1,
+      "sha256": "d974179f494180498aded35104b6aaffbef8b5814f5cb66e7792fe4f7810e2e9"
+    },
+    "platform_end": "2026-10-31 11:11:17"
+  },
+  {
+    "id": "0020G2",
+    "file": "202505_v01/01_geo_inputs/TL25M05_V01_0020G2_grid_upload.sql",
+    "kind": "public_reference_upload",
+    "depends_on": [
+      "0020G1"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "rows": 1182,
+    "sha256": "3c7fc7121c98cec034b324917a8b7a1a4abb4128a181cd3cd7d8b3f20abe5d74",
+    "taskid": "245217078c44068b00ade33ae2933a49",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0020G2_grid_upload.csv",
+      "n_rows": 1,
+      "sha256": "b6bf89d73ea6b3dc58ba8e671273083f931ced20510b5e817cbd4f28f1c5d953"
+    },
+    "platform_end": "2026-10-31 11:14:49"
+  },
+  {
+    "id": "0020G3",
+    "file": "202505_v01/01_geo_inputs/TL25M05_V01_0020G3_grid_upload.sql",
+    "kind": "public_reference_upload",
+    "depends_on": [
+      "0020G2"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "rows": 889,
+    "sha256": "ee0d943916ab7bac2201ace3fb5f0b99235b834b67112860536fb3ce88a7785f",
+    "taskid": "85baf90d183d4179fd419dfabc86bab4",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0020G3_grid_upload.csv",
+      "n_rows": 1,
+      "sha256": "ee1e211c98866971381aaf18f93d68534764f60a5b97d3efe492f8bd636f112c"
+    },
+    "platform_end": "2026-10-31 11:18:23"
+  },
+  {
+    "id": "0020G4",
+    "file": "202505_v01/01_geo_inputs/TL25M05_V01_0020G4_grid_upload.sql",
+    "kind": "public_reference_upload",
+    "depends_on": [
+      "0020G3"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "rows": 530,
+    "sha256": "b6f4ada6ceb8a8178c314747e840d5d4bd74837b6af993094e022c1ae368dd01",
+    "taskid": "0c37c5955e9f5ab2c73c4d244373d4c9",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0020G4_grid_upload.csv",
+      "n_rows": 1,
+      "sha256": "421613291a99a24eaa8a70e1bd86b6a80f4eb81383536effb88f5168306c15fe"
+    },
+    "platform_end": "2026-10-31 11:21:19"
+  },
+  {
+    "id": "0020F1",
+    "file": "202505_v01/01_geo_inputs/TL25M05_V01_0020F1_fixture_upload.sql",
+    "kind": "public_reference_upload",
+    "depends_on": [
+      "0009"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "rows": 1669,
+    "sha256": "d511afc4a24d60b749fd5559b6808ddfab139466a940dc075f9d04132190ba5e",
+    "taskid": "a84fe8e94be777a5104d6c643beeb61e",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0020F1_fixture_upload.csv",
+      "n_rows": 1,
+      "sha256": "f56f699d4f9470cc862909cb2fc42a8f1c37492b4b4424a22b295fa89adbb671"
+    },
+    "platform_end": "2026-10-31 11:25:15"
+  },
+  {
+    "id": "0020F2",
+    "file": "202505_v01/01_geo_inputs/TL25M05_V01_0020F2_fixture_upload.sql",
+    "kind": "public_reference_upload",
+    "depends_on": [
+      "0020F1"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "rows": 1663,
+    "sha256": "1ab43b443e3a2c7bc77dd483540b216fa1091c4fe450a6b7eeecf66e94759bf3",
+    "taskid": "c755268460c9bd5e5ec9ddcd2d90077f",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0020F2_fixture_upload.csv",
+      "n_rows": 1,
+      "sha256": "b6dc46665df46dbfb9df08b59920f288b76f1d042cf3c336c63a6da5dec6dd5c"
+    },
+    "platform_end": "2026-10-31 11:28:32"
+  },
+  {
+    "id": "0020F3",
+    "file": "202505_v01/01_geo_inputs/TL25M05_V01_0020F3_fixture_upload.sql",
+    "kind": "public_reference_upload",
+    "depends_on": [
+      "0020F2"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "rows": 1684,
+    "sha256": "cd33a136347738721cbf9b0d27ad8b473fee70eb91adfb0e1edbf1f5dbf92b8d",
+    "taskid": "f0ab1d7b66e76b37cf985e0cbf74798e",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0020F3_fixture_upload.csv",
+      "n_rows": 1,
+      "sha256": "a6fb5a979af0d14facded01a27a18e029ac8352d071ed2aac95dc66cdbd17ef6"
+    },
+    "platform_end": "2026-10-31 11:31:51"
+  },
+  {
+    "id": "0020F4",
+    "file": "202505_v01/01_geo_inputs/TL25M05_V01_0020F4_fixture_upload.sql",
+    "kind": "public_reference_upload",
+    "depends_on": [
+      "0020F3"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "rows": 1669,
+    "sha256": "2976ea344651c0e4d968567b29c21d3ee4fe64fb643a18ccec1e5f2f23e66168",
+    "taskid": "244129a326a9adc33fad47f2e47f6324",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0020F4_fixture_upload.csv",
+      "n_rows": 1,
+      "sha256": "19109dab45e41ae876523bc649466f5c8dc09389f754264dfacb396a39331104"
+    },
+    "platform_end": "2026-10-31 11:35:17"
+  },
+  {
+    "id": "0020F5",
+    "file": "202505_v01/01_geo_inputs/TL25M05_V01_0020F5_fixture_upload.sql",
+    "kind": "public_reference_upload",
+    "depends_on": [
+      "0020F4"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "rows": 884,
+    "sha256": "d3c0acc5b57c8cc8b9e1abbba492bfa9bd1d08f9d5044ba72e241fbb3a13196f",
+    "taskid": "a3091372e256d3f9d053711522357f29",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0020F5_fixture_upload.csv",
+      "n_rows": 1,
+      "sha256": "f9d5fffc17b683a55b2b92f62a8dd14d4b749eb95b5c9e2d7b56c50299b07e22"
+    },
+    "platform_end": "2026-10-31 11:38:53"
+  },
+  {
+    "id": "0021",
+    "file": "202505_v01/01_geo_inputs/TL25M05_V01_0021_grid_fixture_match.sql",
+    "kind": "read_only_probe",
+    "depends_on": [
+      "0020G4",
+      "0020F5"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "3628f0b93d08c1b93c6d273ae5e1ba65faf625ca20aa3e02df0c30463b32c67a",
+    "validate": "python3 Platform/utils/validate_probe_result.py --kind geo --csv <result>",
+    "taskid": "2fc9a641dc1951dfd5231820b1bf54f4",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0021_grid_fixture_match.csv",
+      "n_rows": 7569,
+      "sha256": "54ae5c2b760518de2f1c077a1f50663428034532e64e0c447f3e37d1a9e4eb1c"
+    },
+    "platform_end": "2026-10-31 11:41:22",
+    "qc": "7569 fixtures returned; all match expected except 18 points within 1e-9 deg of a cell edge, reported as boundary cases"
+  },
+  {
+    "id": "0100",
+    "name": "own month POI/person construction",
+    "kind": "internal_build",
+    "depends_on": [
+      "0002",
+      "0003",
+      "0021"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "file": "202505_v01/02_internal_builds/TL25M05_V01_0100_person_month.sql",
+    "sha256": "ff11ad289789428e595df5693dea0a9abd6e0746f8d03b4ebc2684cce383fe2b",
+    "creates": [
+      "tl25m05_v01_poi_internal",
+      "tl25m05_v01_primary_point_internal",
+      "tl25m05_v01_person_internal"
+    ],
+    "benchmark": "SubwayMobility NG13: R=8,988,684; R with work POI=4,503,095",
+    "taskid": "c6fd96dadee4c23a38ffb890391108ca",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0100_person_month.csv",
+      "n_rows": 1,
+      "sha256": "9b234f68a2f6bd3c164073dfa65acd6e68f9ed93cf9b15d68c14b7285bac43c5"
+    },
+    "platform_end": "2026-10-31 21:53:20",
+    "qc": "R=8,988,684 and joint=4,503,095 equal NG13 exactly; 0 attr/POI duplicates, conflicts, ties, bad xy; joint same-grid 1,510,971 retained; R home in grid 8,985,236, in gate5 8,232,980; joint both in gate5 4,050,431"
+  },
+  {
+    "id": "0110P",
+    "file": "202505_v01/02_internal_builds/TL25M05_V01_0110P_trip_pilot_20250519.sql",
+    "kind": "internal_build",
+    "depends_on": [
+      "0100",
+      "0012",
+      "0008"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "8c8d1b04be0801c72b595e5028a63f0a9507db3a15514a9f8cbddb186058cff4",
+    "creates": [
+      "tl25m05_v01_trip_p0519_internal"
+    ],
+    "note": "single-day pilot 20250519; duration from etime-stime, time field units checked; purpose from ptype pair",
+    "taskid": "c60bf61fc782af650ba82bdea6f5dfab",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0110P_trip_pilot_20250519.csv",
+      "n_rows": 1,
+      "sha256": "69c0afb10cc0a8da7246c479733c9e72cb7f094c2c968469ea86128ce9eee110"
+    },
+    "platform_end": "2026-10-31 22:07:58",
+    "qc": "32,356,236 keys = raw rows; 0 dup/conflict; time field = etime-stime seconds for 100%; valid 28,130,876 (speed>200 3,525,080; dur<=0 393,751; dist<=0 312,213); joint HW end=primary work 100%, start=primary home 99.4%; joint WH both primary 99.2%; joint people with HW/WH trip 2,235,669 (49.6%)"
+  },
+  {
+    "id": "0111",
+    "file": "202505_v01/03_qc/TL25M05_V01_0111_fast_trip_profile_20250519.sql",
+    "kind": "read_only_probe",
+    "depends_on": [
+      "0110P"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "fcf0b6b606ee370b0376b3716832ed44f0f76315c49b69bb7c25bb185f685c39",
+    "taskid": "fe7537e0329d2b58964485b851947f59",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0111_fast_trip_profile_20250519.csv",
+      "n_rows": 1,
+      "sha256": "ded46cf78d024abca48d1eceecb82fedd61f9a3480c932ecef00dcb9935eabf9"
+    },
+    "platform_end": "2026-10-31 22:49:33",
+    "qc": "fast trips are degenerate durations: median 7 s, 93% <60 s, median distance 1.9 km; 265,026 joint HW/WH; ok-trip speed p50 27.5 km/h, p99 176 km/h"
+  },
+  {
+    "id": "0110",
+    "name": "trip key consistency and purpose construction",
+    "kind": "internal_build",
+    "depends_on": [
+      "0001",
+      "0008",
+      "0012",
+      "0100",
+      "0110P",
+      "0111"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "file": "202505_v01/02_internal_builds/TL25M05_V01_0110_trip_weekdays.sql",
+    "sha256": "797ff2a1b3e5eb7518675b85824a5ac9a5a60706abf70a9d59be7418337fcc68",
+    "creates": [
+      "tl25m05_v01_trip_internal"
+    ],
+    "expected_output_rows": 19,
+    "note": "19 ordinary weekdays; valid_strict (<=200 km/h) and valid_relaxed (keeps degenerate <60 s durations) both stored; minimal columns for storage",
+    "taskid": "52bac603c2837d6c64876c43087a17d6",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0110_trip_weekdays.csv",
+      "n_rows": 19,
+      "sha256": "3c4ad856e2182b820e087de1971c13849e42c40aee781c137bd9124a5d24c11e"
+    },
+    "platform_end": "2026-10-31 23:25:45",
+    "qc": "19/19 date rows; trip keys 612,208,951 = SubwayMobility NG20; 0 conflicts; strict 532,804,427, relaxed 601,680,878; 20250519 equals 0110P; joint commute primary-endpoint share 99.1-99.4%/day; joint people with HW/WH 2.02-2.24M/day"
+  },
+  {
+    "id": "0120",
+    "name": "HW monthly unique-person OD",
+    "kind": "internal_build",
+    "depends_on": [
+      "0100",
+      "0110"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "file": "202505_v01/02_internal_builds/TL25M05_V01_0120_hw_population.sql",
+    "creates": [
+      "tl25m05_v01_hw_od_internal"
+    ],
+    "note": "joint N by home x work original grid; OUT for outside grid; summary + suppression measurement only",
+    "sha256": "d4a298a95b20e83da75f8713cc8568bf7ad7be6abb72e7a2181ecbe9f7fc2688",
+    "taskid": "bc0b07648a7b380bf2d0416a74021635",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0120_hw_population.csv",
+      "n_rows": 1,
+      "sha256": "dea670b9b3f4195be4de274ab57c8acabe2cac81bad4d45a4e67c5ea12187aa7"
+    },
+    "platform_end": "2026-10-31 23:53:42",
+    "qc": "254,924 home x work pairs, 4,503,095 people; pairs >=5 people 72,579 holding 4,200,152 (93.3%); gate5 pairs 189,223 / 4,050,431 people, >=5: 61,394 / 3,830,901 (94.6%); outside grid 2,782; same cell 2,289 pairs / 1,510,971 people; max pair 17,498"
+  },
+  {
+    "id": "0130",
+    "name": "departure OD and same-sample daily participation",
+    "kind": "internal_build",
+    "depends_on": [
+      "0110",
+      "0120"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "file": "202505_v01/02_internal_builds/TL25M05_V01_0130B_departure_od.sql",
+    "creates": [
+      "tl25m05_v01_departure_od_internal",
+      "tl25m05_v01_participation_internal"
+    ],
+    "note": "joint HW/WH departure OD at date x slot30 x primary grids x mode group x variant; daily participation by home x work; summary only",
+    "sha256": "a7079fdbd404c19dc92ba8bea87b8effac5148b39f192f9756b4ffa8a2336f56",
+    "history": [
+      {
+        "file": "202505_v01/02_internal_builds/TL25M05_V01_0130_departure_od.sql",
+        "taskid": "8fb5482e1530bf5481024cf5db2e48f9",
+        "status": "failed",
+        "error": "ParseException: LATERAL VIEW after JOIN"
+      }
+    ],
+    "taskid": "e8b41d4f12d307a57ba64fa193565303",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0130B_departure_od.csv",
+      "n_rows": 1,
+      "sha256": "39a9f69de32a143f7ce7e881bb5f5194fb11cf727847e11c2fe4ff6063e9027e"
+    },
+    "platform_end": "2026-11-01 00:09:19",
+    "qc": "dep rows 46,387,188 (strict 22,748,408); strict joint HW/WH trips 65,003,661, relaxed 70,217,096; window (HW AM+WH PM) strict 34,389,923 trips, rows>=5 keep 62.8%; window mode1 24,407,370 trips, >=5 keep 65.9%; participation strict rows 3,184,204, person-days 41,147,175, >=5 rows keep 90.9%"
+  },
+  {
+    "id": "0140P",
+    "file": "202505_v01/02_internal_builds/TL25M05_V01_0140P_rn_link_pilot_20250519.sql",
+    "kind": "internal_build",
+    "depends_on": [
+      "0110",
+      "0010"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "c176243eb83ec22e686ed22546f5c4edc573976cc212ca68d9db01b115788ccd",
+    "creates": [
+      "tl25m05_v01_rn_link_p0519_internal"
+    ],
+    "note": "single-day RN link pilot 20250519: joint HW/WH trips joined to Speed clean_drive_trip and pair_passage_day_20250519_all (read-only) on uid+date+move_id=moi_id; coverage and clock check",
+    "taskid": "b37f8d763356795d345c6428dbf511e7",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0140P_rn_link_pilot_20250519.csv",
+      "n_rows": 39,
+      "sha256": "cde0181a3ced2896be81f16db826136b825387b0636773a99cecf9d45b15b950"
+    },
+    "platform_end": "2026-11-02 03:37:47",
+    "qc": "mode1 only links (Speed passage = mode1 clean drives). Strict linked: HW-AM 632,788/762,420 (83.0%), WH-PM 478,510/580,464 (82.4%); gap = in Speed clean but no valid passage (129,632 / 101,954). Clock: first valid passage within +-1 10-min slot of trip slot for 92%, within +-3 for 98%, 8h offset ~0; mean first-passage minus departure -0.64 slot. Speed passage tables cover passage dates 0518-0525 only."
+  },
+  {
+    "id": "0140",
+    "name": "RN trip linkage and passage clock coverage",
+    "kind": "internal_build",
+    "depends_on": [
+      "0140P",
+      "0110",
+      "0100"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "file": "202505_v01/02_internal_builds/TL25M05_V01_0140_rn_link_5day.sql",
+    "sha256": "ef3c7f3eae79ca2a42244ca35a80fcd3b9381db933e759d6b85b31e45c69b95a",
+    "creates": [
+      "tl25m05_v01_rn_trip_internal",
+      "tl25m05_v01_rn_pass_internal"
+    ],
+    "note": "5 Speed-covered weekdays 0519-0523 (user choice 2026-11-01): joint mode1 HW-AM/WH-PM strict-or-relaxed trips; valid Speed passages copied with local pass_slot10; Speed tables read-only",
+    "taskid": "fcec8780dbc60a90ef1b867c46d3e05d",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0140_rn_link_5day.csv",
+      "n_rows": 10,
+      "sha256": "936a6669b9c45a53a52c9bd5386e78a0c07af9ff21de10a9fbc48b1a94498eb3"
+    },
+    "platform_end": "2026-11-02 04:11:33",
+    "qc": "0519 equals 0140P (632,788 HW / 478,510 WH strict linked); strict link rate 82.3-83.0% each day/purpose; 387,195,127 passages in rn_pass_internal (~69 per HW trip, ~73 per WH trip); passage_date always = trip date; ~335k distinct RN pairs per day"
+  },
+  {
+    "id": "0150",
+    "name": "RN pressure by purpose with matched denominator",
+    "kind": "internal_build",
+    "depends_on": [
+      "0140"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "file": "202505_v01/02_internal_builds/TL25M05_V01_0150_rn_pressure_5day.sql",
+    "sha256": "5cc1ca7705df9adb01e79730d6facbc397a8f4710ad76da8c35e467325992778",
+    "creates": [
+      "tl25m05_v01_rn_p_slot10_internal",
+      "tl25m05_v01_rn_p_slot30_internal",
+      "tl25m05_v01_rn_p_window_internal",
+      "tl25m05_v01_rn_p_date_window_internal",
+      "tl25m05_v01_rn_od_cover_internal"
+    ],
+    "note": "RN pair pressure by variant x purpose at pooled slot10/slot30/window and date x window over 0519-0523, plus grid-OD linked-trip denominator; summary gives rows and passages kept at >=5 people per scheme (od_cover row: n_pass=trips, n_pass_ge5=linked trips in >=5 cells, n_pairs=linked trips)",
+    "taskid": "17470156c65cdd4a7d8e38d3051f9e4c",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0150_rn_pressure_5day.csv",
+      "n_rows": 10,
+      "sha256": "e0a1ddc28cb0d0c1f0ef2eb88c8829b1a83238889956c7d33cc4281f527d7b8a"
+    },
+    "platform_end": "2026-11-02 04:36:56",
+    "qc": "strict, rows / rows>=5 people / passages kept: slot10 10.38M/4.73M/97.4%; slot30 4.88M/2.38M/98.8%; window 0.87M/0.60M/99.9%; date x window 3.32M/2.06M/99.4%. relaxed adds 0.35% passages. od_cover strict: 278,574 cells, linked 5,406,134/6,532,767 trips (82.8%), 87% of linked trips in >=5-person cells"
+  },
+  {
+    "id": "0300",
+    "name": "counts and suppression QC",
+    "kind": "planned_stage",
+    "depends_on": [
+      "0120",
+      "0130",
+      "0150"
+    ],
+    "status": "not_run",
+    "local_ready": false,
+    "file": null
+  },
+  {
+    "id": "0500A",
+    "file": "202505_v01/05_capacity/TL25M05_V01_0500A_export_scheme_capacity.sql",
+    "kind": "read_only_probe",
+    "depends_on": [
+      "0130"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "expected_output_rows": 5,
+    "sha256": "538e2f8b7b86ca478d6a40611a0b74f98b32bd66f08f72520422fde26164992f",
+    "note": "compare suppression loss of five export schemes for joint peak commute OD; strict validity",
+    "taskid": "0bf9466201e07dd383e815fd517e1a2b",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0500A_export_scheme_capacity.csv",
+      "n_rows": 5,
+      "sha256": "41a032e909e984157124aa7517886bce0908158432fb60aafcf26d6190f74796"
+    },
+    "platform_end": "2026-11-01 00:16:14",
+    "qc": "5/5 rows; trips kept by >=5-person rule (all/mode1): A date x slot30 63.1/66.2%; B pooled slot30 85.0/85.2%; C pooled slot60 88.3/88.2%; D pooled window 90.9/90.6%; E date x window 81.2/82.1%"
+  },
+  {
+    "id": "0500",
+    "name": "pilot cardinality and size plan",
+    "kind": "planned_stage",
+    "depends_on": [
+      "0300"
+    ],
+    "status": "not_run",
+    "local_ready": false,
+    "file": null
+  },
+  {
+    "id": "0400B",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0400B_export_tables.sql",
+    "kind": "internal_build",
+    "depends_on": [
+      "0120",
+      "0130",
+      "0500A"
+    ],
+    "creates": [
+      "tl25m05_v01_x_n_exp",
+      "tl25m05_v01_x_n_margin_exp",
+      "tl25m05_v01_x_dep_slot30_exp",
+      "tl25m05_v01_x_dep_window_exp",
+      "tl25m05_v01_x_dep_date_window_exp",
+      "tl25m05_v01_x_part_exp"
+    ],
+    "note": "export tables with >=5 suppression; summary row gives totals for part checks",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "f8a879b45d0d7ace0a0674e635772a68a33ad19719a6fc596752a0d17634a4be",
+    "taskid": "fb0d1349f18c8b67d5d9b6f284b28776",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0400B_export_tables.csv",
+      "n_rows": 1,
+      "sha256": "5bca4de1b85ad72916ec93f116491f0abfaf7391e2e3cb683e8327aba20e6aee"
+    },
+    "platform_end": "2026-11-01 01:40:55"
+  },
+  {
+    "id": "0401",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0401_N.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_n_exp",
+    "part": "N",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "42b38300182277db43552fa961a5e0d7b5170109b15dfb7244f59aa9070c6d5c",
+    "taskid": "606eb6dd25cbddf949088900c0e1aad9",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0401_N.csv",
+      "n_rows": 72579,
+      "sha256": "6253ddbfa1d984f89d70308e042ad7b79a1e0c1f31265fd50a5640ae8ea669f4"
+    },
+    "platform_end": "2026-11-01 01:44:03"
+  },
+  {
+    "id": "0402",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0402_NM.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_n_margin_exp",
+    "part": "NM",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "c9fb12600bf7b91fab79f6fd1a708678b28139bb38497efb4e40945bd8424316",
+    "taskid": "6772f4668eb2701335aec110e4aaee33",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0402_NM.csv",
+      "n_rows": 4283,
+      "sha256": "3b04247a9d01f854dcffab9cf68473658582c38b51ba95e142913debe0ba02c1"
+    },
+    "platform_end": "2026-11-01 01:46:30"
+  },
+  {
+    "id": "0403",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0403_S30_strict_HW.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_slot30_exp",
+    "part": "S30_strict_HW",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "20df24c51e5aac512e7bcf9f296b80d95f316b8e8b371a50d312db5748960677",
+    "taskid": "2a9215287b26427890b73b749fbdaddd",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0403_S30_strict_HW.csv",
+      "n_rows": 166653,
+      "sha256": "9db15e7973c6798099a3e77c5104d8374c703357fefd499fabf7d77624958424"
+    },
+    "platform_end": "2026-11-01 01:48:53"
+  },
+  {
+    "id": "0404",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0404_S30_strict_WH.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_slot30_exp",
+    "part": "S30_strict_WH",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "03e2f3bf63e0717f143017fab12e2ef2f406179f0389034a16416ade2a3f26d7",
+    "taskid": "199b7c8b4aa2d7e0e6da2afa5ea03596",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0404_S30_strict_WH.csv",
+      "n_rows": 170361,
+      "sha256": "cc40312d4f1c3fc635372b2f73da5414046bc7d9985f910414aff4422ee3bf33"
+    },
+    "platform_end": "2026-11-01 01:51:37"
+  },
+  {
+    "id": "0405",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0405_S30_relaxed_HW.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_slot30_exp",
+    "part": "S30_relaxed_HW",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "27aaaf5e6a32bf5250d6d447157f49a10b7008156a4027c2cb7fde2d2f065ced",
+    "taskid": "5cef297adede804881d08b1dee69d206",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0405_S30_relaxed_HW.csv",
+      "n_rows": 171324,
+      "sha256": "b5bbe6f1447d8068c9474ace3e7d143fca5aac3b09a94e52c15d972fc6c616a3"
+    },
+    "platform_end": "2026-11-01 01:54:14"
+  },
+  {
+    "id": "0406",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0406_S30_relaxed_WH.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_slot30_exp",
+    "part": "S30_relaxed_WH",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "4453c13df6e043556c06995894ca36e50a83d9c72aa5f07f227ff00bdaaed9fc",
+    "taskid": "2dcbec7c5b710bf077cbfe08650a91d8",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0406_S30_relaxed_WH.csv",
+      "n_rows": 175716,
+      "sha256": "98558b6fc73d905cf81b4dfe9ab2d98198134db470dcf8ef7496a4759da46c12"
+    },
+    "platform_end": "2026-11-01 01:56:43"
+  },
+  {
+    "id": "0407",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0407_WIN_strict.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_window_exp",
+    "part": "WIN_strict",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "2cfdf5edeb78cc87bb4969b374befa60f32491b6f59e80fcb80ab846090250ca",
+    "taskid": "8746036fdad72469dcca978ac1a8b5e1",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0407_WIN_strict.csv",
+      "n_rows": 153823,
+      "sha256": "a86c02a1840d0514cad369482b4c9caf2277d0355b0306ceab4a2c6c8ede0e05"
+    },
+    "platform_end": "2026-11-01 01:59:19"
+  },
+  {
+    "id": "0408",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0408_WIN_relaxed.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_window_exp",
+    "part": "WIN_relaxed",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "3a886cd8a43890506328be11f59c28ecdba4eff21d0e00f506132aeed39eaee2",
+    "taskid": "1785595c101d654212c4c9554d1e30e8",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0408_WIN_relaxed.csv",
+      "n_rows": 158607,
+      "sha256": "e8e2d47b02df22865d7cc331e5a37391e09a69956150002f85bd3c6204474d2a"
+    },
+    "platform_end": "2026-11-01 02:03:57"
+  },
+  {
+    "id": "0409",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0409_DW_20250506.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250506",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "3d3e1d870f234a98eebf1be102901bd1c1b5e4789b858962e30f0906329cd912",
+    "taskid": "6b6bf07a07a3b7b5535167cfdd20ce48",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0409_DW_20250506.csv",
+      "n_rows": 133190,
+      "sha256": "8044b33795a923dc64a7ad5a0187d93e51199d3d7e1a74d5186a9b8c105b56a7"
+    },
+    "platform_end": "2026-11-01 02:07:35"
+  },
+  {
+    "id": "0410",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0410_DW_20250507.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250507",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "e13a0b3b2e331cd7a4bbe463d5751b93eba70d52b4a104a1116822b6373a19b7",
+    "taskid": "afe5f91aecc91717a95cf952d53edb93",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0410_DW_20250507.csv",
+      "n_rows": 135763,
+      "sha256": "c1e9614fd550d48a414c03ab843cd61f8193a69197c060e4850a43b3746795db"
+    },
+    "platform_end": "2026-11-01 02:10:03"
+  },
+  {
+    "id": "0411",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0411_DW_20250508.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250508",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "22b25b932b89f7352569398e10caf44e3daa5196e88913305d470abc6b605751",
+    "taskid": "20fec9a875e48062b1c86e2f71f5960d",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0411_DW_20250508.csv",
+      "n_rows": 136855,
+      "sha256": "bf441418a76aba96dc41afd48506ec4f10b913ca659a390bb5f9aed1782b6242"
+    },
+    "platform_end": "2026-11-01 02:12:35"
+  },
+  {
+    "id": "0412",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0412_DW_20250509.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250509",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "0079d7d7e63bca5ee026527d909a9d69bfe8252f3b2f427dded04c8fcb0ad7f2",
+    "taskid": "18cf22cd4ccda67e6d34545eeca937bc",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0412_DW_20250509.csv",
+      "n_rows": 125393,
+      "sha256": "736207025dd6873450e38108891fd496618fe94593b8f424843a5b11913865de"
+    },
+    "platform_end": "2026-11-01 02:15:23"
+  },
+  {
+    "id": "0413",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0413_DW_20250512.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250512",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "c3f588af4f37537c4a335477b65c65e08380a916813813fff60eab7c5531ca0f",
+    "taskid": "a02d464e613cef81d962e66125f4eb88",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0413_DW_20250512.csv",
+      "n_rows": 137996,
+      "sha256": "a02a278a3cfc0c539a373df62872bf5a9abea476e443372d27e3cd4f3b6780fd"
+    },
+    "platform_end": "2026-11-01 03:46:14"
+  },
+  {
+    "id": "0414",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0414_DW_20250513.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250513",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "57cfb6bce758152a06acdd5e2ad848f29ffcdd4ec4044066fe93d0985f80e6b8",
+    "taskid": "437688d0a258a6571fec8460f0a1d640",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0414_DW_20250513.csv",
+      "n_rows": 139546,
+      "sha256": "a82a09c3b964801487ca4b11f3fa7a687144d006c6c71af4ee71fd85a949d639"
+    },
+    "platform_end": "2026-11-01 04:00:15"
+  },
+  {
+    "id": "0415",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0415_DW_20250514.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250514",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "a5e437b9d4805e62cf7edd42c4d6256d399ea9b2543728adc5c6327ff06e8f8c",
+    "taskid": "b463244ca924ea7d74490986125b03cc",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0415_DW_20250514.csv",
+      "n_rows": 132606,
+      "sha256": "8d492c6a71fbd68f15106758801133207767fe5a5e6760cf56b765ab6d971bff"
+    },
+    "platform_end": "2026-11-01 04:02:52"
+  },
+  {
+    "id": "0416",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0416_DW_20250515.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250515",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "e93cf3bd629c8819c220f8e929a37192b8c62826b358817b436fe2e8e6356174",
+    "taskid": "8131cf01ae441a8f740731e3d367e182",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0416_DW_20250515.csv",
+      "n_rows": 134422,
+      "sha256": "bd381ac8e81f243da8480299a3a0526f8cd2de25e1ec7b1aba1279f24009ae3c"
+    },
+    "platform_end": "2026-11-01 04:05:24"
+  },
+  {
+    "id": "0417",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0417_DW_20250516.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250516",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "bd0ebfa9c9abde3cee5ec0b0ba7bf3cecb876dcf7401c6956b1eb91d73a5250a",
+    "taskid": "3060557455971c95ce0595a90c405fbc",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0417_DW_20250516.csv",
+      "n_rows": 129534,
+      "sha256": "3c5c23438af43bc6200da036cb23329664f2c7a0ee43b7eabb245f4196a81ace"
+    },
+    "platform_end": "2026-11-01 04:08:14"
+  },
+  {
+    "id": "0418",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0418_DW_20250519.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250519",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "344664acd6e8ab1f96f448438dcb67185ad8dc428bb6e916685fc3463198a822",
+    "taskid": "83098352281e1a5503dec4e21c0c6e8a",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0418_DW_20250519.csv",
+      "n_rows": 137964,
+      "sha256": "6315d17db8b80bc8a2ef6d1fdeaa16ff6f12b17a3bce7f974737da31cfe82f71"
+    },
+    "platform_end": "2026-11-01 04:12:24"
+  },
+  {
+    "id": "0419",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0419_DW_20250520.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250520",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "5e5c1ded8b60016f8654d01c1fce0a277cac323f3e7240ac8fb2307f7e92a903",
+    "taskid": "08a5ed205c0da09b5debc933d449f871",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0419_DW_20250520.csv",
+      "n_rows": 137180,
+      "sha256": "4ce239f181cb198c96877a240743f1d45a76887895c12ba5421c5e0de135daf0"
+    },
+    "platform_end": "2026-11-01 04:15:03"
+  },
+  {
+    "id": "0420",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0420_DW_20250521.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250521",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "ce8bc1823d5c6381014c2600e8c135253745a86f25321cb3ac18eeeaad642b14",
+    "taskid": "01e12284061127e451413c44f9648724",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0420_DW_20250521.csv",
+      "n_rows": 136688,
+      "sha256": "c757f99d5660c33e4373141fe1ec1400ddbc8e1f693af7e8afbffe8ca95c696e"
+    },
+    "platform_end": "2026-11-01 04:17:24"
+  },
+  {
+    "id": "0421",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0421_DW_20250522.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250522",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "9300cefed96cde66a84abc61f65fb1c85c845c57f5b0ae96b5ff3f7c7cdd90d7",
+    "taskid": "9c7b1cd50d9ddcf5f9169dd4413d9114",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0421_DW_20250522.csv",
+      "n_rows": 135968,
+      "sha256": "ff41a39c520df513709ab3d57e23bf1fd9e1d98ac96c350b0b61af2ab1c16458"
+    },
+    "platform_end": "2026-11-01 04:19:42"
+  },
+  {
+    "id": "0422",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0422_DW_20250523.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250523",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "74f6873a7b54f1fa842e2b54892390141d72dcd3f9be95dfca5bb1178d1f3c19",
+    "taskid": "84ddaf510afbf93e1c11d3091db73ebd",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0422_DW_20250523.csv",
+      "n_rows": 128590,
+      "sha256": "6fd10793a89ed4e4ea707717e300729d1c70f350f30cf5b4910b32887859deb6"
+    },
+    "platform_end": "2026-11-01 04:22:19"
+  },
+  {
+    "id": "0423",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0423_DW_20250526.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250526",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "4c5d379e9eb18cfb9b06049cc2419a2e962730770ac780283d62b27d24fe7045",
+    "taskid": "9495b7b513430e6ca12396a3e554fd08",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0423_DW_20250526.csv",
+      "n_rows": 137408,
+      "sha256": "3af385176cf75ca980125050262cd1832457d19a70d3f2be7cba1ef5112275e0"
+    },
+    "platform_end": "2026-11-01 04:24:44"
+  },
+  {
+    "id": "0424",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0424_DW_20250527.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250527",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "5506cc1c335d1f39b3c41decdb37f62b58a579f34ee8dde900a569b268d82f08",
+    "taskid": "430a53461ac4d7aa789dba4031a047dd",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0424_DW_20250527.csv",
+      "n_rows": 135703,
+      "sha256": "b941c03deda4c48d01ceca13c482e4dd81389454805902d027fc3bbec9b5b82e"
+    },
+    "platform_end": "2026-11-01 04:27:03"
+  },
+  {
+    "id": "0425",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0425_DW_20250528.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250528",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "ec15fb6698ebddcc443aadfe8d6e8c7c4a516d41cc6ef644be5c4d1b956c365c",
+    "taskid": "55be735c43b9836077134be83f0ff514",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0425_DW_20250528.csv",
+      "n_rows": 133184,
+      "sha256": "bda0dc51f6ea6a7594ac5c885f417c6d0a5d5856aedfbddcebd8c69d5b19731d"
+    },
+    "platform_end": "2026-11-01 04:29:36"
+  },
+  {
+    "id": "0426",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0426_DW_20250529.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250529",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "51674cea61f3addfe8cdb330aa58297bfb31d143c3c71d8880fb0dec73f99223",
+    "taskid": "4a0ea4d1b1d0d9c954e317b30a5741f8",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0426_DW_20250529.csv",
+      "n_rows": 132033,
+      "sha256": "63625c51b941a689e947d12e995e3d443f6b379c8b3e2661c18ebf98765fcc90"
+    },
+    "platform_end": "2026-11-01 04:36:42"
+  },
+  {
+    "id": "0427",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0427_DW_20250530.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_dep_date_window_exp",
+    "part": "DW_20250530",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "8619f848dfb0c0729dd10453c882a8b2ceeaf51118f8b073498b9de467bc68cc",
+    "taskid": "3cc7e953d3c036853aa5d74d9a2d1006",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0427_DW_20250530.csv",
+      "n_rows": 121055,
+      "sha256": "a795ec38f2ab8e8ae5d220f1655c16c190994f12920757fe07ac0805e16bec89"
+    },
+    "platform_end": "2026-11-01 04:39:37"
+  },
+  {
+    "id": "0428",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0428_PART_20250506.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250506",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "1eac0d5c2eda91dd716e40cd50938abb3945510cad2f5bd31c5469c6a9717ea0",
+    "taskid": "2e664d421656ce10be1da36e87126c1d",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0428_PART_20250506.csv",
+      "n_rows": 97780,
+      "sha256": "0816c40bf047c669c92d7bd4b4c7b63bd612a4a27e67240d41bc87c2622c2393"
+    },
+    "platform_end": "2026-11-01 04:41:54"
+  },
+  {
+    "id": "0429",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0429_PART_20250507.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250507",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "92c6090e20cee93b1cc209226a9f9d48be7704f38574c7d5a7ebbe590c2dd789",
+    "taskid": "d00052cbbba8d2e29d837f3a57a4cdb4",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0429_PART_20250507.csv",
+      "n_rows": 98978,
+      "sha256": "8d58098a6ccb05d8353ea515a239a734f974a28cc993130d078627ba43728ce3"
+    },
+    "platform_end": "2026-11-01 04:44:19"
+  },
+  {
+    "id": "0430",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0430_PART_20250508.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250508",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "b8cef666770809dd54388e5521fe13e73511eae63e8f61579a0cc78905e63197",
+    "taskid": "c5c58df988839c74eda6c0066b77124b",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0430_PART_20250508.csv",
+      "n_rows": 99397,
+      "sha256": "e1f226440cfea531fdd05aa8f1ff38d1b58036fd7b49628f134d38aa2285c7bc"
+    },
+    "platform_end": "2026-11-01 04:46:42"
+  },
+  {
+    "id": "0431",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0431_PART_20250509.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250509",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "3fe5369555d8989e190ab7765ac6936fa4854f10d23fff4ead1f5547f2c73324",
+    "taskid": "0553d24ceb1f8e5ece66aa7d0530fa53",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0431_PART_20250509.csv",
+      "n_rows": 94633,
+      "sha256": "19a147f298002d2228639eccc236476b15fcb362f070a7a9ecd90fbdf8c085f6"
+    },
+    "platform_end": "2026-11-01 04:49:14"
+  },
+  {
+    "id": "0432",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0432_PART_20250512.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250512",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "97d4c4d8e58902108e3ff32b4c94a25da7741f2505d5ae0b7595e94e1413e659",
+    "taskid": "d85d9eae0c25fc37783055eb5e66decc",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0432_PART_20250512.csv",
+      "n_rows": 101220,
+      "sha256": "2079dfca9a616f463c3072b85f8d23e002ad4659cc5435f99b9d030f2e89c8e4"
+    },
+    "platform_end": "2026-11-01 04:51:42"
+  },
+  {
+    "id": "0433",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0433_PART_20250513.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250513",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "033869e315f82fe072196024fd266c02d91c93f48f28b5f963de1bafb653aea3",
+    "taskid": "1510e5bf38f150ddd813c1a7cda02866",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0433_PART_20250513.csv",
+      "n_rows": 100733,
+      "sha256": "24478b447bb94ab1e796d7c041c67c0893e3641b18f21b1300f6d7b09de72da2"
+    },
+    "platform_end": "2026-11-01 05:04:14"
+  },
+  {
+    "id": "0434",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0434_PART_20250514.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250514",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "d7e43e4ad6800cec1142860409a4e4f6c9adc6355c7081f91482ee384f4bb49a",
+    "taskid": "e38d193ab9df6a67e5259e7b4086ca82",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0434_PART_20250514.csv",
+      "n_rows": 99121,
+      "sha256": "073de28f89b1179571f307615fb0801114536ed966e5a296d20193b506271a20"
+    },
+    "platform_end": "2026-11-01 05:06:53"
+  },
+  {
+    "id": "0435",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0435_PART_20250515.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250515",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "f607455f132c04d176d7a1e8fa441568645613f5fb41ec8ec3fd32e6483ca74f",
+    "taskid": "38485c5f3cc2ed01c72abe6cb298c05f",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0435_PART_20250515.csv",
+      "n_rows": 100447,
+      "sha256": "7b2de76ca6d4373d7cbc71778c37725e37af530504ef16a093f6c1332c14b1a8"
+    },
+    "platform_end": "2026-11-01 05:09:19"
+  },
+  {
+    "id": "0436",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0436_PART_20250516.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250516",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "0de6a2943cc63347e7482a0763078bddc805cd786bcee0e66e47fc439bdcb577",
+    "taskid": "fcd9725e0083b8f3340b87325a1511a7",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0436_PART_20250516.csv",
+      "n_rows": 99383,
+      "sha256": "730b99ab9ae0159503e0dec987e221c1b5525c2e28816097972baf86d1a20a25"
+    },
+    "platform_end": "2026-11-01 05:12:34"
+  },
+  {
+    "id": "0437",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0437_PART_20250519.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250519",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "080cb1abbbc0e51f1097497e36cc8068c4b1b713c8440f93605588f9a33f1c3a",
+    "taskid": "f1a59f020cd7552ef0070d2279c263c7",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0437_PART_20250519.csv",
+      "n_rows": 101890,
+      "sha256": "dfd69c97d51eade318715d74719f175c5151077cf095af718837f69780c06fd5"
+    },
+    "platform_end": "2026-11-01 10:06:14"
+  },
+  {
+    "id": "0438",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0438_PART_20250520.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250520",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "ad43e012466313ab9db5fab0dfab23a47a779d442c8bf2f16e2f1b8d8e5b6fbc",
+    "taskid": "e84d8943a438a3c876c02bb670c23aa4",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0438_PART_20250520.csv",
+      "n_rows": 101071,
+      "sha256": "65227c4edaa25c9ae5cf608fb7b4a43361c2e3a64b270c8304c2d0e95fcff68e"
+    },
+    "platform_end": "2026-11-01 10:32:51"
+  },
+  {
+    "id": "0439",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0439_PART_20250521.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250521",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "f9ad5491168922b9368685de0c11b91635217c1c52ea9b3a2a8a96d3bee563f4",
+    "taskid": "63292e20b1480715aa2dd09fdbfecf77",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0439_PART_20250521.csv",
+      "n_rows": 101258,
+      "sha256": "b997ea00c9db3212abd060164542849230818466536a4bd16928b5c48f9fb675"
+    },
+    "platform_end": "2026-11-01 10:39:41"
+  },
+  {
+    "id": "0440",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0440_PART_20250522.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250522",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "462e3b885efe88175164247b583fcda5c0fc978c8a92fca74009e035729b72a1",
+    "taskid": "bdefe920f0546c71590987291fd9b1ec",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0440_PART_20250522.csv",
+      "n_rows": 100424,
+      "sha256": "c3331108647a99cb31e8e410939dfee173ba7d206b4754f4ef682a5a33d1759a"
+    },
+    "platform_end": "2026-11-01 10:42:41"
+  },
+  {
+    "id": "0441",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0441_PART_20250523.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250523",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "0409fb440bff0e5306d8c764c6bd78accc77246690b7379fffd91b2d9ccd4ba0",
+    "taskid": "32f204ad300b23ae80ad443d86e3b2b2",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0441_PART_20250523.csv",
+      "n_rows": 98783,
+      "sha256": "b26fb2db4e8446ade6c0320d9b77e9ab5c31b2883054bd117d568f6fb432ba61"
+    },
+    "platform_end": "2026-11-01 10:44:51"
+  },
+  {
+    "id": "0442",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0442_PART_20250526.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250526",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "6f8e258cb9b31cfbb10e28cfc8c03eb160df2bc961020ef0decaac9fd2b9e84e",
+    "taskid": "12a2f8f1552e76f730082627cb587d4a",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0442_PART_20250526.csv",
+      "n_rows": 100620,
+      "sha256": "c1a7b581933fecac1dd52bed83ddc2d3062e624dc558f08e92493b30d3e5bc30"
+    },
+    "platform_end": "2026-11-01 10:47:22"
+  },
+  {
+    "id": "0443",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0443_PART_20250527.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250527",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "70ecd574444bd5de3d35321ef273e7ce3f564606f673bd0298b3c63cfdb51e6a",
+    "taskid": "db792c92ba63539dd5fcf59d7ecd1a07",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0443_PART_20250527.csv",
+      "n_rows": 99710,
+      "sha256": "7d8415239b7775c0bd5926c65d22bd397f70c95b119caf75b125522848dfa2b6"
+    },
+    "platform_end": "2026-11-01 10:49:45"
+  },
+  {
+    "id": "0444",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0444_PART_20250528.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250528",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "90177ab1d8bc2c64b75646648bb66d379766a8ed53352a98173ecb2b463db929",
+    "taskid": "eeef53669b22d7ff77673f23f03e5256",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0444_PART_20250528.csv",
+      "n_rows": 99165,
+      "sha256": "3c239b052d398258c929f5752ae85d38652ab70decb98af529184b92c4401121"
+    },
+    "platform_end": "2026-11-01 10:52:01"
+  },
+  {
+    "id": "0445",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0445_PART_20250529.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250529",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "4ba78183730b7f84ebd2771ad5f05d02f44aa79dd5798694ae030b645612774b",
+    "taskid": "c86bf43166ca257d94d6687ac7953e67",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0445_PART_20250529.csv",
+      "n_rows": 98313,
+      "sha256": "51db8f9f4d0182daccb3b59f989c28fac838e45471de2db12cbe9bafac4f624a"
+    },
+    "platform_end": "2026-11-01 10:54:43"
+  },
+  {
+    "id": "0446",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0446_PART_20250530.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0400B"
+    ],
+    "table": "tl25m05_v01_x_part_exp",
+    "part": "PART_20250530",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "f15d28b5889cfcfdc3da7a493d47c354f3bc560942fa1c26ecf66f3c98983212",
+    "taskid": "21d529755a6e9785d4e085f882be6c7a",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0446_PART_20250530.csv",
+      "n_rows": 95125,
+      "sha256": "8b76ae1a6b9c5d3744cee0c3d085a76c35d59543d36e5630f139470911030387"
+    },
+    "platform_end": "2026-11-01 10:57:01"
+  },
+  {
+    "id": "0400",
+    "name": "frozen aggregate export parts",
+    "kind": "planned_stage",
+    "depends_on": [
+      "0401",
+      "0402",
+      "0403",
+      "0404",
+      "0405",
+      "0406",
+      "0407",
+      "0408",
+      "0409",
+      "0410",
+      "0411",
+      "0412",
+      "0413",
+      "0414",
+      "0415",
+      "0416",
+      "0417",
+      "0418",
+      "0419",
+      "0420",
+      "0421",
+      "0422",
+      "0423",
+      "0424",
+      "0425",
+      "0426",
+      "0427",
+      "0428",
+      "0429",
+      "0430",
+      "0431",
+      "0432",
+      "0433",
+      "0434",
+      "0435",
+      "0436",
+      "0437",
+      "0438",
+      "0439",
+      "0440",
+      "0441",
+      "0442",
+      "0443",
+      "0444",
+      "0445",
+      "0446"
+    ],
+    "status": "passed",
+    "local_ready": false,
+    "file": null,
+    "note": "umbrella: passes when all parts pass and part row sums equal 0400B totals",
+    "output": "Platform/runs/202505_v01/checks/export_check.json",
+    "qc": "46/46 parts; row totals and strict rows match 0400B for all 6 tables; strict n_trips, person-days and N sums match; no count<5, no uid"
+  },
+  {
+    "id": "0460B",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0460B_rn_export_tables.sql",
+    "kind": "internal_build",
+    "depends_on": [
+      "0150"
+    ],
+    "creates": [
+      "tl25m05_v01_rn_x_slot30_exp",
+      "tl25m05_v01_rn_x_window_exp",
+      "tl25m05_v01_rn_x_date_window_exp",
+      "tl25m05_v01_rn_x_od_cover_exp"
+    ],
+    "note": "RN export tables (strict, >=5 people) with hash buckets; summary row gives totals for part checks",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "83d6d549a7faeea46f829e4df29eb0f769f5f79207f9fa66bb035c8c0aaf78ea",
+    "taskid": "086cb00022715dbaaee76f7f3bafe85a",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0460B_rn_export_tables.csv",
+      "n_rows": 1,
+      "sha256": "14fe1f41fce3bb35a329ac82fb18e7eb67a6c5fc6d8de3d12960e92cdcb1303d"
+    },
+    "platform_end": "2026-11-02 06:38:14"
+  },
+  {
+    "id": "0461",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0461_RS30_b00.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b00",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "548882d893397b27d9f0eab65b30fd1bc8ecb70b29f7bca362eb4c2febd1ecca",
+    "taskid": "8fa87fa4f271c5b4fefb2167c73c05b0",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0461_RS30_b00.csv",
+      "n_rows": 202695,
+      "sha256": "b9c5abb2ade2efeace03ed10a301b0d4f2ea0d279dbc65efdad0f1a2d8a32f77"
+    },
+    "platform_end": "2026-11-02 06:40:40"
+  },
+  {
+    "id": "0462",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0462_RS30_b01.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b01",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "80146012b98c931285b3689546cef7535b9666871ab0b52ba46bfa56def2af3e",
+    "taskid": "dba0c3eb6b5978435f360ad854a79ce7",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0462_RS30_b01.csv",
+      "n_rows": 153767,
+      "sha256": "cb3c23a6952271b5c9d73681b9ac0892c1e951d52ad51113916be37d1bb9d92a"
+    },
+    "platform_end": "2026-11-02 06:43:20"
+  },
+  {
+    "id": "0463",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0463_RS30_b02.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b02",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "05851bcd141ce032692fe6bb6ba43b064821f30e8c76b97ba38678ddffb9f9cc",
+    "taskid": "d57316a5935e5c41d0ffc62709ded0ec",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0463_RS30_b02.csv",
+      "n_rows": 151124,
+      "sha256": "6ba75a611ce3b7bf90f9e26802c8f7d6c048c4e78f5edc5bb92f5ba33b0f3851"
+    },
+    "platform_end": "2026-11-02 06:45:43"
+  },
+  {
+    "id": "0464",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0464_RS30_b03.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b03",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "c0167127eb0cc6f240520013e319056c5cf3b76d7ecbf8bab09113915286b8eb",
+    "taskid": "ebe4a2d61a380e6a2012a0f3393898b7",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0464_RS30_b03.csv",
+      "n_rows": 135661,
+      "sha256": "1b925f32d6cd45de69f1ebcb08f57ecf2b9634d7047a1797ed555fbab25e21a4"
+    },
+    "platform_end": "2026-11-02 06:48:19"
+  },
+  {
+    "id": "0465",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0465_RS30_b04.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b04",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "0bf768f4b5ad24b34c3868eaa2f3bc101ad4f5674e3f465953aa8c396e342139",
+    "taskid": "ed365ac269845764e7482cc2bda74fbf",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0465_RS30_b04.csv",
+      "n_rows": 138214,
+      "sha256": "fb5ee3ecff13b20145e6227c24cf665594ea666a3c7075c2f3bf99e0e93a720a"
+    },
+    "platform_end": "2026-11-02 06:50:38"
+  },
+  {
+    "id": "0466",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0466_RS30_b05.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b05",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "a5791021cb1e347329b5f07605a86177372d126e70713dccfe4ad949603f8f7a",
+    "taskid": "5b32f0a167d9fc01bc08bdb6f8838d65",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0466_RS30_b05.csv",
+      "n_rows": 139696,
+      "sha256": "10a291b0d0dcab7e14efd99b9cb4b5fd98ab6953ab1fc36613948b86f457d117"
+    },
+    "platform_end": "2026-11-02 06:53:03"
+  },
+  {
+    "id": "0467",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0467_RS30_b06.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b06",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "93590cbebc6f40998068c1de3e9e9e6e737af77064afac5f8df852929fe77665",
+    "taskid": "e245f3fd55e2783a48c5f51cd3d12193",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0467_RS30_b06.csv",
+      "n_rows": 140239,
+      "sha256": "9f3180da068fc61835f3fc025313f90f1ae84c87e133146e8fe37c462dc816d7"
+    },
+    "platform_end": "2026-11-02 06:55:35"
+  },
+  {
+    "id": "0468",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0468_RS30_b07.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b07",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "1a43d4eea57822220c8ecf2371ffcfd89ea975287d482d1cbb5e5f768d593e30",
+    "taskid": "c90ed90094eec76b0ce9a6af66117dba",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0468_RS30_b07.csv",
+      "n_rows": 135441,
+      "sha256": "80f680fe4deb0175c55a35025580a172da63e3b6887c106e4559d249910cf0b8"
+    },
+    "platform_end": "2026-11-02 06:58:03"
+  },
+  {
+    "id": "0469",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0469_RS30_b08.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b08",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "41672cc7e8e625b51644c8e947f92c567b13f7653c37ccf354c1fe04925df8e4",
+    "taskid": "a5319570961481c9e7a6274f0dfda63a",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0469_RS30_b08.csv",
+      "n_rows": 140050,
+      "sha256": "b0253662df7fbca9ebc8151091acf58fd1522e4ff419edd6a62720b47d5a13dc"
+    },
+    "platform_end": "2026-11-02 07:00:37"
+  },
+  {
+    "id": "0470",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0470_RS30_b09.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b09",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "20a623a0f56eb38ea15a7bdabb79a725edae833091d21f05ae964dbafb47a619",
+    "taskid": "1bddbdc52e646f73b213deae2d8a5db9",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0470_RS30_b09.csv",
+      "n_rows": 136700,
+      "sha256": "0792ec939079fe92eab7d81587e25ba48c8fe433239c4846360cfa8aebc97dca"
+    },
+    "platform_end": "2026-11-02 07:03:04"
+  },
+  {
+    "id": "0471",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0471_RS30_b10.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b10",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "e3617a768af887aa53105a742349cc08a5fa74043690c0c025ebc5242250573f",
+    "taskid": "355ae94a3664dbeeba6a7a8d505f833e",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0471_RS30_b10.csv",
+      "n_rows": 140025,
+      "sha256": "c58ec64495052b0d55786eb6161906119e431f56c9a14462b91e3c6ac7c0c054"
+    },
+    "platform_end": "2026-11-02 07:05:35"
+  },
+  {
+    "id": "0472",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0472_RS30_b11.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b11",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "c60b373f243385bf0c21536190147ad922b0f76ca94841e8feaa79631db4120a",
+    "taskid": "0ea710da9d60b57789c9f4a0bdad340e",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0472_RS30_b11.csv",
+      "n_rows": 136278,
+      "sha256": "19ed447b7239ff26e3d9aa1adf2fb53e5f75b1cb0fdae883b8bc4eb2c5cdaf6a"
+    },
+    "platform_end": "2026-11-02 07:08:03"
+  },
+  {
+    "id": "0473",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0473_RS30_b12.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b12",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "4e102ed8173d4990d13276fd30e4c4ee85c210e8746f0941f63c743e66ae4e9b",
+    "taskid": "3b03432076df0b6a0159a527e5a8c7b4",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0473_RS30_b12.csv",
+      "n_rows": 149815,
+      "sha256": "bc227ad676231e54b1f5ce28e19df3619c45a6dd9bf810e21166add65b3ec2f1"
+    },
+    "platform_end": "2026-11-02 07:10:32"
+  },
+  {
+    "id": "0474",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0474_RS30_b13.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b13",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "c16d6ed3f608685c18eebd8f8a5ba44e921361735a10d7a5d4f568b6ef23f99e",
+    "taskid": "c36f6b52d2d851601e71d958de701774",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0474_RS30_b13.csv",
+      "n_rows": 154910,
+      "sha256": "408a3c7816a9edc567841b876fd68568740f86c71fba0b3ebb5e0168b1e77dd1"
+    },
+    "platform_end": "2026-11-02 07:13:24"
+  },
+  {
+    "id": "0475",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0475_RS30_b14.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b14",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "bc4ee810027f9ee4641d3993bd88b6aec5d1b3ce7e9872360e5d6536bf11d2ad",
+    "taskid": "161f61180ffb677777c442613226998a",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0475_RS30_b14.csv",
+      "n_rows": 196054,
+      "sha256": "c2b5994b1d5bee2ba9ecc7bb9f2ba55a98c6290c08a1eb35ab747d20c0948242"
+    },
+    "platform_end": "2026-11-02 07:15:37"
+  },
+  {
+    "id": "0476",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0476_RS30_b15.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_slot30_exp",
+    "part": "RS30_b15",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "46d0f4399bba7e463db1969bd479eaa3073180ffb21b4c74d250c60c8900512d",
+    "taskid": "4722646f9f98f82874196fc356abe79a",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0476_RS30_b15.csv",
+      "n_rows": 129503,
+      "sha256": "a5d2ef347e9b504db6d1f8bb382b85f558e54f094f70355098cfe75b72f39cff"
+    },
+    "platform_end": "2026-11-02 07:18:20"
+  },
+  {
+    "id": "0477",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0477_RWIN_b0.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_window_exp",
+    "part": "RWIN_b0",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "168995998fc630e4f585da69c70cd2a68a9427227d2e1ad73716bddcc89596f6",
+    "taskid": "b0f5d0b94a951293d9014381f977f867",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0477_RWIN_b0.csv",
+      "n_rows": 158790,
+      "sha256": "674ad7b6384f2772f402583a330048bc6dff1d4a7bee3495b08ea609c7aca13c"
+    },
+    "platform_end": "2026-11-02 07:20:36"
+  },
+  {
+    "id": "0478",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0478_RWIN_b1.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_window_exp",
+    "part": "RWIN_b1",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "c1418af326dbf0a6eb9eaaef0e5758c5827ec9662ca4f93e5daa3bb4396a3698",
+    "taskid": "2b262df9d6d6669834e5ff117ec38c4c",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0478_RWIN_b1.csv",
+      "n_rows": 146972,
+      "sha256": "f617458eb5865cad7cbe73a7dc4b4579f85f2c976bcca575d8dd0f9cf3fdb96a"
+    },
+    "platform_end": "2026-11-02 07:23:23"
+  },
+  {
+    "id": "0479",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0479_RWIN_b2.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_window_exp",
+    "part": "RWIN_b2",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "c6f6c0e29f76331acb9ec5df9a0b8facd867e77fb6ea377827fdc1062a78d464",
+    "taskid": "063d2a0f8d0564dc33a6032f4c97514f",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0479_RWIN_b2.csv",
+      "n_rows": 158418,
+      "sha256": "559da04cece122dc514ac10db0053c082066a06bb0833076134547e3a4b09039"
+    },
+    "platform_end": "2026-11-02 07:25:52"
+  },
+  {
+    "id": "0480",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0480_RWIN_b3.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_window_exp",
+    "part": "RWIN_b3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "09c042b80dfeaf0dd17657f0e9387dcec8f7ecebfe76dc83de33aba5f1b397ad",
+    "taskid": "9f50d7109926f61f16214e09c5aa23ec",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0480_RWIN_b3.csv",
+      "n_rows": 132057,
+      "sha256": "807efdcdb11b622c505920b05a69f379afdfaf98f894ca3390507117567be597"
+    },
+    "platform_end": "2026-11-02 07:28:22"
+  },
+  {
+    "id": "0481",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0481_RDW_20250519_b0.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250519_b0",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "4446de510fbce6717fa72a018f194e38bf6d7c885ed3f4e682595dd193410d23",
+    "taskid": "68dc02cecb253d19f1c6cd7a06f28fc4",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0481_RDW_20250519_b0.csv",
+      "n_rows": 138505,
+      "sha256": "d9ab3db8139546ba7d0366cf99965a816a261d0f4eccfe4cfc42acc121c7d94c"
+    },
+    "platform_end": "2026-11-02 07:36:42"
+  },
+  {
+    "id": "0482",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0482_RDW_20250519_b1.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250519_b1",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "153ce28a24fe2fb466085c091c63ec5af8bddc29f3b9a427d9f25b1325eaaf3b",
+    "taskid": "b95e0ac2f4eedbaec32d4f596908dbc3",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0482_RDW_20250519_b1.csv",
+      "n_rows": 137653,
+      "sha256": "b4e280b5e5540105263d4219fa1f168c40cfddc51a257397d53bc46c35a7a7b6"
+    },
+    "platform_end": "2026-11-02 07:39:21"
+  },
+  {
+    "id": "0483",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0483_RDW_20250519_b2.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250519_b2",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "6a2c29f51931188f4e19623740299d32a3a2ba3a2080c5e6ddd58f4842b264af",
+    "taskid": "fde901577ccfa6560fb6d6c2a9ed516b",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0483_RDW_20250519_b2.csv",
+      "n_rows": 138485,
+      "sha256": "9108b74424cdccca1e82499f466205d16a94989348fc7792e375e20018960b77"
+    },
+    "platform_end": "2026-11-02 07:41:52"
+  },
+  {
+    "id": "0484",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0484_RDW_20250520_b0.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250520_b0",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "c5ced2ea721cb32ae9e8065aa7c73c3db6d0a30fb441f128f6230588522b200d",
+    "taskid": "5b78f6b136a0a88ecdd5630e8b4cc62b",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0484_RDW_20250520_b0.csv",
+      "n_rows": 137976,
+      "sha256": "9f64726e8e5fbbd37bc811842c6af5320ea7c6ef78a6a5010fb5a3f9d6542ec4"
+    },
+    "platform_end": "2026-11-02 07:44:43"
+  },
+  {
+    "id": "0485",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0485_RDW_20250520_b1.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250520_b1",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "c4369daed18aab6ae9e690876bbf10d3564cc1f9ddff43066768035fe09a01b6",
+    "taskid": "9968fe1c6a6bae796f1cf27a8b9aa684",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0485_RDW_20250520_b1.csv",
+      "n_rows": 137261,
+      "sha256": "d108774146c655275b02117e64eb5409e97af9884c35c8910af0b55ed61fb20c"
+    },
+    "platform_end": "2026-11-02 07:47:26"
+  },
+  {
+    "id": "0486",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0486_RDW_20250520_b2.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250520_b2",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "507438336a6ffb3c934bf7b71e9b1548734568d543691aa679db32478866b072",
+    "taskid": "e27fe703378af5c6c95e46f61ab275eb",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0486_RDW_20250520_b2.csv",
+      "n_rows": 137622,
+      "sha256": "dc649700502279dc75fb0d95fab62d1d32ad3918badff99b50a50433e7b30582"
+    },
+    "platform_end": "2026-11-02 07:50:03"
+  },
+  {
+    "id": "0487",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0487_RDW_20250521_b0.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250521_b0",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "6d5bf13ed31d1c777f2a81ea83fe6bb93ef813ca6b939593dc786063904666e6",
+    "taskid": "3ff0997d09cd4f9043fb80616ab8ab26",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0487_RDW_20250521_b0.csv",
+      "n_rows": 138296,
+      "sha256": "6c6ac8749937fba93ec1d0c66e0f54ec4d2bf3ad5c60a37876dbe2b74e9b010b"
+    },
+    "platform_end": "2026-11-02 07:52:42"
+  },
+  {
+    "id": "0488",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0488_RDW_20250521_b1.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250521_b1",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "241cd9bbebf94b3f6a24f96e885f419154960ee6d859b16e8e13684ed413820c",
+    "taskid": "c51dd645edbbbde8762f91ebe7b16bc7",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0488_RDW_20250521_b1.csv",
+      "n_rows": 137766,
+      "sha256": "3c73306c0bfc02e4cbf4f393718a7e346c1aaa67d090e19045f84199ffe531fb"
+    },
+    "platform_end": "2026-11-02 07:55:20"
+  },
+  {
+    "id": "0489",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0489_RDW_20250521_b2.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250521_b2",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "984d97b74fe606e073a58779196716c4edf51af2912e8ed03db9173b819b77f3",
+    "taskid": "027e66632635763f56ac0ba412f1b574",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0489_RDW_20250521_b2.csv",
+      "n_rows": 138019,
+      "sha256": "9ce4d0d1410f0f7ddff298bf767bd3c4e9e5042fe8128d27c1e4e9df3b6c0249"
+    },
+    "platform_end": "2026-11-02 07:57:52"
+  },
+  {
+    "id": "0490",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0490_RDW_20250522_b0.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250522_b0",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "07a82687c2b3bdc0f2e1e7f919a5214d7f6d87972bdcf01d2ddec59b32952de5",
+    "taskid": "3ef1d8cb007743e83e95b049ecba2ef8",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0490_RDW_20250522_b0.csv",
+      "n_rows": 136845,
+      "sha256": "27ed2e1cda06e19eded459e1ccc5e4fae751b5ab33e30814c2175e1c24db2d17"
+    },
+    "platform_end": "2026-11-02 08:00:47"
+  },
+  {
+    "id": "0491",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0491_RDW_20250522_b1.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250522_b1",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "094d6f43f17983bed954fc6fe4e221bc7b386b731abecd83216f7dddb263eafc",
+    "taskid": "b93a02b61f02656fde73aa2ddad061c8",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0491_RDW_20250522_b1.csv",
+      "n_rows": 136342,
+      "sha256": "753db79275bc8a00c67fc6023a515e53aedac63c6667d95483a75539c175a98c"
+    },
+    "platform_end": "2026-11-02 08:04:03"
+  },
+  {
+    "id": "0492",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0492_RDW_20250522_b2.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250522_b2",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "14c84752005caaaaa9421c0ad87bf74ae4ab2eb29230234a9741be5c8327484e",
+    "taskid": "4ea64a41e63032bb9d7dad8c8141eedd",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0492_RDW_20250522_b2.csv",
+      "n_rows": 136761,
+      "sha256": "6668bfed57d8f098117004d1d5005389a41958ac5a75dbdf5d839e1a49c6dfca"
+    },
+    "platform_end": "2026-11-02 08:06:49"
+  },
+  {
+    "id": "0493",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0493_RDW_20250523_b0.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250523_b0",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "b1dddbc4d31a34141f69542d3f129f21b49a246a810e250f3b910fd47df251de",
+    "taskid": "ed0a0b602b216ad752cee0ba6b550229",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0493_RDW_20250523_b0.csv",
+      "n_rows": 135249,
+      "sha256": "8a8d5d572074f6983b00ff7cf8dc2027cf58b6ca4795d8b21380dd66109c2178"
+    },
+    "platform_end": "2026-11-02 08:09:24"
+  },
+  {
+    "id": "0494",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0494_RDW_20250523_b1.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250523_b1",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "c8c30735ebf94c0757a066c860c65f8c5f64ff7cbeedc25155944d15f596865c",
+    "taskid": "e816d4f708a7322da3fb3aa4f3c7aa1c",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0494_RDW_20250523_b1.csv",
+      "n_rows": 134604,
+      "sha256": "50946592119dba90a50456f28dfa46aa58ef5cff9e2d0f62442d3273228212d3"
+    },
+    "platform_end": "2026-11-02 08:11:53"
+  },
+  {
+    "id": "0495",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0495_RDW_20250523_b2.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_date_window_exp",
+    "part": "RDW_20250523_b2",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "8814674f500d1431a5a975974f7a37a09b417db1bfccd43732d17210f17bd803",
+    "taskid": "c0a1cd353e204cad659420ee6fb59f6b",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0495_RDW_20250523_b2.csv",
+      "n_rows": 135198,
+      "sha256": "4787b6919dc0faa91af442d24bd4108d26211851a26435b77a1d764bee0b2b1d"
+    },
+    "platform_end": "2026-11-02 08:14:20"
+  },
+  {
+    "id": "0496",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0496_RCOV_strict.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_od_cover_exp",
+    "part": "RCOV_strict",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "1ff381b25449dc603c8a94dd88b184670566080f9e86779ea85dc5b8704e651b",
+    "taskid": "8a8c448e5fbd49fa009a795c09ba9f5b",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0496_RCOV_strict.csv",
+      "n_rows": 74116,
+      "sha256": "6df2aac3d447d70f8d752eb863cf8718f6525e0a71487e3a987504d1c8990856"
+    },
+    "platform_end": "2026-11-02 08:16:39"
+  },
+  {
+    "id": "0497",
+    "file": "202505_v01/04_aggregate_exports/TL25M05_V01_0497_RCOV_relaxed.sql",
+    "kind": "aggregate_export_rn",
+    "depends_on": [
+      "0460B"
+    ],
+    "table": "tl25m05_v01_rn_x_od_cover_exp",
+    "part": "RCOV_relaxed",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "0d0a5b67c7ce158930b678f53bef518504460069f23e61e216a26aa43b751f23",
+    "taskid": "a951bb3fc9a961b2a8cd15b269259960",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0497_RCOV_relaxed.csv",
+      "n_rows": 74565,
+      "sha256": "52e0e9d8f0d027ab160aeb8ae8d5e6c98d266364f229235e39c62ef50c48b13a"
+    },
+    "platform_end": "2026-11-02 08:19:04"
+  },
+  {
+    "id": "0460",
+    "name": "RN aggregate export",
+    "kind": "planned_stage",
+    "depends_on": [
+      "0461",
+      "0462",
+      "0463",
+      "0464",
+      "0465",
+      "0466",
+      "0467",
+      "0468",
+      "0469",
+      "0470",
+      "0471",
+      "0472",
+      "0473",
+      "0474",
+      "0475",
+      "0476",
+      "0477",
+      "0478",
+      "0479",
+      "0480",
+      "0481",
+      "0482",
+      "0483",
+      "0484",
+      "0485",
+      "0486",
+      "0487",
+      "0488",
+      "0489",
+      "0490",
+      "0491",
+      "0492",
+      "0493",
+      "0494",
+      "0495",
+      "0496",
+      "0497"
+    ],
+    "status": "passed",
+    "local_ready": false,
+    "file": null,
+    "note": "umbrella: passes when all RN parts pass and part row/passage sums equal 0460B totals",
+    "output": "Platform/runs/202505_v01/checks/rn_export_check.json",
+    "qc": "37/37 parts; rows and n_pass sums equal 0460B for slot30/window/date-window; od_cover rows and strict trips equal; no count<5, no uid; 225.5MB total, max part 8.4MB"
+  },
+  {
+    "id": "0601",
+    "file": "202505_v01/06_maintenance/TL25M05_V01_0601_drop_T1_pilots_and_downloaded_exports.sql",
+    "kind": "maintenance_drop",
+    "depends_on": [
+      "0400",
+      "0460"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "24c7f4d6ea835f03e4ccebb335ca340f001879a692c965b4ac99baf783e8c1b6",
+    "drops": [
+      "tl25m05_v01_trip_p0519_internal",
+      "tl25m05_v01_rn_link_p0519_internal",
+      "tl25m05_v01_x_n_exp",
+      "tl25m05_v01_x_n_margin_exp",
+      "tl25m05_v01_x_dep_slot30_exp",
+      "tl25m05_v01_x_dep_window_exp",
+      "tl25m05_v01_x_dep_date_window_exp",
+      "tl25m05_v01_x_part_exp",
+      "tl25m05_v01_rn_x_slot30_exp",
+      "tl25m05_v01_rn_x_window_exp",
+      "tl25m05_v01_rn_x_date_window_exp",
+      "tl25m05_v01_rn_x_od_cover_exp"
+    ],
+    "note": "user approved 2026-11-02 (Hive quota full): drop own accepted pilots/exports (T1) and rebuildable intermediates (T2); core trip/person/OD tables kept",
+    "taskid": "8449de61b8314ae613ba0939582e9110",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0601_drop_T1_pilots_and_downloaded_exports.csv",
+      "n_rows": 1,
+      "sha256": "2bcbd5591a1044b03786cc7c2b0e9a52e659df9683e13402a99d10cbcfd25701"
+    },
+    "platform_end": "2026-11-02 21:39:20"
+  },
+  {
+    "id": "0602",
+    "file": "202505_v01/06_maintenance/TL25M05_V01_0602_drop_T2_rebuildable_intermediates.sql",
+    "kind": "maintenance_drop",
+    "depends_on": [
+      "0400",
+      "0460"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "571834338a7e785644acf857ed17b40b38e6adc3610814d8bbcdb1eae7db1db4",
+    "drops": [
+      "tl25m05_v01_rn_pass_internal",
+      "tl25m05_v01_departure_od_internal",
+      "tl25m05_v01_rn_p_slot10_internal",
+      "tl25m05_v01_rn_p_slot30_internal",
+      "tl25m05_v01_rn_p_window_internal",
+      "tl25m05_v01_rn_p_date_window_internal",
+      "tl25m05_v01_rn_od_cover_internal"
+    ],
+    "note": "user approved 2026-11-02 (Hive quota full): drop own accepted pilots/exports (T1) and rebuildable intermediates (T2); core trip/person/OD tables kept",
+    "taskid": "dc688dcd1991b6ec841f9082fba7eb46",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0602_drop_T2_rebuildable_intermediates.csv",
+      "n_rows": 1,
+      "sha256": "0536a2888e28042329845b45c581612c83ad1d17e1f3338ad274446e4ca902d9"
+    },
+    "platform_end": "2026-11-02 21:42:15"
+  },
+  {
+    "id": "0112",
+    "file": "202505_v01/03_qc/TL25M05_V01_0112_purpose_share_r.sql",
+    "kind": "read_only_probe",
+    "depends_on": [
+      "0110"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "7184a89a447fc749be544125d053d74921c9b3613d9b9df5aa9cc00fe95a860d",
+    "note": "R-level purpose x 10-min departure x mode trip counts (strict, 19 weekdays); >=5 SIM cells only",
+    "taskid": "65776011cf9861ac21ac836fc839d1a6",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0112_purpose_share_r.csv",
+      "n_rows": 4318,
+      "sha256": "08f92b0afc3d552319a45a9a69c84793185205d9f353d0193a29f5cef1a9bcf6"
+    },
+    "platform_end": "2026-11-04 13:01:38"
+  },
+  {
+    "id": "0113",
+    "file": "202505_v01/03_qc/TL25M05_V01_0113_commute_chain_share_r.sql",
+    "kind": "read_only_probe",
+    "depends_on": [],
+    "status": "failed",
+    "local_ready": true,
+    "sha256": "6219bd73cf38e0c15b6a965fbc02b904fe8651b96df23f64fd4d37be2669a482",
+    "external_read": {
+      "table": "sm25m05_ch_v01_jleg_internal",
+      "project": "SubwayMobility",
+      "read_only": true,
+      "source_sql": "SubwayMobility/Platform/ng_v01_chain/01_nodes/SM25M05_CH01F_day_nodes_full_v01.sql (sha256 095f371d...) + 02_journey/SM25M05_CH02_journey_v01.sql (sha256 146b8eb1...)",
+      "built": "2026-09-23 monthly run, passed; 19 weekdays 2025-05, R sample, 401,563,214 legs (SubwayMobility run-log)"
+    },
+    "note": "Commute share with stops: AM/PM x mode x endpoint purpose x home-based chain class (hw_direct, hw_chain, wh_direct, wh_chain, work_between, non_commute) x chain kind (transfer_only <600 s vs activity_stop); valid legs only; >=5 SIM cells",
+    "taskid": "86d26477fa435de9b5461cf8d5f4290e",
+    "error": "50520,20250521,20250522,20250523,20250526,20250527,20250528,20250529,20250530) ) a ) b ) c WHERE c.invalid_movement=0 ) d GROUP BY d.period, d.mode_group, d.purpose, d.leg_class, d.chain_kind HAVING count(DISTINCT d.uid)>=5:org.apache.hive.service.cli.HiveSQLException: Error while compiling statement: FAILED: SemanticException [Error 10001]: Line 93:9 Table not found 'sm25m05_ch_v01_jleg_internal'"
+  },
+  {
+    "id": "0113B",
+    "file": "202505_v01/03_qc/TL25M05_V01_0113B_commute_chain_share_r.sql",
+    "kind": "read_only_probe",
+    "depends_on": [
+      "0100"
+    ],
+    "status": "failed",
+    "local_ready": true,
+    "sha256": "8c446d0b1b1d9d8a52374eddca21b078f11abfc59b893d95528538e1f1577b74",
+    "note": "0113 rebuilt from move_month (0113 failed: sm25m05_ch_v01_jleg_internal no longer exists). R = tl25m05_v01_person_internal.in_r; strict validity as 0110; journey stitching <600 s at non-home/work nodes as SubwayMobility CH02; same classification and output as 0113; >=5 SIM cells",
+    "taskid": "e343f759dbb7411fa33f5d3595b3062a",
+    "error": "516, 20250519,20250520,20250521,20250522,20250523,20250526,20250527,20250528,20250529,20250530) GROUP BY cast(uid AS string), `date`, cast(move_id AS string) ) m INNER JOIN tl25m05_v01_person_internal p ON p.uid=m.uid WHERE p.in_r=1 ) t ) f ) g ) a ) b ) c WHERE c.invalid_movement=0 ) d GROUP BY d.period, d.mode_group, d.purpose, d.leg_class, d.chain_kind HAVING count(DISTINCT d.uid)>=5:不允许给uid起别名"
+  },
+  {
+    "id": "0113C",
+    "file": "202505_v01/03_qc/TL25M05_V01_0113C_commute_chain_share_r.sql",
+    "kind": "read_only_probe",
+    "depends_on": [
+      "0100"
+    ],
+    "status": "failed",
+    "local_ready": true,
+    "sha256": "7caeb82086cf5eb079d07f2264888527682ed440dd127d8ddb1501488fb00f82",
+    "note": "0113B without the uid alias (firewall: 不允许给uid起别名); logic identical",
+    "taskid": "b087d683df64000dcce173b42c2bd8af",
+    "error": "516, 20250519,20250520,20250521,20250522,20250523,20250526,20250527,20250528,20250529,20250530) GROUP BY uid, `date`, cast(move_id AS string) ) m INNER JOIN tl25m05_v01_person_internal p ON p.uid=cast(m.uid AS string) WHERE p.in_r=1 ) t ) f ) g ) a ) b ) c WHERE c.invalid_movement=0 ) d GROUP BY d.period, d.mode_group, d.purpose, d.leg_class, d.chain_kind HAVING count(DISTINCT d.uid)>=5:不允许给uid起别名"
+  },
+  {
+    "id": "0113D",
+    "file": "202505_v01/03_qc/TL25M05_V01_0113D_commute_chain_share_r.sql",
+    "kind": "internal_build_aggregate_export",
+    "depends_on": [
+      "0100"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "3556009803c8c9063c1c0405f70aa0d439b62f7956d3f4ec6b77afcb4208532c",
+    "note": "0113B logic written into the aggregate-only table tl25m05_v01_chain_share_exp (no uid, cells >=5 SIM), then a final SELECT; the SELECT-task firewall rejects uid passed through subqueries | VOID: period from from_unixtime(unix_timestamp(stime)) is +8 h (run-log 0006); use 0113E",
+    "taskid": "c71f71d7a8ac9da303d449d0c3cb4683",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0113D_commute_chain_share_r.csv",
+      "n_rows": 137,
+      "sha256": "d3a032ae98629d8b94f0df092c72fe9e510bd3bfcf15aaa23e763aafdad04513"
+    },
+    "platform_end": "2026-11-10 07:00:03"
+  },
+  {
+    "id": "0113E",
+    "file": "202505_v01/03_qc/TL25M05_V01_0113E_commute_chain_share_r.sql",
+    "kind": "internal_build_aggregate_export",
+    "depends_on": [
+      "0100"
+    ],
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "864bb6ae96ff6d57194e6bbbc96f294787e7b600cdd28581f8e41216fb064a8f",
+    "note": "0113D with period from the raw stime string (substr 12-19), as 0110; overwrites the project table tl25m05_v01_chain_share_exp (DROP IF EXISTS)",
+    "taskid": "752189811768dd46811779eabd64ac3e",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0113E_commute_chain_share_r.csv",
+      "n_rows": 143,
+      "sha256": "da1cd56d654668d0cc738de135fb1ca09fcaeaf1a7b5be6bb5fa22f9d4a5b225"
+    },
+    "platform_end": "2026-11-10 07:23:18"
+  },
+  {
+    "id": "0701",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0701_od_band_build.sql",
+    "kind": "internal_build_aggregate_export",
+    "depends_on": [
+      "0110"
+    ],
+    "creates": [
+      "tl25m05_v01_od_band_exp"
+    ],
+    "note": "HW/WH strict joint OD by time band (all_day, departure 06-10/07-09 and 16-20/17-19, on-road overlap); cells <5 SIM collapsed to SUPP; summary SELECT",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "d8311879bf09f257ae8a91b67730843b5198124f15473fca705f1cef66c3102d",
+    "taskid": "1155bc3440ec080ed33c162b996c0632",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0701_od_band_build.csv",
+      "n_rows": 20,
+      "sha256": "879d384ff970e95473ac57a6594b07a94e505835f6189bd88c1196e1c5e598ca"
+    },
+    "platform_end": "2026-11-11 06:01:57"
+  },
+  {
+    "id": "0702",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0702_chain_od_build.sql",
+    "kind": "internal_build_aggregate_export",
+    "depends_on": [
+      "0100"
+    ],
+    "creates": [
+      "tl25m05_v01_chain_od_exp"
+    ],
+    "note": "chain-level home-work OD (direct / transfer_only / activity_stop) from move_month, 0113E tour logic, in_joint persons, chains with any invalid leg dropped; cells <5 SIM collapsed to SUPP",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "0932c8e59b0d4a70a84185b34e0c81ec1a7f1e9eed8c3fc67ecaa00c982b5529",
+    "taskid": "3667c3314b250b20c2fcc092e4a876b4",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0702_chain_od_build.csv",
+      "n_rows": 64,
+      "sha256": "ce6749935e0c6ecc7dce9153d2facf7c1a2155310296282bebdb11cc77175807"
+    },
+    "platform_end": "2026-11-11 06:42:57"
+  },
+  {
+    "id": "0703",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0703_endpoint_od_build.sql",
+    "kind": "internal_build_aggregate_export",
+    "depends_on": [
+      "0100"
+    ],
+    "creates": [
+      "tl25m05_v01_endpoint_od_exp"
+    ],
+    "note": "all-user strict mode1 trips departing 06-10 and 16-20, OD by actual trip endpoints (stay_poi centroid -> model grid), all purposes; NOPOI/POICONF/BADXY/OUT labelled; cells <5 SIM collapsed to SUPP",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "4e2fa3f4f84e695d40510ca208dc18787d7662db7c8d2d8f6bb895b7c89853f9",
+    "taskid": "143d4363aef8dca402b90d0baf85891c",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0703_endpoint_od_build.csv",
+      "n_rows": 12,
+      "sha256": "313598e6f53f7512519843b0e3428d856dd7c2bebe6dd12267b80cddb6dc9658"
+    },
+    "platform_end": "2026-11-11 07:25:14"
+  },
+  {
+    "id": "0711",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0711_OB_HW_allday.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0701"
+    ],
+    "table": "tl25m05_v01_od_band_exp",
+    "part": "OB_HW_allday",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "03f2f35143d06ee5ff3c5fd8b217b7f4105d12fe0a3bcd096f3488c0781e1a7f",
+    "taskid": "34b70f86f74e559f1afb26a809a690ad",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0711_OB_HW_allday.csv",
+      "n_rows": 59628,
+      "sha256": "dc59c02e39cf583f30c6fb0a366c58158bfc2ecf5575b54106277a5c1787b211"
+    },
+    "platform_end": "2026-11-11 06:04:27"
+  },
+  {
+    "id": "0712",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0712_OB_HW_dep0610_dep0709.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0701"
+    ],
+    "table": "tl25m05_v01_od_band_exp",
+    "part": "OB_HW_dep0610_dep0709",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "52923f288bb951c0aa66d8017e3110ab7e409571f6495011ea75b8a137e274b8",
+    "taskid": "85b4e88bf50f19266d4ffcb800f96f90",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0712_OB_HW_dep0610_dep0709.csv",
+      "n_rows": 103271,
+      "sha256": "b03732c0c8004b70fcee5cb1435231d665e0212454cbea14f1b59238d812c37f"
+    },
+    "platform_end": "2026-11-11 06:07:15"
+  },
+  {
+    "id": "0713",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0713_OB_HW_onroad0610_onroad0709.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0701"
+    ],
+    "table": "tl25m05_v01_od_band_exp",
+    "part": "OB_HW_onroad0610_onroad0709",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "0a492d41dc9a410639e7aacf86e70ea88a5ab95464d38c4e863872aa58a4244f",
+    "taskid": "6c8f294f8a6585b0e29c778863261828",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0713_OB_HW_onroad0610_onroad0709.csv",
+      "n_rows": 110430,
+      "sha256": "ffc9b8a546f21a2bd9f19ebdc454189d10d9a32b1ee966233cad47692c81db78"
+    },
+    "platform_end": "2026-11-11 06:09:55"
+  },
+  {
+    "id": "0714",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0714_OB_WH_allday.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0701"
+    ],
+    "table": "tl25m05_v01_od_band_exp",
+    "part": "OB_WH_allday",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "edf965942e383627dc4c6c0c9ec2caa8073a5aafced2fcc2f343126ab62ddc49",
+    "taskid": "1b450c699c93c2ac29a9d1a61b7f4d51",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0714_OB_WH_allday.csv",
+      "n_rows": 60610,
+      "sha256": "9f5440b3c13e31d459d38382b2857360417773dbb1d782543a1b6aaec7172fd6"
+    },
+    "platform_end": "2026-11-11 06:12:37"
+  },
+  {
+    "id": "0715",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0715_OB_WH_dep1620_dep1719.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0701"
+    ],
+    "table": "tl25m05_v01_od_band_exp",
+    "part": "OB_WH_dep1620_dep1719",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "37ce01834ddac4bfd4a69c04a8b7f4510b803a6e0df6e4866477ed1dabc0140d",
+    "taskid": "4914807283b84612353b63c4d7130ea2",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0715_OB_WH_dep1620_dep1719.csv",
+      "n_rows": 103392,
+      "sha256": "ce85ae447326d7bfe985597ecd23942d9efe4637918c84efceb57c0816195af9"
+    },
+    "platform_end": "2026-11-11 06:15:36"
+  },
+  {
+    "id": "0716",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0716_OB_WH_onroad1620_onroad1719.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0701"
+    ],
+    "table": "tl25m05_v01_od_band_exp",
+    "part": "OB_WH_onroad1620_onroad1719",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "2d11e5a6d331efeb931a683d93e012a803d340f98b0c43b611d2c4a28427bc55",
+    "taskid": "e0b3c6cf7f35219ac9e26ff006bbcb87",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0716_OB_WH_onroad1620_onroad1719.csv",
+      "n_rows": 106384,
+      "sha256": "b0870b458d8db621bff7504cbb28377eda81d1d721f770fd3362f519c65ace7c"
+    },
+    "platform_end": "2026-11-11 06:18:03"
+  },
+  {
+    "id": "0721",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0721_CH_HW_allday.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CH_HW_allday",
+    "status": "failed",
+    "local_ready": true,
+    "sha256": "69565c388daad5d4b48dfaa6f3000eb7909846d54184814e3c462e3bd64f5c4d",
+    "taskid": "8024671182cbb4a5d2a53d4ef356deb4",
+    "error": "platform st=1004; getresult: 结果未保存，字段类型不支持二进制或字段名有重复 (columns unique and types plain; ~190k rows x 12 cols, likely over result size limit). Replaced by 0741-0748 (non-direct chains only; direct = 0711-0713)."
+  },
+  {
+    "id": "0722",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0722_CH_HW_dep0610.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CH_HW_dep0610",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "be66445ee6c3a15a9ee25ef04c5aac1a930d7b102b8590861b45bf644abd0fdc",
+    "note": "not submitted; replaced by 0741-0748 after 0721 size failure"
+  },
+  {
+    "id": "0723",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0723_CH_HW_dep0709.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CH_HW_dep0709",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "1d4e8faa8564ec2a6638bb3253a32963102e89b2f598c92e93742cdcf9d590fa",
+    "note": "not submitted; replaced by 0741-0748 after 0721 size failure"
+  },
+  {
+    "id": "0724",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0724_CH_HW_onroad0610.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CH_HW_onroad0610",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "d91b49988b8f960532a914d7ce823cde3535cb1a6b95c443e17cf9acf7b64b89",
+    "note": "not submitted; replaced by 0741-0748 after 0721 size failure"
+  },
+  {
+    "id": "0725",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0725_CH_WH_allday.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CH_WH_allday",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "d069a37a1fd7db390f1c5e9d5fd767783ec63a62249873a03dbbc4092ccce9e6",
+    "note": "not submitted; replaced by 0741-0748 after 0721 size failure"
+  },
+  {
+    "id": "0726",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0726_CH_WH_dep1620.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CH_WH_dep1620",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "71c3ca75eaf707d9aa64dc47cdb9ed7ca708640de5ed423b2ce2c1a9546473d0",
+    "note": "not submitted; replaced by 0741-0748 after 0721 size failure"
+  },
+  {
+    "id": "0727",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0727_CH_WH_dep1719.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CH_WH_dep1719",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "3ba3ed258a30d2a9ab8776bb377e278fa3878cc3578b1e960855422b4296820e",
+    "note": "not submitted; replaced by 0741-0748 after 0721 size failure"
+  },
+  {
+    "id": "0728",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0728_CH_WH_onroad1620.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CH_WH_onroad1620",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "f7103eb065cb042f4ae8600e0f5d7abd7ad3de71ffc1065b544ec4a43ed0a0b8",
+    "note": "not submitted; replaced by 0741-0748 after 0721 size failure"
+  },
+  {
+    "id": "0731",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0731_EP_dep0610_hwwh.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep0610_hwwh",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "28e64d1ac11f7330bd5552b2c5767787fd1ecca60db04ac0dd78d502b62b8bfb",
+    "note": "not submitted; 0703 summary showed up to 291k rows per part, above the ~115k-row result limit seen at 0721/0745; replaced by hash-split 0751-0768"
+  },
+  {
+    "id": "0732",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0732_EP_dep0610_homeother.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep0610_homeother",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "5c974468ff2897524bda1e43c85ecc6d13eed38535f9a85167ad9dc2914f0be0",
+    "note": "not submitted; 0703 summary showed up to 291k rows per part, above the ~115k-row result limit seen at 0721/0745; replaced by hash-split 0751-0768"
+  },
+  {
+    "id": "0733",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0733_EP_dep0610_workother.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep0610_workother",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "5fb1df9ed99c2d12d145ee733c6b1e831ab39a0d0425f0978a91107e00de504f",
+    "note": "not submitted; 0703 summary showed up to 291k rows per part, above the ~115k-row result limit seen at 0721/0745; replaced by hash-split 0751-0768"
+  },
+  {
+    "id": "0734",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0734_EP_dep1620_hwwh.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep1620_hwwh",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "560d1c97e5064aabbca77902cf9b2eed7e9869d0c9934f0c19c5282584671c81",
+    "note": "not submitted; 0703 summary showed up to 291k rows per part, above the ~115k-row result limit seen at 0721/0745; replaced by hash-split 0751-0768"
+  },
+  {
+    "id": "0735",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0735_EP_dep1620_homeother.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep1620_homeother",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "047c614b72af539d883029d00654f2fce370b2108341b5426243be11753671d8",
+    "note": "not submitted; 0703 summary showed up to 291k rows per part, above the ~115k-row result limit seen at 0721/0745; replaced by hash-split 0751-0768"
+  },
+  {
+    "id": "0736",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0736_EP_dep1620_workother.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep1620_workother",
+    "status": "superseded",
+    "local_ready": true,
+    "sha256": "69936362b17e576fc5926b0fcafaa5f6bef7e7237adf6672e7446116ea37bc32",
+    "note": "not submitted; 0703 summary showed up to 291k rows per part, above the ~115k-row result limit seen at 0721/0745; replaced by hash-split 0751-0768"
+  },
+  {
+    "id": "0741",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0741_CHND_HW_allday.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CHND_HW_allday",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "015881f7afc59d79911f850d3fbb95fd5c29c52ca15008afdcfe05fe53b8d2b3",
+    "taskid": "2f17da425c36f9ffb4d07c9726b83c5d",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0741_CHND_HW_allday.csv",
+      "n_rows": 95396,
+      "sha256": "ceda4a131b21764100925e42de656677ae3a188974554c3225ce9158d279854a"
+    },
+    "platform_end": "2026-11-11 06:50:31"
+  },
+  {
+    "id": "0742",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0742_CHND_HW_dep0610.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CHND_HW_dep0610",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "e271a92320adc297ee55d745f41cb763b8bd4c4ac88cc8a4b33a9d6774ea3d43",
+    "taskid": "74c18e52b7f55971f76c6c24b0258fc2",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0742_CHND_HW_dep0610.csv",
+      "n_rows": 86347,
+      "sha256": "a30f7e6454994bfe2b0fe8adb590e7970ac7f88080ac5a2487c1235d647ab23a"
+    },
+    "platform_end": "2026-11-11 06:52:43"
+  },
+  {
+    "id": "0743",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0743_CHND_HW_dep0709.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CHND_HW_dep0709",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "6f9b90ef3e69d9101948e0e54b06cdc15d141a234af7ea6ccdeb34f4382b3075",
+    "taskid": "690aa894edd62cc2a09ed38919af9730",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0743_CHND_HW_dep0709.csv",
+      "n_rows": 67786,
+      "sha256": "220654c06f6c0afbc9119b9871b1b2cf0efdb22ccf149de03aa015f7aaa57039"
+    },
+    "platform_end": "2026-11-11 06:55:22"
+  },
+  {
+    "id": "0744",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0744_CHND_HW_onroad0610.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CHND_HW_onroad0610",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "70920b1f483ea83e1cdc56981e8af67ae3903e15b865e633589c9b2cb6628c90",
+    "taskid": "0952ae69a8d131f993c2d5757704dac1",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0744_CHND_HW_onroad0610.csv",
+      "n_rows": 91130,
+      "sha256": "eaec0963a8e0a874e84a745d327c2d4140a3aec7e7d8b84a96bb8fb7bbcf23dd"
+    },
+    "platform_end": "2026-11-11 06:57:42"
+  },
+  {
+    "id": "0745",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0745_CHND_WH_allday.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CHND_WH_allday",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "dbe2de83bc2fab97da8a2d182efebccb600bcd763e2529d32cf9038477d4896e",
+    "taskid": "44ffa87f142c70bb67d8cdff2e3fdece",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0745_CHND_WH_allday.csv",
+      "n_rows": 114689,
+      "sha256": "17025bfdde84c19db52b6fb8a56966d81d1c7fb19b7ce8f4d403e3e0902e74e1"
+    },
+    "platform_end": "2026-11-11 07:00:32"
+  },
+  {
+    "id": "0746",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0746_CHND_WH_dep1620.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CHND_WH_dep1620",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "9ea4c698903aa413b95fce253674a7d992bdb9c53db93ead1d107dcb34693d80",
+    "taskid": "c2aef503ce180bf4ada548749a97f8cc",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0746_CHND_WH_dep1620.csv",
+      "n_rows": 95415,
+      "sha256": "c946cebaf0f8245564f297307dce822ecd15c8c2d42746516447916601e89841"
+    },
+    "platform_end": "2026-11-11 07:02:54"
+  },
+  {
+    "id": "0747",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0747_CHND_WH_dep1719.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CHND_WH_dep1719",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "ec7e376f72de4f2d25b80cede098b37e12cf05c6d947b295e3a5f74162106d6c",
+    "taskid": "73cfcfc034fedebd6d1ebdd10d7370ab",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0747_CHND_WH_dep1719.csv",
+      "n_rows": 79050,
+      "sha256": "8f0765b31e9316d823794d6f53a21347ceb0b170b763d03f26265e6cd8acd63e"
+    },
+    "platform_end": "2026-11-11 07:05:23"
+  },
+  {
+    "id": "0748",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0748_CHND_WH_onroad1620.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0702"
+    ],
+    "table": "tl25m05_v01_chain_od_exp",
+    "part": "CHND_WH_onroad1620",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "e66a6c0119d89921e8c68feb61e8737518499b135c2572df52422a53d2a76d45",
+    "taskid": "0d472eb6a20434da38d6d382d7a39eae",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0748_CHND_WH_onroad1620.csv",
+      "n_rows": 108143,
+      "sha256": "587b17f580987497b3a9dbeeaa7c5626990e3f6b45a52120ec40f4d297e4e70b"
+    },
+    "platform_end": "2026-11-11 07:08:04"
+  },
+  {
+    "id": "0751",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0751_EP_dep0610_hwwh.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep0610_hwwh",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "28e64d1ac11f7330bd5552b2c5767787fd1ecca60db04ac0dd78d502b62b8bfb",
+    "taskid": "69dc3cc31cafbf5ed83e24693887967f",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0751_EP_dep0610_hwwh.csv",
+      "n_rows": 75163,
+      "sha256": "539f4ffa793e28bc1a4599754dfe5ac1d8c42ffad50ad7bfb34ad230feeae6d2"
+    },
+    "platform_end": "2026-11-11 07:28:35"
+  },
+  {
+    "id": "0752",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0752_EP_dep0610_homeother_h0of3.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep0610_homeother_h0of3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "3a26126455ddfb5f548ee0526aa1cd71e243b46c3fb852bd6ce5dc983d60f5ed",
+    "taskid": "f79d37d880b99b00342a62e1c79c206f",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0752_EP_dep0610_homeother_h0of3.csv",
+      "n_rows": 95541,
+      "sha256": "0139dbb1838f9c1c27799f00db374633712ea592d59d99a846cf3815246cfdba"
+    },
+    "platform_end": "2026-11-11 07:31:04"
+  },
+  {
+    "id": "0753",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0753_EP_dep0610_homeother_h1of3.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep0610_homeother_h1of3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "a91ae9cd45889e0bfb6f1411c778593cd306111d32316da53c64337315362920",
+    "taskid": "37d5662bae7137997a8991b33ee5b233",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0753_EP_dep0610_homeother_h1of3.csv",
+      "n_rows": 98161,
+      "sha256": "c990fd90ae48ee3357d6931cffe207508e174e0cb518ba8ae893ba6b410b963b"
+    },
+    "platform_end": "2026-11-11 07:33:35"
+  },
+  {
+    "id": "0754",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0754_EP_dep0610_homeother_h2of3.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep0610_homeother_h2of3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "a83071c9ac5a2d92e5db8ef343f07192ff1d38b2095dc85a6043f148cb83442c",
+    "taskid": "31cf475ed39c5f452fdece3b5ef04ecb",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0754_EP_dep0610_homeother_h2of3.csv",
+      "n_rows": 97114,
+      "sha256": "a9c8115712ce3f77a5a4d7748a55a87e32b063a0b6af995f72bc2f5f6888e95b"
+    },
+    "platform_end": "2026-11-11 07:36:23"
+  },
+  {
+    "id": "0755",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0755_EP_dep0610_other_h0of3.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep0610_other_h0of3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "d18e4941f047a7b506e6c0b932233bd79bb443914d55b3f84c15ae74b129a8a9",
+    "taskid": "6313cce78723472115f9ace661fcea49",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0755_EP_dep0610_other_h0of3.csv",
+      "n_rows": 81816,
+      "sha256": "43dc7626f452182a0640d8430ec28dcb8cfe08d4a291874f31ae512bc9ef5793"
+    },
+    "platform_end": "2026-11-11 07:38:42"
+  },
+  {
+    "id": "0756",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0756_EP_dep0610_other_h1of3.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep0610_other_h1of3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "d4b5d9d1159b0ba44dab2aafed915f155018608197946b2f2896abdd842b1bb6",
+    "taskid": "13c871dbe775509a9179e9ccf2fb066a",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0756_EP_dep0610_other_h1of3.csv",
+      "n_rows": 82157,
+      "sha256": "30d84b0c427985710b22a910b76b60107cc99a5ec4fc04377b94d34d668d2d49"
+    },
+    "platform_end": "2026-11-11 07:41:23"
+  },
+  {
+    "id": "0757",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0757_EP_dep0610_other_h2of3.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep0610_other_h2of3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "662f96d5e066731a673dfc586398ecd2289d9d21bc3a233354da80d61dde7b21",
+    "taskid": "58cb29c78096ff078e8150814d9e5e71",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0757_EP_dep0610_other_h2of3.csv",
+      "n_rows": 80663,
+      "sha256": "b38be88f1224e929cf92e12258679cc8bb370626b66466d2e85b8aa170bb3843"
+    },
+    "platform_end": "2026-11-11 11:14:30"
+  },
+  {
+    "id": "0758",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0758_EP_dep0610_workother_h0of2.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep0610_workother_h0of2",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "28a0ee28e96789ad54780a429122f6e4dccd206ff10bcc3cf82ea281beb2ea57",
+    "taskid": "80ebef89309be9dcf1ae0cc0f4eaef22",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0758_EP_dep0610_workother_h0of2.csv",
+      "n_rows": 63709,
+      "sha256": "b822e16c15ad2448bf16834021ed6f8ecdc3ccc83a8f7d190fdc3a2432094dea"
+    },
+    "platform_end": "2026-11-11 11:24:52"
+  },
+  {
+    "id": "0759",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0759_EP_dep0610_workother_h1of2.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep0610_workother_h1of2",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "8b4dbf0b5bce2c4e2292a1f93b0db54c7e154cf6c5931522968d5267931a18a2",
+    "taskid": "6f7f1bb5d9263d5a1eada4cbc0ff8f93",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0759_EP_dep0610_workother_h1of2.csv",
+      "n_rows": 65426,
+      "sha256": "a497006f9d212a8c7c1f16029d427fa40ea4b513869ae0c897b547733aca2896"
+    },
+    "platform_end": "2026-11-11 11:27:03"
+  },
+  {
+    "id": "0760",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0760_EP_dep1620_hwwh.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep1620_hwwh",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "560d1c97e5064aabbca77902cf9b2eed7e9869d0c9934f0c19c5282584671c81",
+    "taskid": "a4950203d13c90349af8edaef968e862",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0760_EP_dep1620_hwwh.csv",
+      "n_rows": 75527,
+      "sha256": "15fc9258a02ff150204a9bbae476ce36252aaef06ddd08a87bc77db3b432020f"
+    },
+    "platform_end": "2026-11-11 11:29:27"
+  },
+  {
+    "id": "0761",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0761_EP_dep1620_homeother_h0of3.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep1620_homeother_h0of3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "35a65afa51c703f9a25fe7b8827b130d91618e1230f6687d7e8b42f1f571d64d",
+    "taskid": "a47fbe9f7711d238893ecec99b63ebf2",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0761_EP_dep1620_homeother_h0of3.csv",
+      "n_rows": 91936,
+      "sha256": "e47161e6cb56625d8dec0fa07b5149efef429a9e494bff222c03092fed114477"
+    },
+    "platform_end": "2026-11-11 11:31:56"
+  },
+  {
+    "id": "0762",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0762_EP_dep1620_homeother_h1of3.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep1620_homeother_h1of3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "d0cc815e064f96c4361e5a4bf266e15f59a9cc34d857b44a4a6d8bd51279d363",
+    "taskid": "039f679b3ba7321f0ecd7ebef2b29cfa",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0762_EP_dep1620_homeother_h1of3.csv",
+      "n_rows": 92162,
+      "sha256": "035d815e5e8d10fed9409f0c23466d36e30ce3f0ec1d15c1baf7c8c2d92b2ef6"
+    },
+    "platform_end": "2026-11-11 11:34:35"
+  },
+  {
+    "id": "0763",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0763_EP_dep1620_homeother_h2of3.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep1620_homeother_h2of3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "24e851b5ad60b574c3d42a4cd84c77afd456277dc6463b66a7d038523f9e3973",
+    "taskid": "7d0e8e6999bcb2bf0113e839fd8d3106",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0763_EP_dep1620_homeother_h2of3.csv",
+      "n_rows": 91012,
+      "sha256": "24f494afad4060cf32d0eceb682e8380303ba39d27a9a338b9b7f852f8fe814d"
+    },
+    "platform_end": "2026-11-11 11:37:26"
+  },
+  {
+    "id": "0764",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0764_EP_dep1620_other_h0of3.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep1620_other_h0of3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "d631c3aea52f8233127284129b4c7e3ff07c3856d74d8152c0c4eda00157e153",
+    "taskid": "1013ea44230889e5ac869afaffc6b682",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0764_EP_dep1620_other_h0of3.csv",
+      "n_rows": 84329,
+      "sha256": "f3933cd6f08f9fa3e87a72cd793a17d23e8f762d3e1c658fcf873b464d7ee3eb"
+    },
+    "platform_end": "2026-11-11 11:39:55"
+  },
+  {
+    "id": "0765",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0765_EP_dep1620_other_h1of3.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep1620_other_h1of3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "d87b9409a8fcbd81e705741bd93902c270794e14ed1c053cdf69ec7ad0547466",
+    "taskid": "5376fee32f7dfe3757251938d10b9ae6",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0765_EP_dep1620_other_h1of3.csv",
+      "n_rows": 83812,
+      "sha256": "256c31f900c62c58ff41af0a68a85892116a08a344d906307b47fa94a200c10e"
+    },
+    "platform_end": "2026-11-11 11:42:45"
+  },
+  {
+    "id": "0766",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0766_EP_dep1620_other_h2of3.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep1620_other_h2of3",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "0f4775899d37738bf2002de261514d6531f9cc670c299fd5eceb3b814e07adb7",
+    "taskid": "3e8e89eb2818fddd304b78cd1e0cd85e",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0766_EP_dep1620_other_h2of3.csv",
+      "n_rows": 82903,
+      "sha256": "12f2b806f0d5a091db05724f44ff869d3ad6f84bdcad75de4246743535ae4ee8"
+    },
+    "platform_end": "2026-11-11 11:45:24"
+  },
+  {
+    "id": "0767",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0767_EP_dep1620_workother_h0of2.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep1620_workother_h0of2",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "1c4ff9d19f388a8468fe8c3bdb0ef5ec9adae54afb7cd0d333c6b6877ec83e2a",
+    "taskid": "834bcb61d93684b13822e487830d39c5",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0767_EP_dep1620_workother_h0of2.csv",
+      "n_rows": 71193,
+      "sha256": "486e81c11b767372eaf4ede6425060471854f2771bc0ddc87306d0c7b0dce716"
+    },
+    "platform_end": "2026-11-11 11:47:35"
+  },
+  {
+    "id": "0768",
+    "file": "202505_v01/07_od_extensions/TL25M05_V01_0768_EP_dep1620_workother_h1of2.sql",
+    "kind": "aggregate_export",
+    "depends_on": [
+      "0703"
+    ],
+    "table": "tl25m05_v01_endpoint_od_exp",
+    "part": "EP_dep1620_workother_h1of2",
+    "status": "passed",
+    "local_ready": true,
+    "sha256": "d148808c01a5df4a0b8acdcb5a1e566f3d31a47d93f8b100e02d21213c8f27ee",
+    "taskid": "b0fa1e8878093d9b21025e2c1d91a509",
+    "output": {
+      "path": "runs/202505_v01/query-results/TL25M05_V01_0768_EP_dep1620_workother_h1of2.csv",
+      "n_rows": 71211,
+      "sha256": "532d03da28becc3a81fbec7407021db4ac72e57a040719f286c4c9a464eefc5a"
+    },
+    "platform_end": "2026-11-11 11:50:31"
+  }
+]

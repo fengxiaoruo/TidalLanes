@@ -1,0 +1,112 @@
+\documentclass[11pt,aspectratio=169]{beamer}
+\usetheme{Boadilla}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage[authoryear,round]{natbib}
+
+\graphicspath{{figs/}}
+
+\newcommand{\good}[1]{\textcolor{blue!70!black}{#1}}
+\newcommand{\muted}[1]{\textcolor{gray!75!black}{#1}}
+
+\setbeamercolor{metricbox}{bg=black!5,fg=black}
+\setbeamercolor{idbox}{bg=blue!5,fg=black}
+
+\title[Video RDiT]{Video Measurement and Opening-Time RDiT}
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{frame}{Traffic Outcomes Before and After Opening}
+\vspace{-0.5em}
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio,trim=140 50 140 90,clip]{caitian_0709_pre_tracking.jpg}\\[-0.1em]
+{\small \textbf{Pre}}
+\column{0.49\textwidth}
+\centering
+\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio,trim=140 50 140 90,clip]{caitian_0709_late_post_tracking.jpg}\\[-0.1em]
+{\small \textbf{Post}}
+\end{columns}
+
+\vspace{0.15em}
+\centering
+{\scriptsize
+\setlength{\tabcolsep}{0.85em}
+\renewcommand{\arraystretch}{1.04}
+\begin{tabular}{@{}lrrr@{\hspace{1.5em}}rrr@{}}
+\toprule
+& \multicolumn{3}{c}{\textbf{Flow (vehicles/hour)}}
+& \multicolumn{3}{c}{\textbf{Travel time (seconds)}} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+\textbf{Direction} & \textbf{Pre} & \textbf{Post} & \textbf{Change}
+& \textbf{Pre} & \textbf{Post} & \textbf{Change} \\
+\midrule
+$S\to N$ & 2,902 & 3,284 & \good{$+13.2\%$}
+& 18.73 & 8.87 & \good{$-52.6\%$} \\
+$N\to S$ & 1,484 & 1,712 & \good{$+15.4\%$}
+& 3.49 & 3.90 & \good{$+11.8\%$} \\
+\bottomrule
+\end{tabular}}
+
+\vspace{0.3em}
+\begin{beamercolorbox}[wd=0.96\linewidth,sep=0.3em,center]{idbox}
+{\scriptsize \textbf{Takeaway:} Flow rises in both directions. Travel time falls only in the capacity-gaining direction.}
+\end{beamercolorbox}
+
+\vfill
+{\fontsize{4.7}{5.4}\selectfont \muted{\textbf{Data notes.} Pre/Post windows: 0:00--2:45 and 33:30--48:30; deployment is excluded. Flow is normalized to vehicles/hour; travel time is the median matched gate time. Matched tracks (Pre/Post): $S\to N$ 13/655; $N\to S$ 58/403. Source: 0709 outbound video. One-day descriptive comparison, not an RDiT estimate.}}
+\end{frame}
+
+\begin{frame}{Identification: Opening-Time RDiT}
+\small
+
+\textbf{Design.}
+At the scheduled cutoff $c_d$, $S\to N$ capacity shifts from three to four lanes. Actual operation $D_{dt}=Open_{dt}$ is coded from video, and $Y_{dt}\in\{Q_{dt},T_{dt}\}$ measures directional flow or travel time.
+
+\vspace{0.4em}
+{\centering
+$\displaystyle r_{dt}=t-c_d,\qquad
+ Z_{dt}=\mathbf{1}\{r_{dt}\geq0\},\qquad
+ D_{dt}=Open_{dt}. $\par}
+
+\vspace{0.5em}
+\begin{beamercolorbox}[wd=0.94\linewidth,sep=0.55em,center]{idbox}
+{\large
+$\displaystyle
+Y_{dt}=\alpha_d+\tau_Y D_{dt}
++\beta_-r_{dt}+\beta_+D_{dt}r_{dt}+\varepsilon_{dt},
+\qquad |r_{dt}|\leq h.$}
+\end{beamercolorbox}
+
+\vspace{0.4em}
+\textbf{Estimand.}
+$\tau_Y$ is the local effect of opening the extra lane at $c_d$. If operation is delayed, $Z_{dt}$ instruments $D_{dt}$ and $\tau_Y^{FRD}=\pi_Y/\pi_D$.
+
+\vspace{0.35em}
+\textbf{Identification.}
+\begin{itemize}\small\setlength\itemsep{0.08em}
+  \item The scheduled cutoff is predetermined relative to minute-level traffic shocks.
+  \item Without opening, potential outcomes evolve smoothly through $c_d$, with no coincident incident or policy change.
+\end{itemize}
+
+\vspace{0.05em}
+\textbf{Implementation.}
+Estimate local linear specifications on repeated dates with one-minute bins, date fixed effects, and date-clustered inference. Exclude deployment; vary $h$; test placebo cutoffs; validate clocks and detection with the reverse camera.
+
+\vfill
+{\tiny \muted{Current 0709 estimates are descriptive. Formal RDiT requires repeated opening dates with continuous coverage around the cutoff.}}
+\end{frame}
+
+\end{document}

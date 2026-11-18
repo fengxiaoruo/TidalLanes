@@ -1,0 +1,40 @@
+source_file,state,segment_start_s,segment_end_s,true_direction,left_endpoint,split_point,right_endpoint,notes
+IMG_2994.MOV,normal,0,274.383,outbound,"250,700","900,700","1600,700",最终确认
+IMG_2995.MOV,normal,0,3311.623,outbound,"300,700","900,700","1700,700",最终确认
+IMG_2996.MOV,normal,0,16.258,outbound,"300,700","900,700","1700,700",未布设
+IMG_2997.MOV,deployment_in_progress,0,25.113,outbound,"300,800","1030,800","1450,800",布设中；过渡段
+IMG_2998.MOV,deployment_in_progress,0,179.002,outbound,"750,700","1250,700","1500,700",布设中；过渡段
+IMG_3002.MOV,deployment_in_progress,0,120,outbound,"200,900","1050,900","1550,900",第2张施工中线；第1张操作前复核线另记为(300,800)-(800,800)-(1400,800)，过渡段不计入稳定样本
+IMG_3002.MOV,tidal_deployed,120,1968.787,outbound,"200,900","1050,900","1550,900",第3张开通后线
+IMG_3003.MOV,tidal_deployed,0,2455.903,outbound,"300,700","1150,700","1700,700",最终确认
+IMG_3004.MOV,tidal_deployed,0,30.280,outbound,"300,700","1100,700","1600,700",最终确认
+IMG_3005.MOV,tidal_deployed,0,30.280,outbound,"300,700","1050,700","1600,700",最终确认
+IMG_3006.MOV,tidal_deployed,0,30.207,outbound,"300,700","1050,700","1600,700",最终确认
+IMG_3007.MOV,tidal_deployed,0,30.255,outbound,"300,700","1050,700","1600,700",最终确认
+IMG_3008.MOV,tidal_deployed,0,1568.442,outbound,"200,700","950,700","1500,700",最终确认
+IMG_3009.MOV,tidal_deployed,0,30.238,outbound,"400,800","1050,800","1600,800",最终确认
+IMG_3010.MOV,tidal_deployed,0,145.137,outbound,"400,800","1100,800","1600,800",最终确认
+IMG_3011.MOV,tidal_deployed,0,372.935,outbound,"300,800","980,800","1400,800",最终确认
+IMG_3012.MOV,tidal_deployed,0,908.938,outbound,"300,800","980,800","1400,800",最终确认
+IMG_3014.MOV,tidal_deployed,0,30.250,outbound,"300,900","1100,900","1700,900",最终确认
+IMG_3015.MOV,tidal_deployed,0,3637.753,outbound,"100,850","750,850","1200,850",最终确认
+IMG_3016.MOV,tidal_deployed,0,4.372,outbound,"300,800","1000,800","1400,800",最终确认
+IMG_3017.MOV,tidal_deployed,0,1829.103,outbound,"300,800","1000,800","1400,800",最终确认
+IMG_3018.MOV,tidal_deployed,0,840,outbound,"300,800","1000,800","1400,800",操作前
+IMG_3018.MOV,reversal_in_progress,840,1107.485,outbound,"300,800","1000,800","1400,800",施工/挪回中
+IMG_3021.MOV,normal,0,660.968,outbound,"300,800","900,800","1500,800",最终确认
+IMG_3022.MOV,normal,0,1984.823,outbound,"100,800","650,800","1200,800",真实方向出城
+2026-07-10 215640.mov,normal,0,2081.060,outbound,"100,700","600,700","1100,700",真实方向出城
+2026-07-10 150310.mov,camera_unstable,0,270,inbound,"300,700","1100,700","1800,700",异常段单独识别
+2026-07-10 150310.mov,normal,270,3424.245,inbound,"300,700","1100,700","1800,700",稳定段
+2026-07-10 160016.mov,normal,0,1200,inbound,"300,700","1150,700","1800,700",布设前
+2026-07-10 160016.mov,deployment_in_progress,1200,1860,inbound,"300,700","1150,700","1800,700",第5张施工中线；过渡段
+2026-07-10 160016.mov,tidal_deployed,1860,3658.960,inbound,"300,700","850,700","1800,700",第6张开通后线
+2026-07-10 171617.mov,tidal_deployed,0,2891.023,inbound,"200,600","1050,600","1800,600",最终确认
+2026-07-10 181104.mov,tidal_deployed,0,1622.358,inbound,"100,600","850,600","1500,600",最终确认
+2026-07-10 190717.mov,tidal_deployed,0,1461.825,inbound,"150,700","1000,700","1700,700",最终确认
+2026-07-10 193845.mov,tidal_deployed,0,3666.660,inbound,"200,800","1000,800","1600,800",最终确认
+2026-07-10 203954.mov,tidal_deployed,0,1807.118,inbound,"200,800","1000,800","1600,800",最终确认
+2026-07-10 211730.mov,tidal_deployed,0,960,inbound,"300,800","1000,800","1500,800",施工前
+2026-07-10 211730.mov,reversal_in_progress,960,1202.913,inbound,"300,800","1000,800","1500,800",第10张施工中线；过渡段
+2026-07-10 214611.mov,normal,0,603.072,inbound,"200,800","950,800","1600,800",潮汐车道已恢复

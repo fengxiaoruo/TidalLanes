@@ -5,7 +5,7 @@ This checklist is for moving the project to a new computer and getting it into a
 ## 1. Copy the project
 
 - Copy the full project directory:
-  - `/Users/fxr/Desktop/TidalLanes`
+  - `/Users/fxr/Dropbox/Projects/TidalLanes`
 - Keep the existing output folders if possible, especially:
   - `data_work/outputs/raw_rebuild_validation`
   - `data_work/outputs/match_projection_complete_v7`
@@ -105,10 +105,10 @@ Important baseline files include:
 
 These are the most useful handoff files:
 
-- `data_work/docs/CODEX_HANDOFF_NOTE.md`
-- `data_work/docs/REPRODUCIBILITY_SNAPSHOT.md`
+- `data_work/docs/_superseded/CODEX_HANDOFF_NOTE.md`
+- `data_work/docs/_superseded/REPRODUCIBILITY_SNAPSHOT.md`
 - `data_work/docs/QUICK_RERUN_CHEATSHEET.md`
-- `data_work/docs/STRUCTURAL_MODEL_WORKFLOW.md`
+- `data_work/docs/_superseded/STRUCTURAL_MODEL_WORKFLOW.md`
 
 ## 9. Verify the descriptive paper assets
 
@@ -230,7 +230,7 @@ Useful review layers:
 Use this prompt:
 
 ```text
-Please first read data_work/docs/CODEX_HANDOFF_NOTE.md and data_work/docs/NEW_MACHINE_SETUP_CHECKLIST.md, then continue taking over this project.
+Please first read data_work/docs/_superseded/CODEX_HANDOFF_NOTE.md and data_work/docs/NEW_MACHINE_SETUP_CHECKLIST.md, then continue taking over this project.
 ```
 
 ## 18. Practical recommendation

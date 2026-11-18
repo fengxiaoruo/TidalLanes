@@ -1,43 +1,33 @@
 # TidalLanes Data Work
 
-This directory contains the current script-based working pipeline for the TidalLanes project.
+Code, configuration, and versioned outputs for the TidalLanes data pipeline and structural model.
 
-The current validated run is:
+## Start here
 
-- [`outputs/raw_rebuild_validation`](/Users/fxr/Desktop/TidalLanes/data_work/outputs/raw_rebuild_validation)
+- **Current mainline** (specification, input bundle, run commands, what the numbers measure): the "Current mainline" table in [`../DOCUMENT_INDEX.md`](../DOCUMENT_INDEX.md). It is the only place that states it.
+- **Working rules and code map:** [`AGENTS.md`](AGENTS.md).
+- **Mainline output folders to back up:** [`docs/MAINLINE_MANIFEST.md`](docs/MAINLINE_MANIFEST.md).
+- **History of completed work:** [`docs/WORK_LOG.md`](docs/WORK_LOG.md).
 
-This version was rerun from `raw_data` under the new stage-based framework and is the current baseline output to keep.
+`outputs/` holds about 480 run folders. Most belong to earlier specifications (gate5, 2022 OD, anchored λ = 1.1) or to experiments. A folder name alone does not say whether it is current; check the manifest.
 
-The current retained raw-centerline-match result is:
+## Layout
 
-- [`outputs/manual_centerline_rules_v11`](/Users/fxr/Desktop/TidalLanes/data_work/outputs/manual_centerline_rules_v11)
+| Path | Contents |
+|---|---|
+| `raw_data/` | Source datasets; do not modify |
+| `src/` | Pipeline and model code; see the code map in `AGENTS.md` |
+| `config/` | Run configuration in JSON |
+| `scripts/` | Shell launchers for Baidu collection and backup |
+| `docs/` | Pipeline documentation, evidence notes, `WORK_LOG.md` |
+| `outputs/` | One folder per run, never overwritten; excluded from Git |
+| `analysis/`, `crosscheck/`, `notebooks/` | Early baseline metrics and an equilibrium cross-check |
 
-This is the final retained output for the manual centerline / raw-centerline matching line, separate from the full end-to-end `raw_rebuild_validation` baseline.
+## Stage pipeline (March 2026)
 
-## Current Structure
+This chain builds the centreline match, speeds, grids, and the old gate5 model inputs. The current mainline does not rerun it; its inputs come from `src/network/` and `src/model/travel_cost_bundle/`.
 
-- [`raw_data/`](/Users/fxr/Desktop/TidalLanes/data_work/raw_data)
-  - source datasets used by the pipeline
-- [`src/stages/`](/Users/fxr/Desktop/TidalLanes/data_work/src/stages)
-  - production pipeline stages
-- [`src/common/`](/Users/fxr/Desktop/TidalLanes/data_work/src/common)
-  - shared utilities
-- [`src/diagnostics/`](/Users/fxr/Desktop/TidalLanes/data_work/src/diagnostics)
-  - diagnostics modules
-- [`analysis/`](/Users/fxr/Desktop/TidalLanes/data_work/analysis)
-  - baseline diagnostics scripts and outputs
-- [`configs/`](/Users/fxr/Desktop/TidalLanes/data_work/configs)
-  - future run configuration files
-- [`docs/`](/Users/fxr/Desktop/TidalLanes/data_work/docs)
-  - project snapshots and refactor documentation
-- [`notebooks/`](/Users/fxr/Desktop/TidalLanes/data_work/notebooks)
-  - reserved for future diagnostic or presentation notebooks
-- [`outputs/`](/Users/fxr/Desktop/TidalLanes/data_work/outputs)
-  - versioned pipeline outputs
-
-## Active Pipeline
-
-The current main pipeline stages are:
+Stages:
 
 1. `stage01_build_centerline.py`
 2. `stage02_match_raw_to_centerline.py`
@@ -51,20 +41,16 @@ The current main pipeline stages are:
 10. `stage09_compare_versions.py`
 11. `stage10_generate_figures.py`
 
-These live in [`src/stages/`](/Users/fxr/Desktop/TidalLanes/data_work/src/stages).
+These live in [`src/stages/`](src/stages).
 
 Unified execution entry point:
 
-- [`src/stages/run_full_pipeline.py`](/Users/fxr/Desktop/TidalLanes/data_work/src/stages/run_full_pipeline.py)
+- [`src/stages/run_full_pipeline.py`](src/stages/run_full_pipeline.py)
   - runs the stage chain for a `version_id`
   - supports partial runs with `--from-stage` / `--to-stage`
   - can include or skip figure generation
 
-## Current Baseline Status
-
-The current `raw_rebuild_validation` run has been completed end-to-end.
-
-Key status:
+The reference run of this chain is `outputs/raw_rebuild_validation`, completed end to end in March:
 
 - centerline outputs match the prior working baseline
 - raw-to-centerline match rates match the prior working baseline
@@ -73,49 +59,22 @@ Key status:
 - square and hex grid results are aligned with the prior working baseline up to minor ID-cleaning differences
 - voronoi results now use normalized `grid_id` handling; differences from older notebook outputs reflect previous ID inconsistency in the notebook-era outputs
 
-## Important Notes
+Notes:
 
 - Notebook-based production logic is no longer stored in this directory.
 - `outputs/` is versioned by run. Each top-level folder under `outputs/` should represent one retained pipeline run.
 - `config_snapshot.stage0x.json` files record the effective parameters and inputs used by each stage for a given run.
 
-## Recommended Entry Points
+## Reproducing the old gate5 mainline
 
-To understand the current working baseline:
+The July deck `Tidal0715` and the April paper use the old gate5 mainline. Its specification and commands are in [`docs/STAGE2_MAINLINE_GATE5.md`](docs/STAGE2_MAINLINE_GATE5.md); its input bundle is `outputs/model_input_edgeproj_v2_lcc_gate5_v1`. Partial reruns of the stage chain are described in [`docs/HOW_TO_RERUN_PARTIAL_RESULTS.md`](docs/HOW_TO_RERUN_PARTIAL_RESULTS.md).
 
-1. Read [`docs/REPRODUCIBILITY_SNAPSHOT.md`](/Users/fxr/Desktop/TidalLanes/data_work/docs/REPRODUCIBILITY_SNAPSHOT.md)
-2. Read [`docs/DATASET_SCHEMA_SNAPSHOT.md`](/Users/fxr/Desktop/TidalLanes/data_work/docs/DATASET_SCHEMA_SNAPSHOT.md)
-3. Read [`docs/REFACTOR_BLUEPRINT.md`](/Users/fxr/Desktop/TidalLanes/data_work/docs/REFACTOR_BLUEPRINT.md)
-4. Inspect [`src/stages/`](/Users/fxr/Desktop/TidalLanes/data_work/src/stages)
-5. Inspect [`outputs/raw_rebuild_validation`](/Users/fxr/Desktop/TidalLanes/data_work/outputs/raw_rebuild_validation)
-
-Common commands:
+Stage-chain commands:
 
 ```bash
 python src/stages/run_full_pipeline.py --version-id raw_rebuild_validation
-python src/stages/stage10_generate_figures.py --version-id raw_rebuild_validation
 python src/stages/run_full_pipeline.py --version-id raw_rebuild_validation --from-stage stage06 --to-stage stage10
-python src/stages/run_full_pipeline.py --version-id raw_rebuild_validation --skip-figures
-python src/stages/stage10_generate_figures.py --version-id raw_rebuild_validation --figure-group match
-python src/stages/stage10_generate_figures.py --version-id raw_rebuild_validation --figure-group grid --grid-type voronoi
+python src/stages/stage10_generate_figures.py --version-id raw_rebuild_validation
 ```
 
-To understand project conventions:
-
-1. Read [`AGENTS.md`](/Users/fxr/Desktop/TidalLanes/data_work/AGENTS.md)
-
-## Current Output Policy
-
-Keep only validated run directories under [`outputs/`](/Users/fxr/Desktop/TidalLanes/data_work/outputs).
-
-At present, the retained validated run is:
-
-- [`outputs/raw_rebuild_validation`](/Users/fxr/Desktop/TidalLanes/data_work/outputs/raw_rebuild_validation)
-
-For the raw-centerline-match workstream, the retained output is:
-
-- [`outputs/manual_centerline_rules_v11`](/Users/fxr/Desktop/TidalLanes/data_work/outputs/manual_centerline_rules_v11)
-
-For the version history and rationale behind that retained matching output, see:
-
-- [`outputs/comparison/raw_centerline_match_version_summary.md`](/Users/fxr/Desktop/TidalLanes/data_work/outputs/comparison/raw_centerline_match_version_summary.md)
+The retained output of the manual centreline matching line is `outputs/manual_centerline_rules_v11`; its version history is in `outputs/comparison/raw_centerline_match_version_summary.md`.

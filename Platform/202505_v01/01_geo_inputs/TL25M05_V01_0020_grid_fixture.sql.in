@@ -1,0 +1,4 @@
+SELECT f.fixture_id, g.grid_id
+FROM {{FIXTURE_UPLOAD_TABLE}} f
+LEFT JOIN {{GRID_UPLOAD_TABLE}} g
+  ON Default.ST_Contains(Default.ST_GeomCollection(g.wkt_wgs84),Default.ST_Point(f.lon_wgs84,f.lat_wgs84));

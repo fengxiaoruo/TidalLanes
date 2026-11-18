@@ -1,0 +1,415 @@
+\documentclass[11pt,aspectratio=169]{beamer}
+\usetheme{Singapore}
+\usefonttheme{professionalfonts}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,booktabs,tabularx,amsmath}
+\definecolor{Navy}{RGB}{25,55,105}
+\setbeamercolor{structure}{fg=Navy}
+\setbeamerfont{frametitle}{size=\large}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{\hfill\textcolor{gray}{\scriptsize\insertframenumber\quad}\vskip5pt}
+\setbeamersize{text margin left=.7cm,text margin right=.7cm}
+\AtBeginEnvironment{itemize}{\setlength\itemsep{.42em}}
+\setbeamerfont{itemize/enumerate subbody}{size=}
+\hypersetup{colorlinks=false,pdfborder={0 0 0}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\graphicspath{{../../L3_figs/brad_202611/}}
+
+\newcommand{\keymsg}[1]{\par\vspace{.6em}{\raggedright\color{Navy}\bfseries #1\par}\medskip}
+\newcommand{\lead}[1]{{\color{Navy}\textbf{#1}}}
+\newcommand{\detail}[2]{\hyperlink{#1}{\textcolor{gray}{\scriptsize[#2]}}}
+\newcommand{\backto}[1]{\par\vfill\hfill\hyperlink{#1}{\textcolor{gray}{\scriptsize[back]}}}
+
+\title{Tidal Lanes: Congestion Technology and Policy Margins}
+\subtitle{Discussion with Brad Ross}
+\author{Xiaoruo Feng}
+\date{November 2026}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-summary]{Since October}
+\footnotesize
+\begin{itemize}\setlength\itemsep{.7em}
+\item \lead{Congestion:} the elasticity of travel time to flow is about \textbf{0.35} at peak load, not the 1.1 used before. It rises with load, from \textbf{0.16} over all daytime hours to \textbf{0.44} in the busiest hours.
+\item \lead{First and second order:} the first-order term gives \textbf{97\%} of short-run welfare. Long-run welfare is \textbf{63\%} of short-run welfare, and the gap is residential and workplace sorting.
+\item \lead{Policies:} capacity policies save time on impact and lose it after sorting. Tolls do the opposite. For commuters, tidal lanes reach \textbf{96\%} of the welfare of two-way expansion on the same corridors with no new lane-kilometres.
+\item \lead{Weakness:} the model's light direction is almost empty. With non-commuting traffic added, commuter welfare holds, but over all vehicles tidal lanes save about half as much time as expansion.
+\item \lead{Open:} the model is static with one period. Departure time is missing.
+\end{itemize}
+\keymsg{Four topics: congestion technology, first versus second order, policy margins, departure time.}
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-setup]{Setup}
+\footnotesize
+\begin{itemize}
+\item \lead{Model:} route choice on a directed network (Allen and Arkolakis) with residence and workplace choice. Beijing, 3 km cells, \textbf{2,872} directed edges, morning peak.
+\item \lead{Congestion:} time on edge $e$ depends on flow per lane, anchored at the observed peak,
+\[
+\tau_e=\max\Bigl\{f_e,\ \tau_e^{\text{obs}}\Bigl(\frac{\Xi_e}{\Xi_e^{\text{obs}}}\cdot\frac{n_e^{\text{obs}}}{n_e}\Bigr)^{\beta}\Bigr\},
+\]
+with flow $\Xi_e$, lanes $n_e$, and free-flow floor $f_e$.
+\item \lead{Tidal lane:} one lane moves from the light direction to the heavy direction on the \textbf{100} most asymmetric corridors. Total lane-kilometres do not change.
+\item \lead{Horizons:} short run holds residence and workplace fixed and lets routes adjust. Long run lets both adjust.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\section{Congestion}
+
+\begin{frame}[label=m-elasticity]{Congestion Elasticity}
+\footnotesize
+\keymsg{The data support about 0.35 at peak load. The earlier 0.25 came from the floor, not from the slope.}
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Elasticity of travel time to flow & Grid edge & Road segment\\\midrule
+Floor plus constant elasticity, floor at the night mean & 0.245 (0.019) & 0.420\\
+Same, floor estimated jointly (about 3\% higher) & 0.347 (0.061) & 0.636\\
+Linear IV, load above the unit's 70th percentile, no floor & 0.346 (0.025) & 0.326 (0.029)\\
+Linear IV, 07:00--09:00, no floor & 0.421 (0.023) & 0.355 (0.025)\\
+\bottomrule
+\end{tabular}
+\par\medskip\raggedright
+\begin{itemize}
+\item \lead{Design:} one week of 10-minute speeds and flows. Flow is instrumented by hourly OD demand assigned to free-flow shortest paths, with unit and date-by-hour fixed effects. \detail{a-design}{detail}
+\item \lead{Earlier value:} 1.1 was an elasticity of speed to density. Above 1 it lies on the hypercongested branch, where an elasticity of time to flow is not defined.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-floor]{Free-Flow Floor}
+\footnotesize
+\keymsg{A 3\% shift in the free-flow floor moves the estimate from 0.25 to 0.37.}
+\centering
+\includegraphics[height=.56\textheight,keepaspectratio]{floor_shift.pdf}
+\par\raggedright
+\begin{itemize}
+\item \lead{Why:} the floor fixes where congestion starts. A higher floor leaves only high-flow hours on the sloped branch, where the curve is steeper.
+\item \lead{Data:} daytime hours with the lowest load are still \textbf{3.5\%} slower than the night mean. Two joint estimators place the floor \textbf{2.6--3\%} above it. \detail{a-floors}{alternatives}
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-load]{Elasticity and Load}
+\footnotesize
+\keymsg{There is no single elasticity. The curve bends smoothly and has no kink.}
+\centering
+\includegraphics[width=.49\textwidth,height=.5\textheight,keepaspectratio]{binned_shape.pdf}\hfill
+\includegraphics[width=.49\textwidth,height=.5\textheight,keepaspectratio]{local_elasticity.pdf}
+\par\raggedright
+\begin{itemize}
+\item \lead{Left:} within-edge bins of log flow, 06:00--22:00.
+\item \lead{Right:} linear IV on subsamples selected on assigned demand, not on speed. Edges and segments agree once the floor is removed.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-form]{Load-Dependent Form}
+\footnotesize
+\keymsg{An elasticity that rises with load moves tidal welfare by 10 to 15\% in either direction. The heavy direction decides which.}
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & \multicolumn{2}{c}{Welfare change (\%)}\\\cmidrule(l){2-3}
+Elasticity on the 200 tidal edges & Short run & Long run\\\midrule
+Constant 0.35 & 0.627 & 0.397\\
+0.35 at the anchor, falling as load falls & 0.565 & 0.375\\
+Heavy 0.39, light 0.31 (mean kept at 0.35) & 0.721 & 0.438\\
+Heavy 0.29, light 0.21 (levels from a quadratic fit) & 0.534 & 0.355\\
+\bottomrule
+\end{tabular}
+\par\medskip\raggedright
+\begin{itemize}
+\item \lead{Position:} at 07:00--09:00 heavy edges sit at the \textbf{96th} percentile of their own daytime load and light edges at the \textbf{61st}.
+\item \lead{Light direction:} moving its elasticity from 0.10 to 0.50 changes short-run welfare only from 0.633 to 0.624. Tidal lanes stay at \textbf{95--99\%} of same-corridor expansion.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-direction]{Flows by Direction}
+\footnotesize
+\keymsg{In the model the light direction is almost empty. In the data it carries two thirds of the heavy flow.}
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+100 tidal corridors, morning peak & Model, commuters & Observed, all vehicles\\\midrule
+Light flow / heavy flow (median) & 0.02 & 0.67\\
+Light-side time loss / heavy-side time gain & 0.03 & 0.81\\
+\bottomrule
+\end{tabular}
+\par\medskip\raggedright
+\begin{itemize}
+\item \lead{Second row:} lanes change and flows are held fixed, elasticity 0.35, on the \textbf{68} corridors with observed flow in both directions.
+\item \lead{Link times:} the tidal lane cuts time by \textbf{9.6\%} on the heavy edge and raises it by \textbf{14.8\%} on the light edge (medians). The model weights the second by very few commuters.
+\item \lead{Meaning:} welfare here is commuters' welfare. Other vehicles in the light direction bear a loss that the model does not count.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-background]{Background Traffic in the Model}
+\footnotesize
+\keymsg{Commuter welfare survives. Counted over all vehicles, tidal lanes save about half as much time as expansion.}
+\centering
+\renewcommand{\arraystretch}{1.22}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+ & No background & With background & Range\\\midrule
+Commuter welfare, long run (\%) & 0.397 & 0.472 & 0.418--0.489\\
+Light-side loss / heavy-side gain, all vehicles & 0.02 & 0.41 & 0.14--0.67\\
+Time saved, all vehicles, short run (s) & 29.9 & 33.3 & 14.5--39.2\\
+Tidal / expansion, commuter welfare & 0.96 & 0.95 & 0.95\\
+Tidal / expansion, all-vehicle time & 1.06 & 0.49 & 0.25--0.86\\
+\bottomrule
+\end{tabular}
+\par\medskip\raggedright
+\begin{itemize}
+\item \lead{Form:} $\tau_e\propto\bigl((\Xi_e+B_e)/(\Xi_e^{\text{obs}}+B_e)\cdot n_e^{\text{obs}}/n_e\bigr)^{\beta}$ with fixed non-commuting flow $B_e$ from observed road flows, \textbf{2.5} times commuting flow in total.
+\item \lead{Still short:} the light-to-heavy ratio rises only to \textbf{0.29}. Observed commuters alone have \textbf{0.52}; the model's commuting flow is too one-directional.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-fd]{Flow and Density per Lane}
+\footnotesize
+\keymsg{Expressways show a throughput drop. Arterials flatten into a plateau. Lane scaling cannot be tested with these data.}
+\centering
+\includegraphics[height=.5\textheight,keepaspectratio]{flow_density.pdf}
+\par\raggedright
+\begin{itemize}
+\item \lead{Falling branch:} expressways are on it in \textbf{32--37\%} of weekday peak slots, and flow at the lowest speeds is \textbf{88\%} of the maximum. Arterials: \textbf{2\%} of peak slots.
+\item \lead{Limits:} flow counts phone-sample passages, so the scale is unknown and capacity per lane is not identified. Lanes are assigned from road class, with no variation within a class.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-level]{Elasticity and the Tidal Result}
+\footnotesize
+\keymsg{The elasticity sets the level of welfare. It does not change the sign, the corridors, or the comparison with expansion.}
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{Welfare change (\%)} & \multicolumn{2}{c}{Time saved per commuter (s)}\\\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Elasticity & Short run & Long run & Short run & Long run\\\midrule
+0.25 & 0.441 & 0.313 & 21.6 & $-12.7$\\
+0.29 & 0.514 & 0.348 & 25.0 & $-13.8$\\
+\textbf{0.35} & \textbf{0.627} & \textbf{0.397} & \textbf{29.9} & $\mathbf{-15.4}$\\
+0.44 & 0.799 & 0.461 & 37.1 & $-17.2$\\
+\bottomrule
+\end{tabular}
+\par\medskip\raggedright
+\begin{itemize}
+\item \lead{Stable:} the 100 corridors are the same at every value. Tidal lanes give \textbf{96\%} of the long-run welfare of same-corridor expansion at 0.25 and at 0.35.
+\item \lead{Uniqueness:} 0.35 is above the sufficient condition (0.317 here). Solving from seven starting points gives one equilibrium. \detail{a-unique}{detail}
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\section{First and Second Order}
+
+\begin{frame}[label=m-decomp]{First and Second Order}
+\footnotesize
+\keymsg{Short-run welfare is almost all first order. The long-run gap is sorting.}
+\centering
+\includegraphics[height=.56\textheight,keepaspectratio]{decomposition.pdf}
+\par\raggedright
+\begin{itemize}
+\item \lead{First-order term:} flows, routes and locations held at baseline; only lanes change link times. \detail{a-fo}{definition}
+\item \lead{Short run:} rerouting adds \textbf{0.057} points and congestion feedback removes \textbf{0.037}. \lead{Long run:} sorting removes \textbf{0.230}.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-theta]{Role of $\theta$}
+\footnotesize
+\keymsg{$\theta$ only rescales welfare. Separating route dispersion from location dispersion changes the structure.}
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+ & $\theta=3.4$ & $\theta=6.83$ & $\theta=10$ & $\theta=6.83$, $\eta=0.21$\\\midrule
+Welfare, short / long run (\%) & 1.263 / 0.805 & 0.627 / 0.397 & 0.428 / 0.266 & 0.124 / 0.099\\
+First-order term / short run & 0.96 & 0.97 & 0.97 & 0.87\\
+Long run / short run & 0.64 & 0.63 & 0.62 & 0.80\\
+Time saved, short / long run (s) & 29.9 / $-14.9$ & 29.9 / $-15.4$ & 29.9 / $-17.1$ & 44.8 / 19.5\\
+\bottomrule
+\end{tabular}
+\par\medskip\raggedright
+\begin{itemize}
+\item \lead{Why $\theta$ cancels:} link cost is minutes to the power $1/\theta$, as in Allen and Arkolakis, so route shares, flows and time savings do not depend on $\theta$.
+\item \lead{$\eta$:} lets commuting respond less to travel time across locations than across routes. Model commuting decays with distance \textbf{4.7} times faster than observed; $\eta=0.21$ matches the data, and long-run travel time then falls.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\section{Policies}
+
+\begin{frame}[label=m-policy]{Direct and Long-Run Effects}
+\footnotesize
+\keymsg{Capacity policies lose their time saving after sorting. Tolls gain.}
+\centering
+\includegraphics[height=.54\textheight,keepaspectratio]{policies_time.pdf}
+\par\raggedright
+\begin{itemize}
+\item \lead{Capacity:} long-run welfare is \textbf{0.63--0.70} of short-run welfare. Tidal lanes \textbf{0.397\%}, same-corridor expansion \textbf{0.414\%} with 891 added lane-km. \detail{a-policy}{full table}
+\item \lead{Tolls:} long-run welfare \textbf{1.10\%} for the Pigouvian toll and \textbf{0.42\%} for a cordon around job centres.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-morepol]{More Ground-Transport Policies}
+\footnotesize
+\keymsg{Three policies fit the current model with small changes. None has been run.}
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{@{}lYY@{}}
+\toprule
+Policy & In the model & What it answers\\\midrule
+Bus lane & One lane removed in each direction on chosen corridors & Mirror image of expansion; an upper bound on the loss to cars\\
+Driving restriction & Car demand scaled by 0.8 & Quantity control against a toll that removes the same traffic\\
+Signal priority & Lower free-flow time on the heavy direction only & Whether the tidal gain comes from direction or from the lane\\
+\bottomrule
+\end{tabularx}
+\par\medskip\raggedright
+\begin{itemize}
+\item \lead{Limit:} there is no mode choice, so bus riders' gains are outside the model.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\section{Departure Time}
+
+\begin{frame}[label=m-dynamic]{Departure Time}
+\footnotesize
+\keymsg{Tidal lanes open for two or three hours. A one-period model cannot show what they do within the peak.}
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{@{}lYY@{}}
+\toprule
+Option & What it does & Main difficulty\\\midrule
+1. Period-by-period & A route equilibrium every 30 minutes; locations use expected cost across periods & No substitution across periods\\
+2. Departure-time logit & Option 1 with a choice of period, with early and late arrival costs & Schedule costs and dispersion are hard to separate; uniqueness\\
+3. Dynamic loading & Queues carry over between periods & No closed form; existence and uniqueness\\
+\bottomrule
+\end{tabularx}
+\par\medskip\raggedright
+\begin{itemize}
+\item \lead{Data in hand:} 10- and 30-minute OD with departure times and 10-minute segment speeds, one week. \textbf{56\%} of commute departures fall in 07:00--09:00.
+\item \lead{Possible variation:} the daily opening window of a tidal lane is an exogenous change in capacity.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-questions]{Questions}
+\footnotesize
+\begin{itemize}\setlength\itemsep{.75em}
+\item \lead{Free flow:} you tie the slope at zero density to the speed limit. Should our floor be estimated, or set from speed limits?
+\item \lead{Instrument:} you estimate the flow-density curve without one. What is the main threat to assigned OD demand as an instrument for flow?
+\item \lead{Non-commuting traffic:} you scale sample flows by one factor. Here the factor differs by direction. How would you bring that traffic in?
+\item \lead{Short-run welfare:} how would you define welfare when locations are fixed, and would you report minutes or welfare?
+\item \lead{Location choice:} your added lane keeps about 30\% of its speed gain. Would sorting raise or lower that share?
+\item \lead{Departure time:} is option 1 a usable approximation, and can a tidal lane's opening window identify substitution across periods?
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\appendix
+
+\begin{frame}[label=a-design]{Appendix: Estimation Design}
+\footnotesize
+\begin{itemize}
+\item \lead{Sample:} 19--25 May 2025; Baidu segment speeds and Unicom road flows at 10 minutes, aggregated to the hour; \textbf{2,530} directed grid edges, 06:00--22:00.
+\item \lead{Floor specification:}
+\[
+\ln t_{eh}=\max\{\ln T^0_e,\ \mu_e+\delta_h+\beta\ln q_{eh}\}+\varepsilon_{eh},
+\]
+with $T^0_e$ the mean pace over 00:00--05:00, as in Almagro et al.
+\item \lead{Instrument:} $\ln z_{eh}$, hourly OD demand assigned to free-flow shortest paths. First-stage $F$ is above \textbf{480} in every subsample.
+\item \lead{Inference:} clustered by edge; segments by their grid edge. Bootstrap with 100 replications for the floor specification.
+\item \lead{Stale speeds:} \textbf{17.6\%} of segment 10-minute speeds are constant fills. Dropping them moves the floor estimate from 0.245 to \textbf{0.296}.
+\end{itemize}
+\backto{m-elasticity}
+\end{frame}
+
+\begin{frame}[label=a-floors]{Appendix: Alternative Floors}
+\footnotesize
+\keymsg{Each floor below the night mean lowers the estimate; the data point the other way.}
+\centering
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Floor & Grid edge & Road segment\\\midrule
+Mean pace, 00:00--05:00 (baseline) & 0.245 & 0.420\\
+Mean pace, 02:00--05:00 & 0.238 & 0.383\\
+10th percentile, 00:00--05:00 & 0.193 & 0.268\\
+10th percentile, all hours & 0.206 & 0.306\\
+Baseline plus 2.6\% (jointly estimated) & 0.347 & 0.636\\
+\bottomrule
+\end{tabular}
+\par\medskip\raggedright
+\begin{itemize}
+\item \lead{Joint estimate:} shift \textbf{0.026} (s.e.\ 0.005); the elasticity has a 95\% interval of \textbf{0.26--0.48}. The data locate the floor but not the slope.
+\item \lead{Unit-specific floors:} not identified with about 110 hours per unit.
+\end{itemize}
+\backto{m-floor}
+\end{frame}
+
+\begin{frame}[label=a-unique]{Appendix: Numerical Uniqueness}
+\footnotesize
+\begin{itemize}
+\item \lead{Condition:} the Allen and Arkolakis sufficient condition maps to an elasticity of at most \textbf{0.317} here. The main value 0.35 is above it.
+\item \lead{Check:} each tidal equilibrium solved from seven starting points, including free flow, twice the observed times, and random perturbations.
+\item \lead{Result:} at a tolerance of $10^{-7}$ welfare differs by \textbf{0.000004} points across starts, at 0.35 and at 0.44.
+\item \lead{Policies:} the same check on expansion and toll equilibria gives identical welfare across four starts.
+\end{itemize}
+\backto{m-level}
+\end{frame}
+
+\begin{frame}[label=a-fo]{Appendix: First-Order Term}
+\footnotesize
+\begin{itemize}
+\item \lead{Definition:} with baseline link-use shares $s_e$ and the change in link cost $m_e$ caused by the lane change alone,
+\[
+\Delta\ln\bar W^{\text{FO}}=-\frac{1}{\theta}\sum_e s_e\,\Delta\ln m_e .
+\]
+\item \lead{Steps:} the first-order term; plus the exact response at fixed flows (shock size); plus congestion feedback from rerouting (short run); plus sorting (long run).
+\item \lead{At 0.35:} $0.607+0.057-0.037=0.627$; then $-0.230$ gives $0.397$.
+\item \lead{Time:} direct saving 29.9 s, rerouting and congestion give back 11.2 s, sorting gives back 34.1 s.
+\end{itemize}
+\backto{m-decomp}
+\end{frame}
+
+\begin{frame}[label=a-policy]{Appendix: Policy Comparison}
+\footnotesize
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Policy & Lane-km & Welfare, SR / LR (\%) & Time saved, SR / LR (s)\\\midrule
+Pigouvian toll & 0 & n.a.\ / 1.096 & 101.8 / 276.3\\
+Cordon toll & 0 & n.a.\ / 0.424 & 32.7 / 95.1\\
+Expansion, targeted & 902 & 0.658 / 0.419 & 28.4 / $-18.5$\\
+Expansion, same corridors & 891 & 0.642 / 0.414 & 28.1 / $-17.0$\\
+\textbf{Tidal lanes} & \textbf{0} & \textbf{0.627 / 0.397} & \textbf{29.9 /} $\mathbf{-15.4}$\\
+All lanes plus 10\% & & 0.496 / 0.346 & 12.8 / $-14.1$\\
+Expansion, uniform & 891 & 0.123 / 0.085 & 3.3 / $-3.5$\\
+\bottomrule
+\end{tabular}
+\par\medskip\raggedright
+\begin{itemize}
+\item \lead{Notes:} SR is short run and LR long run; targeted expansion picks edges by flow times delay. \lead{Tolls:} short-run welfare is not reported because the welfare formula with tolls holds only in the long run. Toll welfare uses realised route choice.
+\item \lead{Cordon and expansion:} the gap of 0.004--0.010 points is not solver error, but it is small.
+\end{itemize}
+\backto{m-policy}
+\end{frame}
+
+\end{document}

@@ -1,0 +1,325 @@
+\documentclass[11pt,aspectratio=169]{beamer}
+\usetheme{Singapore}
+\usefonttheme{professionalfonts}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern,microtype,booktabs,tabularx,amsmath}
+\definecolor{Navy}{RGB}{25,55,105}
+\setbeamercolor{structure}{fg=Navy}
+\setbeamerfont{frametitle}{size=\large}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{\hfill\textcolor{gray}{\scriptsize\insertframenumber\quad}\vskip5pt}
+\setbeamersize{text margin left=.7cm,text margin right=.7cm}
+\AtBeginEnvironment{itemize}{\setlength\itemsep{.42em}}
+\setbeamerfont{itemize/enumerate subbody}{size=}
+\hypersetup{colorlinks=false,pdfborder={0 0 0}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\graphicspath{{../../L3_figs/platform_20261104/}}
+
+\newcommand{\keymsg}[1]{\par\vspace{.6em}{\raggedright\color{Navy}\bfseries #1\par}\medskip}
+\newcommand{\lead}[1]{{\color{Navy}\textbf{#1}}}
+\newcommand{\detail}[2]{\hyperlink{#1}{\textcolor{gray}{\scriptsize[#2]}}}
+\newcommand{\backto}[1]{\par\vfill\hfill\hyperlink{#1}{\textcolor{gray}{\scriptsize[back]}}}
+
+\title{Tidal Lanes: 2025 Unicom Platform Data}
+\subtitle{Progress Report}
+\author{Xiaoruo Feng}
+\date{4 November 2026}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+%==================================================================
+\begin{frame}[label=m-summary]{This Update}
+\footnotesize
+\begin{itemize}\setlength\itemsep{.7em}
+\item \lead{New OD:} the 2025 platform OD matches the old OD in space (log correlation \textbf{0.96--0.97}) and now feeds the model.
+\item \lead{Congestion elasticity:} $\lambda$ is about \textbf{0.15--0.25} all day and \textbf{0.33} at peak, far below the \textbf{1.1} used in the model.
+\item \lead{Shape:} the elasticity rises with load and turns negative past the busiest hours; a constant elasticity fits worst, BPR best.
+\item \lead{Network:} \textbf{13\%} of Unicom road flow lies between adjacent model cells with no model edge.
+\item \lead{Decisions needed:} what $\Xi$ includes and which $\lambda$; the congestion function; whether to add edges.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\section{Data}
+
+\begin{frame}[label=m-data]{Data}
+\footnotesize
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}l@{\hspace{1.5em}}l@{\hspace{1.5em}}l@{}}
+\toprule
+ & \lead{Source} & \lead{Coverage}\\\midrule
+Commuting OD & Unicom platform, own extraction & 19 weekdays, May 2025; 7--9 am and 5--7 pm\\
+Road flow & Unicom road-network passes & All road trips, 19--25 May 2025, 10 min\\
+Speed & Baidu road segments & Same week, 10 min\\
+Model network & 3 km cells, Baidu routes & 1,104 nodes, 2,642 directed edges\\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{itemize}
+\item \lead{Units:} flows are phone-sample passes, not vehicle counts; we use them only for elasticities and shares.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label=m-od]{2025 OD against the Old OD}
+\footnotesize
+\keymsg{The 2025 OD reproduces the old spatial pattern and fits observed edge flows better.}
+\begin{itemize}\setlength\itemsep{.7em}
+\item \lead{Old OD:} Baidu home--work data, November 2022, monthly, no departure time.
+\item \lead{Residence and jobs:} log correlation across cells \textbf{0.96} and \textbf{0.97}; 49 of the top 50 job cells coincide.
+\item \lead{Cross-cell OD:} log correlation \textbf{0.86}.
+\item \lead{Fit to the network:} correlation of model-assigned with observed edge flow rises from \textbf{0.44} to \textbf{0.55}.
+\item \lead{Main difference:} more same-cell commuting in 2025 (36\% vs 10\%), mostly not by car. \detail{a-oddiff}{data}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label=m-share]{Who Is on the Road at Peak}
+\footnotesize
+\keymsg{Home-to-work trips are about one third of morning-peak road trips.}
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}l@{\hspace{1.8em}}c@{\hspace{1.8em}}c@{\hspace{1.8em}}c@{\hspace{1.8em}}c@{}}
+\toprule
+Departures 7--9 am & \lead{Home$\to$work} & \lead{Home$\leftrightarrow$other} & \lead{Work$\leftrightarrow$other} & \lead{Other}\\\midrule
+Core users & \textbf{36\%} & 41\% & 11\% & 12\%\\
+All users & \textbf{29\%} & 40\% & 13\% & 17\%\\
+\bottomrule
+\end{tabular}
+\par\medskip
+\begin{itemize}
+\item \lead{Lower bound:} a commute with a stop (school drop-off) splits into two trips and is not counted.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\section{Congestion}
+
+\begin{frame}[label=m-lambda]{Congestion Elasticity $\lambda$}
+\footnotesize
+\keymsg{$\lambda$ is stable across levels and estimators, and far below 1.1.}
+\[\ln t_{u,h} = \lambda\,\ln\!\big(q_{u,h}/n_u\big) + \text{unit FE} + \text{date}\times\text{hour FE},\qquad u\in\{\text{edge},\ \text{segment}\}\]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{@{}l@{\hspace{1.5em}}c@{\hspace{1.5em}}c@{\hspace{1.5em}}c@{\hspace{1.5em}}c@{}}
+\toprule
+ & \lead{Edge, OLS} & \lead{Edge, IV} & \lead{Segment, OLS} & \lead{Segment, IV}\\\midrule
+All day & 0.08 & 0.16 & 0.07 & 0.18\\
+Same hour, day to day & 0.10 & 0.23 & 0.07 & 0.24\\
+Weekday peak hours & 0.19 & \textbf{0.33} & 0.19 & \textbf{0.34}\\
+\bottomrule
+\end{tabular}
+\par\medskip
+\raggedright
+\begin{itemize}
+\item \lead{IV:} time-of-day OD assigned on free-flow routes. \detail{a-ident}{definition}
+\item \lead{Lanes:} $n_u$ is fixed within a unit, so $\lambda$ comes from flow changes; the model applies it to lane changes. \detail{a-units}{definition}
+\item \lead{Benchmarks:} Allen and Arkolakis (Seattle) \textbf{0.49}; the model's 1.1 is a speed--density elasticity.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label=m-shape]{Shape of Congestion}
+\footnotesize
+\keymsg{The elasticity rises with load and turns negative past each edge's busiest hours.}
+\centering
+\includegraphics[width=\textwidth,height=.53\textheight,keepaspectratio]{fig12_congestion_shape_slide.png}
+\par\raggedright
+\begin{itemize}\setlength\itemsep{.3em}
+\item \lead{Axis:} $q/q_{95}$ is the hour's flow over the edge's own 95th-percentile hourly flow; 12 bins.
+\item \lead{Local elasticity:} change in mean within-edge $\ln t$ over change in mean $\ln q$ between adjacent bins.
+\item \lead{Takeaway:} congestion is flat at low load, steep near peak and falls beyond it, so a single fixed $\lambda$ fits poorly. \detail{a-segshape}{segments}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label=m-forms]{Candidate Functions}
+\footnotesize
+\keymsg{BPR fits the edge curve best; a constant elasticity fits worst.}
+\centering
+\includegraphics[width=\textwidth,height=.55\textheight,keepaspectratio]{fig9_congestion_forms_fit_gate5.png}
+\par\raggedright
+\begin{itemize}
+\item \lead{Candidates:} constant; free-flow floor + constant (Almagro et al.); BPR; linear speed--density (Kashner and Ross). \detail{a-forms}{definition}
+\item \lead{Caveat:} fitted to 10 bin means; a formal comparison needs edge-hour data with IV.
+\end{itemize}
+\end{frame}
+
+%==================================================================
+\section{Network}
+
+\begin{frame}[label=m-match]{Unicom Flows on Baidu Speed Segments}
+\footnotesize
+\keymsg{Matched links are accurate, but Baidu speeds cover only 57\% of Unicom vehicle-km.}
+\centering
+\includegraphics[width=\textwidth,height=.55\textheight,keepaspectratio]{fig4_rn_baidu_match_zoom.png}
+\par\raggedright
+\begin{itemize}
+\item \lead{Rule:} midpoint within 20 m and heading within 30$^\circ$; median error \textbf{3.5 m}, \textbf{0.67$^\circ$}. \detail{a-matchrule}{definition}
+\item \lead{Unmatched:} mostly tertiary and local roads and outer expressways that Baidu does not cover.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label=m-network]{Model Network against Unicom Flows}
+\footnotesize
+\keymsg{The model network misses edges that carry 13\% of Unicom flow.}
+\centering
+\includegraphics[width=\textwidth,height=.6\textheight,keepaspectratio]{fig14_network_versions_slide.png}
+\par\raggedright
+\begin{itemize}\setlength\itemsep{.3em}
+\item \lead{Unicom flow on adjacent 3 km cell pairs:} model edge \textbf{63\%}; both cells in the model but no edge \textbf{13\%}; edge only in the opposite direction 9\%; a cell outside the model 14\%.
+\item \lead{Candidates:} 717 new directed edges; 244 of them were dropped by the detour gate. \detail{a-netzoom}{zoom}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label=m-options]{Two Network Options}
+\footnotesize
+\keymsg{Keep the model network and add edges as a robustness check.}
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{@{}l@{\hspace{1.2em}}X@{\hspace{1.2em}}X@{}}
+\toprule
+ & \lead{A: Add edges to the model network} & \lead{B: Switch to the Unicom network}\\\midrule
+What & Keep 1,104 nodes; add edges where Unicom flow is stable & Route on all Unicom links\\
+Gain & Covers most of the 13\% gap; restore the 244 dropped edges first & Also covers the 14\% outside\\
+Problem & New edges have little speed data (median 29\% of flow) & About 40\% of vehicle-km has no speed; full rebuild\\
+\bottomrule
+\end{tabularx}
+\end{frame}
+
+%==================================================================
+\section{Next}
+
+\begin{frame}[label=m-decide]{Decisions}
+\footnotesize
+\begin{itemize}\setlength\itemsep{.8em}
+\item \lead{$\Xi$ and $\lambda$:} commuting only gives $\lambda\approx$ \textbf{0.12--0.16}; all traffic gives \textbf{0.2--0.35}; keeping 1.1 needs a reason to use a density elasticity.
+\item \lead{Congestion function:} constant elasticity, free-flow floor + constant, or BPR.
+\item \lead{Network:} whether to add edges (option A).
+\end{itemize}
+\end{frame}
+
+
+%==================================================================
+\appendix
+
+\begin{frame}[label=a-oddiff]{Appendix: OD Differences}
+\footnotesize
+\begin{itemize}\setlength\itemsep{.7em}
+\item \lead{Same-cell commuting:} 36\% in 2025 vs 10\% in 2022; 2025 has no minimum home--work distance. These commuters are 11\% of morning car commutes.
+\item \lead{Car commutes:} shorter in 2025, median 6.7 km vs 9.0 km; car OD correlation 0.64.
+\item \lead{2022:} November 2022 fell in the COVID control period.
+\end{itemize}
+\backto{m-od}
+\end{frame}
+
+\begin{frame}[label=a-units]{Appendix: Edge and Segment}
+\footnotesize
+\keymsg{The same regression runs on model edges and on raw road segments.}
+\centering
+\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\textwidth}{@{}l@{\hspace{1.2em}}X@{\hspace{1.2em}}X@{}}
+\toprule
+ & \lead{Edge (model unit)} & \lead{Segment (road unit)}\\\midrule
+Unit $u$ & Directed link between adjacent 3 km cells; 2,642 & One-way Baidu speed segment\\
+Time $t$ & Length-weighted mean pace (min/km) of the Baidu segments on the edge & The segment's own Baidu pace\\
+Flow $q$ & Unicom passes allocated to the edge by length & Mean passes on Unicom links matched to the segment\\
+Hour $h$ & \multicolumn{2}{@{}l}{10-min pace averaged, 10-min flow summed; 06--22 h}\\
+\bottomrule
+\end{tabularx}
+\par\medskip
+\raggedright\lead{Segment sample:} 24,763 Baidu segments; 20,537 with a matched chord; 18,678 with matched chords covering at least half the length; \textbf{18,378} with weekday mean hourly flow of at least 20; 15,678 with the IV.
+\par\smallskip
+\raggedright\lead{Length allocation:} a link's east--west and north--south parts, in cell widths, each go to the edge between the two cell centres that its midpoint lies between.
+\backto{m-lambda}
+\end{frame}
+
+\begin{frame}[label=a-ident]{Appendix: Identification Steps}
+\footnotesize
+\begin{itemize}\setlength\itemsep{.7em}
+\item \lead{Cross-section:} 0.03; high-flow roads are fast expressways.
+\item \lead{Edge FE:} 0.07--0.10; compares the same edge across hours and days.
+\item \lead{IV:} roughly doubles; predicted flow depends on who travels, when and where, not on current congestion.
+\item \lead{Segments:} 18,378 Baidu segments give the same result.
+\item \lead{Weakness:} departure times respond to expected congestion; date $\times$ hour FE remove only the citywide part.
+\end{itemize}
+\backto{m-lambda}
+\end{frame}
+
+\begin{frame}[label=a-segshape]{Appendix: Shape at Segment Level}
+\footnotesize
+\centering
+\includegraphics[width=\textwidth,height=.72\textheight,keepaspectratio]{fig3_segment_q_over_q95.png}
+\backto{m-shape}
+\end{frame}
+
+\begin{frame}[label=a-forms]{Appendix: Candidate Functions}
+\footnotesize
+\centering
+\renewcommand{\arraystretch}{1.6}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{.25\textwidth}@{\hspace{1em}}>{\raggedright\arraybackslash}p{.27\textwidth}@{\hspace{1em}}Y@{}}
+\toprule
+\lead{Form} & \lead{Travel time} & \lead{Shape}\\\midrule
+Constant elasticity (model now) & $t = A\,q^{\lambda}$ & Same elasticity $\lambda$ at every load; no free-flow floor\\
+Free-flow floor + constant\newline (Almagro et al.) & $t=\max\{T_0,\ A\,q^{\beta}\}$ & Flat at $T_0$ until a kink, then elasticity jumps to $\beta$\\
+BPR & $t=T_0\,[1+a\,(q/c)^{b}]$ & Flat at low load; elasticity rises smoothly with $q/c$\\
+Linear speed--density\newline (Kashner and Ross) & $V=a+b\,D,\quad D=q/(n\,V)$ & Rises from the start; speed halves and elasticity $\to\infty$ at capacity $c=-a^2/(4b)$\\
+\bottomrule
+\end{tabularx}
+\par\medskip\raggedright
+\hfill\detail{a-formsfig}{figure}
+\backto{m-forms}
+\end{frame}
+
+\begin{frame}[label=a-formsfig]{Appendix: What Each Function Looks Like}
+\footnotesize
+\centering
+\includegraphics[width=\textwidth,height=.74\textheight,keepaspectratio]{fig13_congestion_forms_slide.png}
+\par\raggedright\scriptsize Illustrative parameters: $\lambda=\beta=0.2$; BPR $a=0.15$, $b=4$; constant forms equal BPR at $q=c$.
+\backto{a-forms}
+\end{frame}
+
+\begin{frame}[label=a-matchrule]{Appendix: Matching Unicom Links to Segments}
+\footnotesize
+\keymsg{Matched links lie on the segment and point the same way.}
+\begin{itemize}\setlength\itemsep{.55em}
+\item \lead{Unicom link:} the straight chord between two consecutive Unicom road nodes, with its pass counts.
+\item \lead{Rule:} chord at least 20 m; chord midpoint within 20 m of a Baidu segment; heading within 30$^\circ$ of the segment's travel direction at that point, which separates the two directions; nearest candidate wins.
+\item \lead{Segment flow:} mean passes of the matched chords, weighted by chord length.
+\item \lead{Accuracy:} distance to the segment median 3.5 m (p90 12.45 m); heading gap median 0.67$^\circ$ (p90 5.5$^\circ$); OSM road names agree on 78.1\% of matched vehicle-km.
+\item \lead{Coverage of Unicom vehicle-km:} matched 57.25\%; wrong heading 3.00\%; no segment within 20 m 39.05\%; chord under 20 m 0.71\%. \detail{a-match}{data}
+\end{itemize}
+\backto{m-match}
+\end{frame}
+
+\begin{frame}[label=a-match]{Appendix: Unicom Network, Baidu Segments and Matches}
+\footnotesize
+\keymsg{Baidu covers the arterials; most unmatched Unicom links are local streets.}
+\centering
+\includegraphics[width=\textwidth,height=.66\textheight,keepaspectratio]{fig10_rn_baidu_match_layers.png}
+\par\hfill\detail{a-matchcity}{citywide}
+\backto{a-matchrule}
+\end{frame}
+
+\begin{frame}[label=a-matchcity]{Appendix: Match Status across the City}
+\footnotesize
+\keymsg{Matching is high in the centre and falls toward the periphery.}
+\centering
+\includegraphics[width=.49\textwidth,height=.62\textheight,keepaspectratio]{fig11a_rn_match_citywide_links.png}\hspace{1.5em}%
+\includegraphics[width=.49\textwidth,height=.62\textheight,keepaspectratio]{fig11b_rn_match_citywide_cells.png}
+\par\raggedright
+\begin{itemize}
+\item \lead{Parallel roads:} 81.11\% of matched vehicle-km has only one valid Baidu segment; 4.20\% has a second within 5 m of the winner.
+\end{itemize}
+\backto{a-match}
+\end{frame}
+
+\begin{frame}[label=a-netzoom]{Appendix: Network Zoom}
+\footnotesize
+\centering
+\includegraphics[width=\textwidth,height=.75\textheight,keepaspectratio]{fig7_network_versions_zoom.png}
+\backto{m-network}
+\end{frame}
+
+\end{document}

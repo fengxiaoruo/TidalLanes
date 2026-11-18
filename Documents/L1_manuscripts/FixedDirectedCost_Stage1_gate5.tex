@@ -24,6 +24,7 @@
 \newcommand{\Abar}{\bar A}
 \newcommand{\obs}{\mathrm{obs}}
 \newcommand{\sym}{\mathrm{sym}}
+\newcommand{\dir}{\mathrm{dir}}
 
 \graphicspath{{../../data_work/outputs/directional_cost_edgeproj_v2_lcc_gate5_v1/figures/}}
 
@@ -38,15 +39,20 @@
 \begin{abstract}
 \noindent
 This note documents the first structural exercise in the paper's two-stage model line.
-Observed directed peak-period travel times are held fixed; lane reallocation, endogenous
-congestion, and tidal-lane counterfactuals are deliberately excluded.
+Observed directed peak-period travel times are held fixed within each exercise; endogenous
+congestion feedback is excluded throughout.
 For each cost surface (directed observed vs.\ symmetric approximation), the code
 recovers baseline residential amenities and workplace productivities that rationalise
 the observed road-commuter marginals, then solves the static spatial equilibrium.
-The comparison asks how two \emph{self-consistent} calibration worlds differ in
-within-run welfare, predicted OD flows, and inverted fundamentals when directional
-information is collapsed to a pair-level symmetric index.
-It is not a policy welfare evaluation.
+We further run non-directional transport counterfactuals, a tidal-lane \emph{prototype}
+(no congestion spillovers), and asymmetry sensitivity grids.
+The central question is \emph{which observable planning objects}---commuting flows,
+residential and workplace sorting, and grid-level job access---depend on retaining
+directional peak costs rather than a symmetric link index.
+Within-run welfare $\Wbar$ moves with inverted fundamentals and is reported for
+completeness, but it is not the headline object: under re-inversion both worlds fit
+the same marginals, so welfare differences largely reflect compensation in
+$(\bar u,\bar A)$ rather than a policy-relevant quantity planners observe directly.
 \end{abstract}
 
 \section{Research question and scope}\label{sec:question}
@@ -59,14 +65,29 @@ Stage~1 asks:
 \noindent
 \emph{If we build a directed calibration world and a symmetric calibration world---each
 with its own inverted fundamentals and each fitting the same observed residence and
-workplace marginals---how do within-run welfare, OD commuting patterns, and baseline
-amenities/productivities differ?}
+workplace marginals---which \textbf{observable outcomes} differ, and which classes of
+transport or place-based policy are mis-measured when directional peak congestion is
+collapsed to a symmetric link index?}
 \end{quote}
 
-Three objects are \emph{out of scope} for Stage~1:
-(i)~endogenous link traffic and congestion feedback;
-(ii)~structural estimation of $(\theta,\alpha,\beta)$ or any congestion elasticity;
-(iii)~tidal-lane or capacity counterfactuals.
+\paragraph{Headline objects vs.\ welfare.}
+Planners observe population counts, commute patterns, and accessibility by zone---not
+within-run $\Wbar$.
+Because inversion pins $(l_i^R,l_j^F)$ to the data in each world, baseline sorting
+across worlds is negligible and baseline $\Wbar$ gaps ($\sim$1\%) mainly trace
+re-inverted fundamentals.
+We therefore emphasise (i)~predicted OD structure, (ii)~grid-level market access
+$\Pi_i^{-\theta}$, and (iii)~how \emph{post-calibration} transport shocks move
+residence shares, hub-bound commuting, and access inequality---objects that map to
+school and clinic catchments, transit ridership to employment centres, and corridor
+investment priorities.
+
+Three objects remain \emph{out of scope} for Stage~1:
+(i)~endogenous link traffic and congestion feedback (including spillovers from tidal lanes
+to untreated edges);
+(ii)~structural estimation of $(\theta,\alpha,\beta)$ or congestion elasticity $\lambda$;
+(iii)~full tidal-lane welfare evaluation (only a fixed-$\xi$ BPR prototype is reported in
+\S\ref{sec:tidal_lane}).
 
 \section{Environment and data}\label{sec:data}
 
@@ -197,30 +218,253 @@ re-solves \eqref{eq:eq_R}--\eqref{eq:eq_F}.
 Both worlds target the same observed marginals; differences arise in OD flows, welfare
 levels, and the inverted baseline objects.
 
-\section{Computation}\label{sec:computation}
+\begin{remark}[Link-level symmetrisation, not OD symmetrisation]
+Symmetrisation applies to \emph{directed edges} on the routing graph: for each unordered
+node pair $\{k,l\}$ with reciprocal links, both directions receive the same
+$\tau^{\sym}_{kl}=\tau^{\sym}_{lk}$.
+It does \emph{not} symmetrise the observed OD matrix $L^{\obs}_{ij}$ or replace
+home-to-work costs by work-to-home costs.
+AM peak OD is home $\to$ work; edge costs are directed AM travel times $k\to l$.
+QA (\S\ref{sec:qa_direction}) confirms that shortest-path costs on $\tau^{\obs}$ align
+with this convention for high-flow off-diagonal pairs.
+\end{remark}
 
-Pipeline (\texttt{run\_directional\_cost.py}):
+\subsection{Implied OD flows (diagnostic, not inverted)}\label{sec:od_gravity}
+
+Given equilibrium shares and inverted fundamentals, bilateral flows follow a gravity
+allocation on the Leontief aggregator (not targeted in inversion):
+\begin{equation}
+  L_{ij}
+  \;=\;
+  L_i^R\,
+  \frac{
+    T_{ij}\,\Abar_j^{\theta}\,(l_j^F)^{\alpha\theta}
+  }{
+    \sum_k T_{ik}\,\Abar_k^{\theta}\,(l_k^F)^{\alpha\theta}
+  },
+  \qquad L_i^R = \Lbar\, l_i^R.
+  \label{eq:od_gravity}
+\end{equation}
+Dissimilarity between two flow matrices is reported as
+$0.5\sum_{i,j}|L_{ij}^{(1)}-L_{ij}^{(2)}|/\sum_{i,j}L_{ij}^{(1)}$ in percentage units.
+Stage~1 compares implied OD across calibration worlds; fit to $L^{\obs}_{ij}$ is
+documented but not optimised (\S\ref{sec:od_fit}).
+
+\subsection{Tidal-lane travel-time update (prototype)}\label{sec:tidal_bpr}
+
+For a reciprocal pair with slow direction $s$ and fast direction $f$, lane reallocation
+$\Delta n>0$ moves capacity from $f$ to $s$ without updating congestion on other links.
+With BPR exponent $\delta_1=0.488$ and fixed observed congestion index
+$\xi_s = n_s(\max\{\tau^{\obs}_s,\tau^{ff}_s\}/\tau^{ff}_s)^{1/\delta_1}$:
+\begin{equation}
+  \tau_s^{\mathrm{new}}
+  \;=\;
+  \max\left\{
+    \tau^{ff}_s,\;
+    \tau^{ff}_s\left(\frac{\xi_s}{n_s+\Delta n}\right)^{\delta_1}
+  \right\},
+  \qquad
+  \tau_f^{\mathrm{new}}
+  \;=\;
+  \max\left\{
+    \tau^{ff}_f,\;
+    \tau^{ff}_f\left(\frac{\xi_f}{n_f-\Delta n}\right)^{\delta_1}
+  \right\}.
+  \label{eq:tidal_bpr}
+\end{equation}
+Only edges in the selected pair set change; all other $\tau_{kl}$ remain at
+$\tau^{\obs}_{kl}$.
+Short-run evaluation fixes $(l_i^R,l_j^F)$ and recomputes $\Pi_i$, $\Wbar$, and
+\eqref{eq:od_gravity}; long-run re-solves \eqref{eq:eq_R}--\eqref{eq:eq_F}.
+Details and grids: \S\ref{sec:tidal_lane}.
+
+\section{Computation and reproducibility}\label{sec:computation}
+
+\subsection{Pipeline overview}
+
+Main runner (\texttt{run\_directional\_cost.py}):
 \begin{enumerate}[leftmargin=2em,itemsep=0.2em]
   \item Load QSM primitives; floor zero-mass shares at $10^{-6}$.
   \item Build $T$ from \eqref{eq:route_aggregator}; set $\kappa=1$.
   \item \textbf{Directed world:} invert under $\tau^{\obs}$; solve equilibrium.
   \item \textbf{Symmetric world:} build $\tau^{\sym}$; invert again; solve equilibrium.
-  \item Report comparisons and optional asymmetry simulations (intensity/threshold grids),
-        each with fundamentals re-inverted at the relevant cost surface.
+  \item Report comparisons; asymmetry intensity/threshold grids (re-invert at each surface).
+  \item Optional OD-fit diagnostics (\texttt{od\_fit\_estimation.py}).
 \end{enumerate}
 
+Additional runners (same input bundle, directed re-invert baseline unless noted):
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+Script & Purpose & Output subfolder \\
+\midrule
+\texttt{run\_policy\_counterfactuals.py} & 5 non-directional CFs $\times$ 2 worlds
+  & \texttt{counterfactuals/} \\
+\texttt{run\_tidal\_lane\_counterfactuals.py} & Tidal-lane grid, short vs long
+  & \texttt{counterfactuals/tidal\_lane/} \\
+\texttt{plot\_results.py} & Asymmetry histograms, simulation curves
+  & \texttt{figures/} \\
+\texttt{plot\_stage1\_maps.py} & $\Pi_i^{-\theta}$, $P_j^{-\theta}$, wage maps
+  & \texttt{figures/} \\
+\texttt{plot\_tidal\_lane\_results.py} & Short vs long tidal-lane scatter
+  & \texttt{figures/} \\
+\texttt{qa\_od\_direction\_vs\_cost.py} & AM OD direction vs $\tau$ QA
+  & \texttt{diagnostics/od\_direction\_cost\_qa.json} \\
+\texttt{plot\_model\_mechanics.py} & Obs vs model workplace-choice bars
+  & external or \texttt{figures/} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+All commands assume repository root \path{TidalLanes/}:
+\begin{verbatim}
+python3 data_work/src/model/directional_cost/run_directional_cost.py \
+  --version-id model_input_edgeproj_v2_lcc_gate5_v1 \
+  --output-name directional_cost_edgeproj_v2_lcc_gate5_v1
+python3 data_work/src/model/directional_cost/run_policy_counterfactuals.py
+python3 data_work/src/model/directional_cost/run_tidal_lane_counterfactuals.py
+python3 data_work/src/model/directional_cost/plot_stage1_maps.py \
+  --output-root data_work/outputs/directional_cost_edgeproj_v2_lcc_gate5_v1
+\end{verbatim}
+
+\subsection{Convergence and numerical settings}
+
 Directed inversion: $503$ iterations, $\max|\Delta\log\chi|=1.49\times 10^{-4}$.
-Symmetric inversion: $511$ iterations, same tolerance.
-Static equilibria converge in $10$ iterations each.
+Symmetric inversion: $511$ iterations, same tolerance
+(std$(\log\chi)<1.5\times 10^{-4}$).
+Static equilibria converge in $10$ iterations each
+($\max|\Delta\log l|<10^{-9}$).
+Inversion tolerance, static tolerance, and intensity/threshold grids are stored in
+\path{run_metadata.json}.
+
+\subsection{Output manifest}\label{sec:output_manifest}
 
 Output root:
 \texttt{data\_work/outputs/directional\_cost\_edgeproj\_v2\_lcc\_gate5\_v1/}.
+Key artifacts:
+\begin{itemize}[leftmargin=2em,itemsep=0.15em]
+  \item \path{summary_metrics.json} --- directed vs symmetric headline comparison.
+  \item \path{fundamentals/directed|symmetric/} --- inverted $\ubar_i^{\theta}$,
+        $\Abar_j^{\theta}$, $\chi$.
+  \item \path{equilibrium/directed_observed|symmetric_cost/} --- $l_i^R,l_j^F,\Pi_i,P_j$.
+  \item \path{simulations/asymmetry_{intensity,threshold}.csv} --- $\rho$ and $c$ grids.
+  \item \path{diagnostics/} --- edge/node comparisons, OD fit JSON, MA map CSV.
+  \item \path{counterfactuals/policy_cf_{summary,world_wedge}.csv}.
+  \item \path{counterfactuals/tidal_lane/} --- 26-spec grid, pair ranks, edge-level $\tau$ shifts.
+  \item \path{figures/} --- all plots referenced in this note.
+\end{itemize}
+Extended workflow log:
+\path{Documents/L2_notes/stage1_fixed_directed_cost_complete_handoff_20260628.md}.
 
-\section{Parameters}\label{sec:parameters}
+\subsection{Design choices locked for Stage~1}\label{sec:design_locks}
+
+\begin{center}
+\small
+\begin{tabular}{p{0.28\textwidth}p{0.62\textwidth}}
+\toprule
+Choice & Stage~1 lock-in \\
+\midrule
+Input bundle & \texttt{model\_input\_edgeproj\_v2\_lcc\_gate5\_v1} (LCC, detour $G=5$) \\
+Cost primitive & $\tau_{kl}=\tau^{\obs}_{kl}$ (AM peak, minutes) \\
+Route aggregator & $T=(I-A)^{-1}$, $A_{kl}=1/(\kappa\tau_{kl})$, $\kappa=1$ \\
+Symmetrisation & Geometric mean on reciprocal \emph{links} (main); arithmetic robustness \\
+Inversion & Structural fixed point on marginals; not gravity FE \\
+Comparison mode & Re-invert fundamentals in \emph{both} worlds (main) \\
+Parameters & $\theta=6.83$, $\alpha=-0.12$, $\beta=-0.10$ (AA Seattle placeholders) \\
+Congestion & None; $\lambda$ omitted \\
+Policy CFs & Fixed inverted fundamentals; levels, not exact-hat \\
+Tidal lanes & BPR \eqref{eq:tidal_bpr} at fixed $\xi$; no spillovers \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Parameters and levers that amplify world differences}\label{sec:parameters}
 
 Stage~1 does not estimate $(\theta,\alpha,\beta)$; placeholders from AA Seattle:
 $\theta=6.83$, $\alpha=-0.12$, $\beta=-0.10$.
 Congestion elasticity $\lambda$ is omitted.
+
+\subsection{What makes the two worlds look similar?}
+
+Under the main \textbf{re-inversion} design, both calibration worlds target the same
+observed residence and workplace marginals.
+Inversion therefore absorbs much of the symmetric-cost bias into
+$(\bar u_i,\bar A_j)$: residence and workplace \emph{shares} differ by less than
+$0.001\%$ at baseline, and predicted OD dissimilarity is stable at $\approx 2.5\%$
+across a wide range of $\theta$ (Table~\ref{tab:theta}).
+This is intentional---it isolates \emph{measurement of commuting technology} from
+\emph{re-fitting population counts}---but it also compresses baseline sorting gaps.
+
+\subsection{Knobs that widen directed vs.\ symmetric gaps}
+
+Table~\ref{tab:theta} and the discussion below summarise practical levers.
+None changes the Stage~1 scope (fixed $\tau$, no congestion); they alter how large
+the cross-world wedge appears on different objects.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Sensitivity of cross-world gaps to $\theta$ (geometric symmetrisation, re-invert)}
+  \label{tab:theta}
+  \begin{tabular}{lrrrr}
+  \toprule
+  $\theta$ & $\Wbar$ change (\%) & OD dissim.\ (\%) & Res.\ dissim.\ (\%) & p95 $|\Delta\log\Pi_i^{-\theta}|$ \\
+  \midrule
+  3   & $-2.58$ & 2.46 & $<0.001$ & 0.52 \\
+  4   & $-1.94$ & 2.46 & $<0.001$ & 0.52 \\
+  6.83 (baseline) & $-1.14$ & 2.46 & $<0.001$ & 0.52 \\
+  9   & $-0.87$ & 2.46 & $<0.001$ & 0.52 \\
+  12  & $+0.27$ & 2.38 & 0.69 & 0.48 \\
+  \bottomrule
+  \end{tabular}
+  \vspace{0.4em}
+
+  \begin{minipage}{0.92\textwidth}
+  \footnotesize
+  \emph{Notes:} Symmetric minus directed; each $\theta$ re-inverts fundamentals in both
+  worlds. OD and $\Pi^{- \theta}$ gaps are robust; $\Wbar$ and residence sorting respond
+  more to $\theta$; very high $\theta$ begins to move baseline shares because the fixed
+  point is stiffer.
+  \end{minipage}
+\end{table}
+
+\begin{enumerate}[leftmargin=2em,itemsep=0.35em]
+  \item \textbf{Hold fundamentals fixed (legacy contrast).}
+        Invert only on the directed surface, then compare directed vs.\ symmetric
+        $\tau$ \emph{without} re-inverting in the symmetric world.
+        Sorting and OD gaps widen to $\approx 2.9\%$ / $2.5\%$ / $5.6\%$ (residence /
+        workplace / OD dissimilarity) because symmetric costs can no longer compensate
+        through $(\bar u,\bar A)$.
+        Useful as an upper bound on spatial re-sorting from mis-measured $T$, but not the
+        main specification because it mixes cost bias with a different fundamental surface.
+
+  \item \textbf{Raise $\theta$ (moderate effect on sorting under re-invert).}
+        Lower $\theta$ magnifies the $\Wbar$ gap ($-2.6\%$ at $\theta=3$) but barely
+        moves baseline OD or $\Pi^{- \theta}$ maps.
+        Policy CFs that load on $T$ (hub access) show slightly larger \emph{post-shock}
+        cross-world wedges in upper-tail job access (p95 $\Pi^{- \theta}$ gap $+3.7\%$
+        after hub-access CF vs.\ $-4.0\%$ at baseline).
+
+  \item \textbf{Asymmetry intensity / threshold grids} (\S\ref{sec:simulations}).
+        Partially restore directed edges ($\rho\in(0,1)$ or threshold $c>1$) smoothly
+        interpolates between worlds and shows that even ``moderate'' symmetrisation
+        ($c=2$, 8.9\% of reciprocal pairs remain directed) leaves a $0.86\%$ $\Wbar$
+        gap relative to full symmetrisation---again mostly fundamental compensation,
+        but useful for robustness.
+
+  \item \textbf{Concentrate shocks on high-asymmetry corridors (Stage~2 preview).}
+        Non-directional CFs in Stage~1 apply the same scalar speed factor to both
+        directions of a link.
+        Directional capacity reallocation (tidal lanes) will load on edges with large
+        $r_{kl}=\max(\tau_{kl},\tau_{lk})/\min(\cdot)$; Stage~1's hub/fringe transport
+        CFs are conservative proxies for \emph{where} mis-measurement bites, not its
+        upper bound.
+
+  \item \textbf{Relax marginal pinning (hypothetical).}
+        Dropping the re-inversion step---or targeting OD moments in addition to
+        marginals---would allow bilateral misfit and asymmetric costs to feed back into
+        $(l_i^R,l_j^F)$; that is the Stage~2 / full-estimation agenda, not Stage~1.
+\end{enumerate}
 
 \section{Results}\label{sec:results}
 
@@ -241,6 +485,42 @@ have $r\ge 2.00$.
 Both calibration worlds reproduce floored observed residence and workplace shares:
 L1 distance $\approx 0.00053\%$ (directed) and $\approx 0.00053\%$ (symmetric).
 Inversion is tied to \emph{marginals}, not the full OD matrix.
+
+\subsection{Implied OD vs.\ observed OD (diagnostic scope)}\label{sec:od_fit}
+
+Stage~1 does \emph{not} target bilateral fit.
+Given inverted fundamentals and the gravity allocation
+$L_{ij}\propto L_i^R T_{ij}\bar A_j^{\theta}(l_j^F)^{\alpha\theta}$,
+the directed calibration world yields a global L1 distance to observed OD flows of
+$\approx 72\%$ on positive cells ($\approx 51\%$ off-diagonal).
+Residence-conditional destination shares have median L1 $\approx 66\%$.
+The largest gaps concentrate on \emph{intra-cell} flows ($i=j$): the model assigns
+$\approx 53\%$ of predicted commuters within the same grid cell versus $\approx 8\%$
+in the data, because the Leontief diagonal $T_{ii}$ is large relative to off-diagonal
+$T_{ij}$.
+This poor bilateral fit does \emph{not} invalidate the Stage~1 question---which compares
+two calibration worlds that both fit the same marginals---but it rules out interpreting
+Stage~1 as a structural replication of the Beijing OD matrix.
+Symmetric vs.\ directed cost changes \emph{model-implied} OD by only $\approx 2.5\%$
+while leaving fit to observed OD essentially unchanged ($\approx 72\%$ L1 either way).
+Full diagnostics and improvement priorities are logged in
+\path{Documents/L2_notes/stage1_od_fit_diagnosis_and_handoff_20260628.md}.
+
+\subsection{AM direction and travel-cost QA}\label{sec:qa_direction}
+
+Script \texttt{qa\_od\_direction\_vs\_cost.py} checks that AM OD flows $i\to j$
+(home to work) are evaluated against directed peak costs consistent with edge
+$\tau^{\obs}_{k\to l}$.
+On off-diagonal positive-flow pairs with finite shortest paths in both directions,
+$57.4\%$ have home-to-work SP cost greater than work-to-home SP cost (median log gap
+$+0.075$ in minutes-log units), confirming measurable morning peak directionality at the
+OD level.
+Among reachable off-diagonal pairs, weighted log correlation between SP$(i,j)$ and
+soft model cost $T_{ij}^{-1/\theta}$ is $0.94$ (flow-weighted subsample: $0.93$).
+This QA supports using directed AM $\tau$ for workplace choice while documenting that
+Leontief $T_{ij}$ is a smoother network aggregator than raw shortest-path costs on
+sparse high-flow cells.
+Full JSON: \path{diagnostics/od_direction_cost_qa.json}.
 
 \subsection{Main comparison: symmetric vs.\ directed (geometric symmetrisation)}
 
@@ -277,12 +557,266 @@ Fundamentals shift materially: p95 $|\log(\ubar_i^{\sym}/\ubar_i^{\dir})|\approx
   \footnotesize
   \emph{Notes:} Dissimilarity is $0.5\sum|\Delta\text{share}|$.
   Comparison is between two self-consistent calibration worlds, not a fixed-fundamentals
-  counterfactual.
+  counterfactual. Legacy fixed-fundamentals mode (invert on directed only): residence /
+  workplace / OD dissimilarity $\approx 2.9\% / 2.5\% / 5.6\%$.
   \end{minipage}
 \end{table}
 
 Arithmetic symmetric operator (re-inverted): $\Wbar$ change $-0.85\%$; OD dissimilarity
 $2.29\%$ (\texttt{directional\_cost\_edgeproj\_v2\_lcc\_gate5\_v1\_sym\_arithmetic/}).
+
+\subsection{Market access, firm access, and wage indices}\label{sec:ma_maps}
+
+Even when residence and workplace \emph{shares} barely move across calibration worlds,
+market-access indices and inverted productivities differ spatially.
+Let $\Pi_i^{-\theta}$ denote residence-side job access and $P_j^{-\theta}$ firm-side
+labor-market access (equilibrium objects from \eqref{eq:welfare}).
+The effective productivity index is $A_j=\bar A_j(L_j^F)^{\alpha}$ evaluated at each
+world's inverted fundamentals and equilibrium shares.
+
+Figure~\ref{fig:ma_maps}: grid-level maps (square-grid index coordinates).
+Symmetric minus directed differences reach p95 $|\Delta\log \Pi_i^{-\theta}|\approx 0.52$
+and p95 $|\Delta\log P_j^{-\theta}|\approx 0.53$; the wage index $A_j$ differs mainly
+through re-inverted $\bar A_j$ (p95 $|\Delta\log A_j|\approx 0.08$) rather than through
+$L_j^F$, which is pinned by observed marginals.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\linewidth]{map_residence_access.png}\\[0.4em]
+  \includegraphics[width=\linewidth]{map_firm_access.png}\\[0.4em]
+  \includegraphics[width=\linewidth]{map_wage_productivity.png}
+  \caption{Grid maps: residence access $\Pi_i^{-\theta}$, firm access $P_j^{-\theta}$,
+  and $A_j=\bar A_j(L_j^F)^{\alpha}$ in the directed world, the symmetric world, and
+  symmetric minus directed.}
+  \label{fig:ma_maps}
+\end{figure}
+
+\subsection{Transmission from calibration-world bias to policy analysis}\label{sec:transmission}
+
+Symmetrising link costs affects policy analysis through four linked channels.
+The object of interest is how an \emph{exogenous} post-calibration shock propagates
+differently depending on which world supplied $(\tau,T,\bar u,\bar A,\Pi,P)$, and
+which \textbf{planner-observable outcomes} move as a result.
+
+\paragraph{Channel 1: Mis-measured commuting technology.}
+Replacing $\tau^{\obs}_{kl}$ by a pair average changes the Leontief aggregator
+$T_{ij}=[(I-A)^{-1}]_{ij}$ and hence residence-side job access $\Pi_i^{-\theta}$
+and firm-side labor access $P_j^{-\theta}$.
+This channel is active whenever a policy shock modifies travel costs or re-routes
+commuters through $T_{ij}$---i.e.\ road speed-ups, hub accessibility investments,
+outer-ring connector upgrades, and (in Stage~2) directional lane reallocation.
+
+\paragraph{Channel 2: Fundamental absorption at inversion.}
+Because inversion targets observed marginals only, symmetric costs shift inverted
+$\bar u_i$ and $\bar A_j$ (p95 $|\log(\bar u_i^{\sym}/\bar u_i^{\dir})|\approx 0.55$).
+The symmetric world starts from a different compensated amenity/productivity surface
+even though $l_i^R$ and $l_j^F$ match the data.
+This channel matters for interpreting \emph{levels} of $\Wbar$ and inverted
+fundamentals, but not for policies that only scale local $\bar A_j$ or $\bar u_i$ on
+fixed geographic sets once those fundamentals are held fixed in the CF.
+
+\paragraph{Channel 3: General-equilibrium propagation.}
+An exogenous shock is applied on top of \emph{that world's} inverted fundamentals.
+The same shock rule hits different $(T,\Pi,P,\bar u,\bar A)$ baselines and generates
+different $\Delta l_i^R$, $\Delta l_j^F$, $\Delta L_{ij}$, and $\Delta\Pi_i^{-\theta}$.
+
+\paragraph{Channel 4: Sorting vs.\ commuting structure.}
+Baseline sorting differences across worlds are tiny under re-inversion.
+Transport policy shocks still re-sort population and reallocate OD flows
+(dissimilarity $\sim$2--7\% within each world), and cross-world \emph{post-shock}
+gaps in upper-tail job access widen even when population-share gaps stay below
+$0.02$ percentage points.
+
+\medskip
+\noindent\textbf{Policy taxonomy (Stage~1).}
+\begin{center}
+\small
+\begin{tabular}{p{0.26\textwidth}p{0.30\textwidth}p{0.36\textwidth}}
+\toprule
+Shock type & Primary channel & Cross-world wedge (headline object) \\
+\midrule
+Uniform / hub / fringe transport & 1, 3, 4 & $\Delta\Pi^{- \theta}$, OD flows: \textbf{larger} \\
+Hub productivity only & local $\bar A$ & Population / OD: \textbf{negligible} \\
+Outer-ring amenity only & local $\bar u$ & Population / OD: \textbf{negligible} \\
+Directional capacity (Stage~2) & 1 + congestion & Not identified in symmetric world \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+This taxonomy motivates Stage~2 tidal-lane analysis: directionally targeted capacity
+reallocation is a transport-technology shock that requires a directed calibration world;
+symmetric measurement error is not innocuous even for \emph{non-directional} transport
+policies evaluated on the wrong baseline.
+
+\subsection{Mapping model objects to real planning outcomes}\label{sec:outcomes_map}
+
+Stage~1 does not yet calibrate school seats, hospital beds, or transit line loads
+directly.
+The following mapping is the bridge from model outputs to policies planners discuss;
+numbers in Table~\ref{tab:outcomes} come from the solved equilibrium in each world.
+
+\begin{table}[htbp]
+  \centering
+  \caption{From model objects to planning outcomes (directed world, policy deltas)}
+  \label{tab:outcomes}
+  \small
+  \begin{tabular}{p{0.22\textwidth}p{0.30\textwidth}rr}
+  \toprule
+  Model object & Planning interpretation & Hub access & Fringe transport \\
+  \midrule
+  $\Delta$ outer-ring $l_i^R$ (pp) & Residential public-service catchment & $-0.30$ & $+0.32$ \\
+  $\Delta$ hub-bound OD share (pp) & Peak transit demand to CBD / hubs & $+0.78$ & $-0.25$ \\
+  $\Delta$ hub $l_j^F$ (pp) & Employment-centre service / retail load & $+0.78$ & $-0.25$ \\
+  OD dissimilarity (\%) & Commute-pattern / corridor investment priority & 6.6 & 0.55 \\
+  p95 $|\Delta\log\Pi_i^{-\theta}|$ & Upper-tail job-access inequality & 0.025 & 0.032 \\
+  \bottomrule
+  \end{tabular}
+  \vspace{0.4em}
+
+  \begin{minipage}{0.92\textwidth}
+  \footnotesize
+  \emph{Notes:} Deltas are within the directed calibration world relative to that
+  world's pre-shock equilibrium (+15\% hub-edge speed; $-20\%$ fringe-edge speed).
+  ``Outer-ring'' is the top quartile of distance from the employment-weighted grid
+  centroid ($\approx 25\%$ of nodes). Hub set: top employment quartile by observed
+  $L_j^F$. Symmetric-world \emph{within-run} deltas are almost identical on population
+  and OD shares; cross-world gaps after the same-named shock are an order of magnitude
+  smaller on shares ($\lesssim 0.02$ pp on hub-bound commuting) but reach
+  $+3.7\%$ on p95 $\Pi^{- \theta}$ for hub-access CF (Table~\ref{tab:policy_outcomes}).
+  \end{minipage}
+\end{table}
+
+\paragraph{Residential public services.}
+Grid-level residence shares $L_i^R=\Lbar\,l_i^R$ scale demand for schools, primary care,
+and local retail.
+Outer-ring amenity (+10\%) raises fringe $l_i^R$ by $+0.25$ pp; fringe transport
+(+20\% speed on outer edges) raises it by $+0.32$ pp, while hub-access improvements
+draw $-0.30$ pp out of the fringe---the same shock in the symmetric world moves shares
+by virtually the same amount because the shock rule is spatial, not directional.
+
+\paragraph{Employment-centre and corridor services.}
+Predicted OD flows $L_{ij}$ identify origin--destination bundles that load on radial
+arteries and metro lines.
+Hub-access CF reweights $\approx 6.6\%$ of bilateral commuter mass (OD dissimilarity)
+and raises the share of commuters with hub workplaces by $+0.78$ pp---a directly
+observable object for peak transit scheduling and parking supply near employment centres.
+
+\paragraph{Access inequality.}
+Even when population shares barely differ across calibration worlds, upper-tail job
+access $\Pi_i^{-\theta}$ does: baseline p95 $|\Delta\log\Pi_i^{-\theta}|\approx 0.52$
+across worlds (Figure~\ref{fig:ma_maps}), widening to $+3.7\%$ \emph{relative} p95 gap
+after hub-access CF.
+Policies that target ``left-behind'' residential zones should be evaluated on
+$\Pi_i^{-\theta}$ maps, not on $\Wbar$ alone.
+
+\paragraph{What directional congestion does \emph{not} move in Stage~1.}
+Pure scalings of hub $\bar A_j$ or fringe $\bar u_i$ produce $<0.01$ pp cross-world
+wedges on both $\Wbar$ responses and population shares: the geographic shock sets are
+identical and fundamentals are held fixed within each world.
+Directional bias bites when the policy changes \emph{how} commuters reach places
+through $T_{ij}$.
+
+\subsection{Non-directional policy counterfactuals}\label{sec:policy_cf}
+
+To separate \emph{directionality of measurement} from \emph{directionality of policy},
+we apply five fixed-cost shocks that do \emph{not} reallocate lanes across directions:
+\begin{enumerate}[leftmargin=2em,itemsep=0.2em]
+  \item \textbf{Uniform speed (+10\%):} $\tau_{kl}\leftarrow 0.9\,\tau_{kl}$ everywhere.
+  \item \textbf{Hub accessibility (+15\% speed on hub edges):} factor $0.85$ on edges
+        touching the top employment quartile by observed $L_j^F$.
+  \item \textbf{Hub productivity (+10\%):} $\bar A_j\leftarrow 1.1\,\bar A_j$ on the same
+        hub set; travel costs unchanged.
+  \item \textbf{Outer-ring amenity (+10\%):} $\bar u_i\leftarrow 1.1\,\bar u_i$ on fringe
+        cells in the top quartile of distance from the employment-weighted grid centroid
+        ($\approx 25\%$ of nodes).
+  \item \textbf{Fringe transport (+20\% speed on fringe edges):} factor $0.80$ on edges
+        touching the same outer-ring set.
+\end{enumerate}
+In each calibration world, $(\bar u,\bar A,\chi)$ are held at that world's inverted
+values; only $\tau$ and/or hub $\bar A_j$ change; the static system is re-solved in levels
+(no exact-hat, no congestion feedback).
+
+Table~\ref{tab:policy_cf} and Figure~\ref{fig:policy_cf}.
+Transport shocks move residence sorting and OD structure within each world; the
+largest \emph{cross-world} gaps appear on $\Wbar$ responses (hub access: 0.14 pp
+wedge) and on upper-tail job access after hub-access CF ($+3.7\%$ relative p95
+$\Pi^{- \theta}$ gap; Table~\ref{tab:policy_outcomes}).
+Pure local shocks to inverted fundamentals---hub productivity and outer-ring
+amenity---produce negligible cross-world wedges on both welfare and observable
+population/OD outcomes ($\lesssim 0.01$ pp on shares), confirming that calibration-world
+bias propagates when policy loads on mis-measured commuting technology (Channels 1
+and 4), not when it only scales local $\bar A_j$ or $\bar u_i$ on fixed geographic sets.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Cross-world outcome wedges after the same-named policy shock}
+  \label{tab:policy_outcomes}
+  \small
+  \begin{tabular}{lrrrr}
+  \toprule
+  Policy & Hub-bound OD gap (pp) & Outer-ring $l^R$ gap (pp) & p95 $\Pi^{- \theta}$ gap (\%) & $\Wbar$ wedge (pp) \\
+  \midrule
+  Uniform speed (+10\%)      & $-0.01$ & $+0.01$ & $+0.20$ & $-0.07$ \\
+  Hub access (+15\% on hubs) & $-0.02$ & $+0.01$ & $+3.72$ & $-0.14$ \\
+  Hub productivity (+10\%)   & $-0.001$ & $+0.000$ & $-4.05$ & $-0.006$ \\
+  Outer-ring amenity (+10\%) & $+0.000$ & $-0.000$ & $-4.19$ & $+0.006$ \\
+  Fringe transport (+20\%)   & $-0.001$ & $+0.001$ & $-3.15$ & $+0.005$ \\
+  \bottomrule
+  \end{tabular}
+  \vspace{0.4em}
+
+  \begin{minipage}{0.92\textwidth}
+  \footnotesize
+  \emph{Notes:} Each column is symmetric-world minus directed-world \emph{after} applying
+  the same policy rule in both worlds (post-shock outcomes, not response deltas).
+  Hub-bound OD share $=\sum_{i,j\in\mathrm{hub}} L_{ij}/\sum_{i,j}L_{ij}$.
+  p95 gap is percent difference in p95 $\Pi_i^{-\theta}$ across worlds.
+  Population-share gaps stay tiny because re-inversion pins marginals at calibration;
+  job-access tails and $\Wbar$ responses carry the cross-world transport bias.
+  \end{minipage}
+\end{table}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Non-directional policy CFs: directed vs.\ symmetric calibration world}
+  \label{tab:policy_cf}
+  \small
+  \begin{tabular}{lrrrrrr}
+  \toprule
+  Policy & $\Delta\Wbar$ dir (\%) & $\Delta\Wbar$ sym (\%) & Wedge (pp)
+  & Res.\ dissim.\ dir (\%) & OD dissim.\ dir (\%) & OD dissim.\ sym (\%) \\
+  \midrule
+  Uniform speed (+10\%)        & 0.823 & 0.755 & $-0.068$ & 1.81 & 4.60 & 4.68 \\
+  Hub access (+15\% on hubs)   & 0.167 & 0.025 & $-0.142$ & 2.86 & 6.57 & 6.67 \\
+  Hub productivity (+10\%)     & $-0.692$ & $-0.698$ & $-0.006$ & 0.38 & 0.45 & 0.45 \\
+  Outer-ring amenity (+10\%)   & 0.351 & 0.357 & $+0.006$ & 0.25 & 0.25 & 0.25 \\
+  Fringe transport (+20\%)   & 0.585 & 0.590 & $+0.005$ & 0.35 & 0.55 & 0.55 \\
+  \bottomrule
+  \end{tabular}
+  \vspace{0.4em}
+
+  \begin{minipage}{0.92\textwidth}
+  \footnotesize
+  \emph{Notes:} Wedge $=\Delta\Wbar^{sym}-\Delta\Wbar^{dir}$.
+  Dissimilarities are $0.5\sum|\Delta\text{share}|$ relative to each world's pre-shock
+  equilibrium. Hub set: top quartile of $L_j^F$. Outer-ring set: top quartile of
+  distance from the employment-weighted grid centroid among residential cells.
+  \end{minipage}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{policy_cf_by_world.png}
+    \caption{Policy responses by calibration world}\label{fig:policy_cf}
+  \end{minipage}\hfill
+  \begin{minipage}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{policy_cf_welfare_wedge.png}
+    \caption{Welfare-response wedge (sym $-$ dir)}\label{fig:policy_wedge}
+  \end{minipage}
+\end{figure}
 
 \subsection{Asymmetry simulations}\label{sec:simulations}
 
@@ -313,24 +847,164 @@ relative to the symmetric calibration.
   \end{minipage}
 \end{figure}
 
-\subsection{Interpretation}
+\subsection{Tidal-lane prototype: short-run vs.\ long-run}\label{sec:tidal_lane}
 
-Stage~1 supports:
-\begin{enumerate}[leftmargin=2em,itemsep=0.2em]
-  \item Directional congestion is widespread in the retained Beijing network.
-  \item Directed and symmetric \emph{calibration worlds} fit the same observed marginals
-        but imply different OD patterns, welfare levels, and inverted fundamentals.
-  \item The main actionable bias for commuting \emph{structure} is in predicted OD flows
-        ($\sim$2--2.5\%), not in residence/workplace shares once fundamentals re-adjust.
+We add a first-pass tidal-lane exercise on the directed calibration world while
+keeping Stage~1 scope: \emph{no congestion propagation} to untreated links.
+For each selected reciprocal pair, one lane is reallocated from the fast direction
+to the slow direction (BPR at fixed observed congestion $\xi$, $\delta_1=0.488$), or
+--- in a sensitivity arm --- peak times are scaled directly ($-10\%$ slow,
+$+10\%$ fast).
+Pairs are ranked by peak travel-time ratio $r_{kl}$; filters require length
+$>200$\,m and at least two lanes on the fast direction.
+
+\paragraph{Horizons.}
+\begin{itemize}[leftmargin=2em,itemsep=0.2em]
+  \item \textbf{Short-run:} fix $(l_i^R,l_j^F)$ at the baseline equilibrium; recompute
+        $\Pi_i$, $\Wbar$, and implied OD flows through the new $T_{ij}$.
+  \item \textbf{Long-run:} re-solve \eqref{eq:eq_R}--\eqref{eq:eq_F} with sorting.
+\end{itemize}
+
+Runner: \texttt{run\_tidal\_lane\_counterfactuals.py}; outputs under
+\texttt{counterfactuals/tidal\_lane/}.
+The default grid varies top-$K\in\{10,25,50,100\}$, $\Delta n\in\{0.5,1\}$ lanes,
+minimum asymmetry $r\ge\{1.10,1.25,1.50\}$, plus three direct-$\tau$ scale bundles.
+
+Table~\ref{tab:tidal_lane} and Figure~\ref{fig:tidal_short_long} summarise the
+central pattern.
+\textbf{Short-run} access gains are small but positive (up to $\approx +0.08\%$ on
+$\Wbar$ for the largest direct-$\tau$ bundle on 50 pairs; BPR top-100:
+$+0.075\%$), with implied OD reallocation up to $\approx 1\%$ dissimilarity.
+\textbf{Long-run} sorting \emph{reverses} the sign: the same BPR shocks reduce
+$\Wbar$ once population and workplaces re-equilibrate (e.g.\ top-50, $\Delta n=1$:
+$-0.07\%$; residence sorting $\approx 0.35\%$; OD $\approx 0.6\%$).
+Intuitively, treating a handful of adjacent grid links ignores network-wide rerouting
+and general-equilibrium feedback; the exercise nonetheless shows that directional
+capacity reallocation is not well approximated by a symmetric average cost, and
+that short-run access calculations overstate net gains if residential sorting is
+suppressed.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Tidal-lane prototype (directed world; no congestion spillovers)}
+  \label{tab:tidal_lane}
+  \small
+  \begin{tabular}{llrrrrr}
+  \toprule
+  Spec & Horizon & Pairs & $\Delta\Wbar$ (\%) & Res.\ dissim.\ (\%) & OD dissim.\ (\%) & Mean $\Delta\tau$ slow (\%) \\
+  \midrule
+  BPR top-100, $\Delta n=1$ & Short & 100 & $+0.075$ & 0 & 0.99 & $-12.1$ \\
+  BPR top-100, $\Delta n=1$ & Long  & 100 & $-0.140$ & 0.52 & 0.93 & $-12.1$ \\
+  BPR top-50, $\Delta n=1$  & Short & 50  & $+0.037$ & 0 & 0.62 & $-12.2$ \\
+  BPR top-50, $\Delta n=1$  & Long  & 50  & $-0.070$ & 0.35 & 0.60 & $-12.2$ \\
+  Direct $\tau$: $-15\%/+15\%$, top-50 & Short & 50 & $+0.079$ & 0 & 0.71 & $-15.0$ \\
+  Direct $\tau$: $-15\%/+15\%$, top-50 & Long  & 50 & $-0.085$ & 0.43 & 0.73 & $-15.0$ \\
+  \bottomrule
+  \end{tabular}
+  \vspace{0.4em}
+
+  \begin{minipage}{0.92\textwidth}
+  \footnotesize
+  \emph{Notes:} BPR uses fixed $\xi$ at observed flows; fast direction slows because
+  lanes fall. Long-run rows re-solve sorting; short-run rows fix baseline shares.
+  Effects are an order of magnitude smaller than hub-access CFs
+  (\S\ref{sec:policy_cf}) because only 50--100 adjacent pairs are treated on a
+  2642-edge network.
+  \end{minipage}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.82\textwidth]{tidal_lane_short_vs_long.png}
+  \caption{Tidal-lane grid: short-run vs.\ long-run $\Wbar$ and OD responses}
+  \label{fig:tidal_short_long}
+\end{figure}
+
+\subsection{Interpretation and story}\label{sec:interpretation}
+
+Stage~1 delivers a coherent measurement narrative rather than a welfare ranking:
+\begin{enumerate}[leftmargin=2em,itemsep=0.35em]
+  \item \textbf{Directional congestion is widespread} in the retained Beijing network
+        (median peak/off-peak ratio 1.23 on reciprocal links; Figure~\ref{fig:asym_hist}).
+
+  \item \textbf{Symmetric link indices mis-state commuting technology} even when both
+        calibration worlds fit the same residence and workplace marginals.
+        Predicted OD flows differ by $\approx 2.5\%$; grid-level job access
+        $\Pi_i^{-\theta}$ differs at p95 $|\Delta\log|\approx 0.52$
+        (Figure~\ref{fig:ma_maps}); inverted fundamentals compensate
+        (p95 $|\log(\bar u_i^{\sym}/\bar u_i^{\dir})|\approx 0.55$).
+
+  \item \textbf{$\Wbar$ is not the right headline} under re-inversion: baseline
+        $\Wbar$ falls 1.14\% in the symmetric world mainly because $(\bar u,\bar A)$
+        re-adjust, not because observed population counts change.
+        We report $\Wbar$ for completeness and because transport CFs still show
+        asymmetric \emph{responses} (hub-access wedge 0.14 pp), but planning-relevant
+        objects are population shares, OD corridors, and $\Pi_i^{-\theta}$ maps
+        (\S\ref{sec:outcomes_map}).
+
+  \item \textbf{Which policies care about directional measurement?}
+        \emph{Transport} shocks---uniform speed-up, hub-edge accessibility, fringe
+        connectors---reallocate OD mass ($4.6$--$6.7\%$ dissimilarity) and fringe/hub
+        population within each world, and widen cross-world upper-tail job-access gaps
+        (hub access: $+3.7\%$ on p95 $\Pi^{- \theta}$).
+        \emph{Place-based} shocks that only scale hub $\bar A_j$ or fringe $\bar u_i$
+        on fixed zones produce identical population and OD responses across worlds
+        ($<0.02$ pp share gaps); they are poor diagnostics of directional bias in
+        Stage~1.
+
+  \item \textbf{Tidal-lane prototype (\S\ref{sec:tidal_lane}).}
+        Directional lane reallocation without congestion spillovers produces modest
+        short-run access gains but negative long-run $\Wbar$ once sorting adjusts;
+        implied OD shifts ($\sim$0.6--1\%) remain far below hub-access transport CFs
+        because only top asymmetric \emph{adjacent} pairs are treated.
+        Stage~2 should combine directional shocks with network-wide propagation.
 \end{enumerate}
 
-Stage~1 does \emph{not} support tidal-lane welfare claims or structural $\lambda$
-estimation.
+Stage~1 does \emph{not} support full tidal-lane welfare claims or structural $\lambda$
+estimation; the prototype in \S\ref{sec:tidal_lane} is deliberately partial (no
+congestion spillovers, adjacent-pair sample only).
+It \emph{does} motivate Stage~2: policies that explicitly reallocate directed capacity
+(tidal lanes) cannot be evaluated on a symmetric-cost calibration that already hides
+peak-direction congestion and shifts $(\bar u,\bar A)$ to compensate.
+The empirical next step is to export zone-level $\Delta L_i^R$, $\Delta L_{ij}$, and
+$\Delta\Pi_i^{-\theta}$ from directed CFs into service-planning metrics (school
+catchments, transit peak load, hospital referral zones)---Stage~1 supplies the spatial
+equilibrium inputs; the institutional mapping is deliberately left for the applied
+section of the paper.
 
 \section{Link to Stage~2}\label{sec:stage2}
 
-Stage~2 activates congestion, anchors travel times to observed speeds, and evaluates
-lane-capacity counterfactuals under fundamentals recovered here.
+Stage~2 activates congestion, anchors travel times to observed speeds, allows
+congestion spillovers across the network, and evaluates lane-capacity counterfactuals
+(including tidal lanes on corridor samples) under fundamentals recovered here.
+Stage~1 supplies: (i)~directed vs symmetric measurement bias quantification;
+(ii)~policy taxonomy for which outcomes load on $T_{ij}$; (iii)~tidal-lane prototype
+code path (\texttt{tidal\_lane\_counterfactuals.py}) to be extended with endogenous
+$\xi$ updates.
+
+\appendix
+\section{Module map (code)}\label{app:code}
+
+\begin{center}
+\small
+\begin{tabular}{p{0.42\textwidth}p{0.50\textwidth}}
+\toprule
+File & Role \\
+\midrule
+\texttt{full\_estimation/build\_primitives.py} & Load QSM parquet $\to$ \texttt{Primitives} \\
+\texttt{full\_estimation/invert\_fundamentals.py} & Fixed-point inversion \eqref{eq:invert_R}--\eqref{eq:invert_F} \\
+\texttt{full\_estimation/parameters.py} & Frozen $(\theta,\alpha,\beta)$ \\
+\texttt{directional\_cost/fixed\_tau\_model.py} & $T$, equilibrium, OD gravity, comparisons \\
+\texttt{directional\_cost/run\_directional\_cost.py} & Main Stage~1 driver \\
+\texttt{directional\_cost/policy\_counterfactuals.py} & Non-directional CF specs \\
+\texttt{directional\_cost/tidal\_lane\_counterfactuals.py} & Pair selection, BPR shock, horizons \\
+\texttt{directional\_cost/od\_fit\_estimation.py} & Optional $\theta$/SMM diagnostics (parallel track) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Detailed session log:
+\path{Documents/L2_notes/stage1_fixed_directed_cost_complete_handoff_20260628.md}.
 
 \bibliographystyle{aer}
 \bibliography{tidal_lanes_refs}

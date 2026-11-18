@@ -1,0 +1,13 @@
+DROP TABLE IF EXISTS tl25m05_v01_trip_p0519_internal;
+DROP TABLE IF EXISTS tl25m05_v01_rn_link_p0519_internal;
+DROP TABLE IF EXISTS tl25m05_v01_x_n_exp;
+DROP TABLE IF EXISTS tl25m05_v01_x_n_margin_exp;
+DROP TABLE IF EXISTS tl25m05_v01_x_dep_slot30_exp;
+DROP TABLE IF EXISTS tl25m05_v01_x_dep_window_exp;
+DROP TABLE IF EXISTS tl25m05_v01_x_dep_date_window_exp;
+DROP TABLE IF EXISTS tl25m05_v01_x_part_exp;
+DROP TABLE IF EXISTS tl25m05_v01_rn_x_slot30_exp;
+DROP TABLE IF EXISTS tl25m05_v01_rn_x_window_exp;
+DROP TABLE IF EXISTS tl25m05_v01_rn_x_date_window_exp;
+DROP TABLE IF EXISTS tl25m05_v01_rn_x_od_cover_exp;
+SELECT 'T1' tier, 12 n_drop_statements;

@@ -1,16 +1,22 @@
-# Documents（最简说明）
+# Documents
 
-当前主编辑文件：`L1_manuscripts/TidalLanes_0421.tex`
+Writing output and research memos, split into four layers.
 
-## 分层
+The catalogue of every document, with its status and what supersedes it, lives in [`DOCUMENT_INDEX.md`](../DOCUMENT_INDEX.md) at the repository root.
 
-- `L1_manuscripts/`：所有主稿 `.tex` 与其编译产物（`.pdf/.aux/.log/...`）  
-  - `drafts/`：历史稿与草稿
-- `L2_notes/`：方法说明、文献/理论备忘、手写笔记类材料
-- `L3_figs/`：手工维护图片（非 `data_work` 自动生成）
-- `L4_pipeline_outputs/`：流程生成物与零散输出（如 `generated/`、`todo_outputs/`、其他临时输出）
-- `archive/`：历史归档（不动）
+| Layer | Contents |
+|---|---|
+| `L1_manuscripts/` | Paper and model sources. `drafts/` holds earlier iterations of the paper, model, and abstract lines. |
+| `L2_notes/` | Research memos, handoffs, meeting notes, audits. `_superseded/` holds retired temporary checklists. |
+| `L3_figs/` | Figures used by manuscripts. Slide-only figures belong in `PreSlides/figs/` instead. |
+| `L4_pipeline_outputs/` | Tables, validation reports, and exhibits promoted out of the pipeline. |
+| `PreSlides/` | Decks, speaker scripts, and presentation media. `_snapshots/` holds the manual backups taken during the July rewrite. |
+| `archive/` | Frozen historical material. Do not modify. |
 
-## 约定
+## Current state
 
-- 默认不单独建编译缓存目录；TeX 编译产物与对应 `.tex` 放同一路径。
+The active deck is `PreSlides/Tidal0715.tex`, compiled as `Tidal0718.pdf`. The full paper draft `L1_manuscripts/TidalLanes_0429.tex` has not advanced since April and now trails the deck substantially; whether to write it forward from the deck is an open decision recorded in `nextstep.md`.
+
+## Conventions
+
+LaTeX build artefacts are not kept. They are regenerated on compile and are excluded by `.gitignore`; 180 of them were cleared on 2026-07-27.

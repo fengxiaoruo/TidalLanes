@@ -1,0 +1,1069 @@
+\documentclass[11pt,aspectratio=169]{beamer}
+\usetheme{Boadilla}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage[percent]{overpic}
+\usepackage{xcolor}
+\usepackage[authoryear,round]{natbib}
+\usepackage{bibentry}
+\bibliographystyle{apalike}
+\setbeamertemplate{bibliography item}{}
+\makeatletter
+\def\hyper@natlinkstart#1{}
+\def\hyper@natlinkend{}
+\def\hyper@natlinkbreak#1#2{#1}
+\makeatother
+
+\graphicspath{{figs/}}
+
+% Section headline for the audience arc.
+\setbeamertemplate{headline}{%
+  \hbox{}\vskip2pt\hfill\textcolor{gray!70}{\scriptsize\insertsectionhead}\hspace{1em}\vskip-6pt%
+}
+\setbeamertemplate{section in toc}[sections numbered]
+\setbeamertemplate{frametitle}[default][left]
+\setbeamerfont{framesubtitle}{size=\small}
+
+\newcommand{\figplaceholder}[1]{\begin{center}\fbox{\begin{minipage}[c][0.32\textheight][c]{0.82\textwidth}\centering\large #1\end{minipage}}\end{center}}
+\newcommand{\shortfigplaceholder}[1]{\begin{center}\fbox{\begin{minipage}[c][0.22\textheight][c]{0.82\textwidth}\centering\large #1\end{minipage}}\end{center}}
+\newcommand{\compactfigplaceholder}[1]{\begin{center}\fbox{\begin{minipage}[c][0.10\textheight][c]{0.82\textwidth}\centering\normalsize #1\end{minipage}}\end{center}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\good}[1]{\textcolor{blue!70!black}{#1}}
+\newcommand{\bad}[1]{\textcolor{red!70!black}{#1}}
+\newcommand{\SAR}{speed asymmetry ratio}
+% Inline slide navigation (end of sentence / bullet).
+\newcommand{\app}[1]{\allowbreak\hspace{0.25em}\hyperlink{#1}{\beamergotobutton{details}}}
+\newcommand{\back}[1]{\allowbreak\hspace{0.25em}\hyperlink{#1}{\beamerreturnbutton{back}}}
+% Appendix / frame footer: bottom-right, not centered.
+\newcommand{\navback}[1]{\par\vspace{0.35em}\noindent\hfill\hyperlink{#1}{\beamerreturnbutton{back}}}
+\newcommand{\navfwd}[1]{\par\vspace{0.35em}\noindent\hfill\hyperlink{#1}{\beamergotobutton{details}}}
+\newcommand{\navbackfwd}[2]{\par\vspace{0.35em}\noindent\hfill\hyperlink{#1}{\beamerreturnbutton{back}}\;\hyperlink{#2}{\beamergotobutton{details}}}
+
+\title[Directional Congestion]{Directional Congestion}
+\subtitle{Measurement, Spatial Equilibrium, and Tidal-Lane Reallocation}
+\author[Duan, Feng, Gu]{Yige Duan (SJTU) $\quad$ Xiaoruo Feng (PKU) $\quad$ Yizhen Gu (PKU)}
+\date[SMUE Wuhan, 2026]{SMUE Wuhan, 2026}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+% =====================================================================
+% Opener: roadmap followed by examples of directional congestion.
+% =====================================================================
+\begin{frame}{Roadmap}
+\footnotesize\tableofcontents
+\end{frame}
+
+\begin{frame}{Directional Congestion in Cities}
+
+\centering
+% All four photos center-cropped to 3:2 for a uniform grid.
+\begin{minipage}[t]{0.32\textwidth}\centering
+\includegraphics[width=0.8\linewidth]{cityBeijing_c.jpg}\\[0.02em]{\scriptsize Beijing}
+\end{minipage}\hspace{0.02\textwidth}%
+\begin{minipage}[t]{0.32\textwidth}\centering
+\includegraphics[width=0.8\linewidth]{cityWuhan_c.jpg}\\[0.02em]{\scriptsize Wuhan}
+\end{minipage}
+
+\vspace{0.25em}
+\begin{minipage}[t]{0.32\textwidth}\centering
+\includegraphics[width=0.8\linewidth]{cityShenzhen2_c.jpg}\\[0.02em]{\scriptsize Shenzhen}
+\end{minipage}\hspace{0.02\textwidth}%
+\begin{minipage}[t]{0.32\textwidth}\centering
+\includegraphics[width=0.8\linewidth]{cityKualaLumpur_c.jpg}\\[0.02em]{\scriptsize Kuala Lumpur}
+\end{minipage}
+\end{frame}
+
+% =====================================================================
+\section{Introduction}
+% =====================================================================
+\begin{frame}{Motivation}
+\begin{columns}[T,onlytextwidth]
+\column{0.65\textwidth}
+\begin{itemize}\small
+  \item \textbf{Directional congestion is widely observed on urban roads, particularly during peak hours.}
+  \begin{itemize}
+    \item Commuting traffic is shaped by where workers live and where jobs are located.
+  \end{itemize}
+  \item \textbf{The literature often ignores this asymmetry in congestion.}
+  \begin{itemize}
+    \item Examples: QSM applications usually enter travel frictions through bilateral or route-level costs \citep{ahlfeldt2015,allenarkolakis2022}.
+    \item Except: transport studies discuss peak-direction traffic \citep{vickrey1969,wolshon2006}.
+  \end{itemize}
+  \item \textbf{Tidal lanes are proposed as a low-cost way to address it.}
+  \begin{itemize}
+    \item However, little is known about the short-run and long-run effects of tidal lanes.
+  \end{itemize}
+\end{itemize}
+\column{0.34\textwidth}
+\centering
+\href{run:./A6_XiaoruoFeng_DirectionalCongestion_video.mov}{%
+  \includegraphics[width=\linewidth,height=0.70\textheight,keepaspectratio]{TidalVedio/pic.jpg}}\\[3pt]
+{\scriptsize \good{Click to play}}
+\end{columns}
+\end{frame}
+
+\begin{frame}{This Paper}
+\small
+\begin{itemize}
+  \item \textbf{Measure directionality, using speed data at both the trip and the road segment level.}
+  \begin{itemize}\footnotesize
+    \item National trip-level: flow-weighted median \SAR\ is \good{0.878}.
+    \item Within-city road segments: \SAR\ $\leq1/3$ flags \good{179} Beijing AM two-way centerlines (\good{4.9\%}, about \good{213 km}).
+  \end{itemize}
+  \item \textbf{Quantify what reciprocal symmetry misses in a spatial GE model.}
+  \begin{itemize}\footnotesize
+    \item \good{$56.3\%$} of AM passages take the slower direction; symmetry understates travel time by \good{about $5\%$}.
+    \item Symmetry understates peripheral peak travel time and, in turn, central residential fundamentals.
+  \end{itemize}
+  \item \textbf{Evaluate counterfactuals under endogenous congestion GE.}
+  \begin{itemize}\footnotesize
+    \item Tidal top-100 shifts one lane toward the slow AM direction on each treated corridor.
+    \item ST total time saved: \good{$1{,}031$ hours per AM peak}; LT total time rises by \bad{$352$ hours} above baseline.
+    \item Welfare rises \good{$+0.87\%$} in ST and \good{$+0.32\%$} in LT.
+    \item Capacity-expansion benchmark builds an additional \good{$1{,}100$ lane-km}, while tidal lanes add \good{zero}.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+\note{\textbf{Talk track, 55 seconds.} The paper makes three contributions. First, it measures directional congestion at the national trip level and on Beijing road segments. Second, it quantifies what reciprocal symmetry misses. The more congested direction carries 56.3 percent of AM link passages, so symmetry understates experienced travel time by about 5 percent. It also understates peripheral peak travel time and, in turn, central residential fundamentals. Third, the model evaluates tidal reallocation and capacity expansion under endogenous congestion and long-run sorting.}
+
+\begin{frame}{Literature}
+\begin{itemize}\small
+  \item \textbf{Directional congestion}
+  \begin{itemize}\footnotesize
+    \item Peak-period bottlenecks, measured urban speeds, and reversible-lane operations \citep{vickrey1969,arnott1993,couture2018,akbar2023,wolshon2006}.
+    \item \good{This paper measures directionality at national trip level and road-segment level using high-frequency speed data.}
+  \end{itemize}
+  \item \textbf{Spatial equilibrium}
+  \begin{itemize}\footnotesize
+    \item Economic geography and quantitative spatial models \citep{krugman1991,eaton2002,allen2014,ahlfeldt2015}.
+    \item \good{This paper applies spatial GE with directional congestion and analyze tidal lane counterfactuals}
+  \end{itemize}
+  \item \textbf{Transportation policy and congestion}
+  \begin{itemize}\footnotesize
+    \item Demand-side policies: congestion pricing and equilibrium sorting \citep{vickrey1969,kreindler2024,barwick2024,yang2020}.
+    \item Supply-side policies: road capacity, fundamental law, and optimal networks \citep{duranton2011,fajgelbaum2020}.
+    \item Public transit as a substitute: subways relieve road congestion \citep{gu2021}.
+    \item \good{This paper evaluates tidal lanes as a directed capacity-reallocation policy.}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label=nattrip]{Directionality Appears at National and Road-Segment Scales}
+\begin{itemize}\footnotesize
+  \item \textbf{Speed asymmetry ratio.} The lower speed divided by the higher speed across a pair's two directions. It ranges from 0 to 1; 1 means equal speeds, and lower values indicate stronger directional imbalance.
+\end{itemize}
+\vspace{0.20em}
+\begin{columns}[T,onlytextwidth]
+\column{0.60\textwidth}
+\centering\scriptsize \textbf{National trip-level directionality}\par
+\vspace{0.35em}
+\begin{minipage}[t]{0.49\linewidth}\centering
+\includegraphics[width=\linewidth,height=0.30\textheight,keepaspectratio]{pat_national_ratio_hist.png}
+\end{minipage}\hspace{0.01\linewidth}%
+\begin{minipage}[t]{0.49\linewidth}\centering
+\includegraphics[width=\linewidth,height=0.30\textheight,keepaspectratio]{pat_congestion_am_scatter.png}
+\end{minipage}
+\vspace{0.10em}
+\begin{itemize}\scriptsize\setlength\itemsep{0.45em}
+  \item Across the top 100 congested cities, the flow-weighted median is \good{0.878}; \good{58\%} of pair-flow occurs on pairs with ratios $\leq0.90$.
+  \item More congested cities tend to have lower ratios and stronger asymmetry ($r=\bad{-0.48}$, $n=99$).
+\end{itemize}
+\column{0.38\textwidth}
+\centering\scriptsize \textbf{Within-city road-segment directionality}\par
+\vspace{0.35em}
+\includegraphics[width=\linewidth,height=0.30\textheight,keepaspectratio]{pat_bj_centerline_map.png}
+\vspace{0.10em}
+\begin{itemize}\scriptsize\setlength\itemsep{0.45em}
+  \item Median \SAR\ is \good{0.884} among 3{,}670 Beijing two-way centerlines.
+  \item \SAR\ $\leq1/3$ flags \good{179} candidate corridors, about \good{213 km}.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}[label=jobhousing]{Jobs--Housing Separation Generates Directional Commuting}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\centering
+\small\textbf{Across major cities}\par
+\vspace{0.30em}
+\begin{itemize}\footnotesize\setlength\itemsep{0.55em}
+  \item \textbf{Pervasive.} Every top-20 city has more AM commuting toward its employment core than away from it.
+  \item \textbf{Persistent.} The flow-weighted gap remains positive in the top-20, top-50, and top-100 samples: \good{4.5}, \good{3.2}, and \good{2.2 pp}.
+\end{itemize}
+\vspace{0.10em}
+\hspace*{1.35em}%
+\begin{minipage}{0.90\linewidth}
+\makebox[\linewidth][c]{\includegraphics[width=\linewidth,height=0.35\textheight,keepaspectratio]{pat_jobs_housing_top20_gap_lollipop.pdf}}
+\vspace{-0.35em}
+
+{\tiny\raggedright\textit{Notes:} Core towns cover the first 30\% of workplace-side commuter mass; all other towns are peripheral.\par}
+\end{minipage}
+
+\column{0.50\textwidth}
+\centering
+\small\textbf{Beijing}\par
+\vspace{0.30em}
+\begin{itemize}\footnotesize\setlength\itemsep{0.55em}
+  \item \textbf{Separation.} Jobs are more concentrated than residences: Duncan $D=\good{0.26}$ versus $0.004$ under random allocation. \app{appduncan}
+  \item \textbf{Direction.} Peripheral-to-core commuting exceeds the reverse by \good{9.4 pp} in Beijing.
+\end{itemize}
+\vspace{0.35em}
+\includegraphics[width=0.96\linewidth,height=0.34\textheight,keepaspectratio]{pat_jobs_housing_balance.png}
+\end{columns}
+\end{frame}
+
+% =====================================================================
+\section{Model}
+% =====================================================================
+% Keep the model in link-cost notation. Physical minutes m_kl enter only in
+% the measurement and physical-time accounting slides, where t_kl=m_kl^(1/theta).
+
+\begin{frame}{Model: Environment}
+\begin{itemize}\small
+  \item Locations $i,j\in N$ host a fixed mass $\bar L$ of residents and jobs.
+  \item A physical road is represented by two directed links, $(k,l)$ and $(l,k)$.
+  \begin{itemize}\footnotesize
+    \item $t_{kl}^{ff}$ is the free-flow link cost on directed link $(k,l)$.
+    \item $n_{kl}$ is the number of lanes assigned to that direction.
+  \end{itemize}
+  \item Realized link cost $t_{kl}$ is endogenous and directed.
+  \begin{itemize}\footnotesize
+    \item $t_{kl}$ rises with traffic per lane, $\Xi_{kl}/n_{kl}$.
+    \item $t_{kl}\neq t_{lk}$ when traffic differs across directions.
+  \end{itemize}
+  \item A tidal-lane policy shifts one lane across reciprocal directions while holding $n_{kl}+n_{lk}$ fixed.
+\end{itemize}
+\end{frame}
+\note{\textbf{Talk track, 35 seconds.} A physical road becomes two directed links. Free-flow link cost and lanes are directed primitives. Realized link cost responds to traffic per lane, so the two directions can differ on the same road. A tidal lane changes directed capacity without expanding total road width.}
+
+\begin{frame}{Individual Location Choice}
+\begin{itemize}\small
+  \item An individual $\omega$ living in $i$, working in $j$, and taking route $r\in\R_{ij}$ obtains
+  \vspace{-0.5em}\begin{footnotesize}\begin{equation}\label{eq:routecost}
+    V_{ij,r}(\omega) = \left( \frac{u_i w_j}{C_{ij,r}} \right)\varepsilon_{ij,r}(\omega),
+    \qquad
+    C_{ij,r} = \prod_{\ell=1}^{K_r} t_{r_{\ell-1},r_\ell}
+  \vspace{-1.25em}\end{equation}\end{footnotesize}
+  \begin{itemize}\footnotesize
+    \item $u_i$ is amenity; $w_j$ is wage; $\varepsilon_{ij,r}$ is i.i.d. Fr\'echet.
+    \item $C_{ij,r}$ is the route-specific travel cost for $r=[r_0,\ldots,r_{K_r}]$, with $r_0=i$ and $r_{K_r}=j$.
+  \end{itemize}
+  \vspace{0.25em}
+  \item Residence, workplace, and route are chosen jointly:
+  \vspace{-0.5em}\begin{equation}\label{eq:pi}
+    \pi_{ij,r} = \frac{\left(u_i w_j/C_{ij,r}\right)^\theta}{\sum_{a}\sum_b\sum_{s\in\R_{ab}}\left(u_a w_b/C_{ab,s}\right)^\theta}.
+  \end{equation}
+\end{itemize}
+\end{frame}
+\note{\textbf{Talk track, 45 seconds.} The choice object is $(i,j,r)$. Route cost is the product of directed link costs along the route. Fr\'echet heterogeneity delivers a tractable probability for every residence, workplace, and route combination.}
+
+\begin{frame}[label=bilateral]{Bilateral Commuting Costs and Flows}
+\begin{itemize}\small
+  \item Aggregating route costs gives the bilateral commuting cost:
+  \vspace{-0.5em}\begin{equation}\label{eq:bilateral}
+    \tau_{ij} = \left[\sum_{r\in\R_{ij}} C_{ij,r}^{-\theta}\right]^{-1/\theta}.
+  \end{equation}
+  \vspace{-0.5em}
+  \item Summing route-specific flows gives residence-workplace commuting gravity:
+  \vspace{-0.35em}\begin{equation}\label{eq:gravity}
+    L_{ij}=\sum_{r\in\R_{ij}}L_{ij,r}
+    =\tau_{ij}^{-\theta}\left(\frac{L_i^R}{\Pi_i}\right)\left(\frac{L_j^F}{P_j}\right),
+    \quad L_i^R=\sum_jL_{ij},\quad L_j^F=\sum_iL_{ij}.
+  \vspace{-0.8em}\end{equation}
+  \begin{itemize}\footnotesize
+    \item $\Pi_i$ and $P_j$ are origin and destination market-access terms.
+    \item Directed link costs imply $\tau_{ij}\neq\tau_{ji}$ in general. \app{approute}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+\note{\textbf{Talk track, 45 seconds.} The model first assigns probability to each route. Summing over routes produces one bilateral cost $\tau_{ij}$ and total OD flow $L_{ij}$. This gravity equation is route-inclusive because every directed link enters through $C_{ij,r}$.}
+
+\begin{frame}{Amenity, Productivity, and Location Choices}
+\begin{itemize}\small
+  \item Local outcomes combine fundamentals with endogenous density:
+  \vspace{-0.5em}\begin{equation}\label{eq:agglom}
+    w_j = A_j = \bar A_j\left(L_j^F\right)^\alpha,
+    \qquad
+    u_i=\bar u_i\left(L_i^R\right)^\beta.
+  \end{equation}
+  \vspace{-0.4em}
+  \item Residence ($R$) and workplace ($F$) shares satisfy
+  \vspace{-0.2em}
+  \begin{align}
+  (l_i^R)^{1-\beta\theta} & = \chi \sum_j\tau_{ij}^{-\theta}\,\bar u_i^{\theta}\,\bar A_j^{\theta}\,(l_j^F)^{\alpha\theta} \label{eq:clear1} \\
+  (l_j^F)^{1-\alpha\theta} & = \chi \sum_i\tau_{ij}^{-\theta}\,\bar u_i^{\theta}\,\bar A_j^{\theta}\,(l_i^R)^{\beta\theta}. \label{eq:clear2}
+  \end{align}
+  \vspace{-0.7em}
+  \item $\alpha>0$ governs workplace agglomeration; $\beta<0$ governs residential crowding; $\chi$ normalizes shares to one.
+\end{itemize}
+\end{frame}
+\note{\textbf{Talk track, 45 seconds.} Fundamentals are $\bar u_i$ and $\bar A_j$. Employment density affects productivity through $\alpha$, and residential density affects amenities through $\beta$. Bilateral commuting costs connect these two location distributions.}
+
+\begin{frame}{Feedback between Location Choice, Route Traffic, and Traversal Cost}
+\begin{itemize}\footnotesize
+  \item $\kappa^{kl}_{ij}$: \textbf{expected use of directed link $(k,l)$} by an $i\to j$ commuter.
+  \vspace{-0.8em}\begin{equation}
+    \kappa^{kl}_{ij}=\left(\frac{\tau_{ij}}{\tau_{ik}\,t_{kl}\,\tau_{lj}}\right)^\theta.
+  \vspace{-0.6em}\end{equation}
+  \item Directed link traffic aggregates OD flows across routes:
+  \vspace{-0.5em}\begin{equation}\label{eq:Xi_c}
+    \Xi_{kl}=\sum_i\sum_j\kappa^{kl}_{ij}L_{ij}.
+  \vspace{-0.6em}\end{equation}
+  \item Traffic per lane raises the directed link cost:
+  \vspace{-0.5em}\begin{equation}\label{eq:c_Xi}
+    t_{kl}=t_{kl}^{ff}\left(\frac{\Xi_{kl}}{n_{kl}}\right)^{\lambda/\theta}.
+  \vspace{-0.6em}\end{equation}
+  \begin{itemize}\scriptsize
+    \item $\lambda$ is the physical time-flow elasticity; $\lambda/\theta$ follows from $t_{kl}=m_{kl}^{1/\theta}$.
+  \end{itemize}
+  \item Expected welfare is
+  \vspace{-0.5em}\begin{equation}
+    \bar W=\left[\sum_{i,j}\tau_{ij}^{-\theta}u_i^\theta w_j^\theta\right]^{1/\theta}.
+  \vspace{-0.8em}\end{equation}
+\end{itemize}
+\end{frame}
+\note{\textbf{Talk track, 60 seconds.} $\kappa_{ij}^{kl}$ maps one OD commuter into expected passages over a directed link. Summing over OD flows gives model-implied link traffic $\Xi_{kl}$. Traffic raises the directed link cost $t_{kl}$, which feeds back into location and route choices. This fixed point is the endogenous-congestion channel.}
+
+\begin{frame}[label=equilibrium]{Equilibrium}
+\begin{itemize}\footnotesize
+  \item Given fundamentals $\{\bar u_i,\bar A_i,t_{kl}^{ff},n_{kl}\}$ and parameters $(\theta,\alpha,\beta,\lambda)$, an equilibrium is
+  \vspace{-0.45em}\begin{equation}
+    \left\{L_i^R,L_j^F,L_{ij},t_{kl},\tau_{ij},\Xi_{kl},\Pi_i,P_j\right\}
+  \vspace{-0.55em}\end{equation}
+  such that
+  \begin{itemize}\scriptsize
+    \item residence-workplace-route choices satisfy \eqref{eq:pi};
+    \item bilateral flows satisfy gravity \eqref{eq:gravity} and location shares satisfy \eqref{eq:clear1}--\eqref{eq:clear2};
+    \item amenities and productivity satisfy \eqref{eq:agglom};
+    \item bilateral costs aggregate route-specific directed link costs through \eqref{eq:routecost} and \eqref{eq:bilateral};
+    \item directed link traffic and traversal costs are mutually consistent \eqref{eq:Xi_c}--\eqref{eq:c_Xi}.
+  \end{itemize}
+  \item The AA core has sufficient theoretical conditions; the full anchored directed-congestion equilibrium is solved as a numerical fixed point. \app{appexist}
+\end{itemize}
+\end{frame}
+\note{\textbf{Talk track, 35 seconds.} Equilibrium closes the loop among location choice, route choice, link traffic, and directed link costs. The empirical section recovers the fundamentals and anchors the congestion equation to observed conditions before solving counterfactual equilibria.}
+
+% =====================================================================
+\section{Data and Estimation}\label{sec:quant}
+% =====================================================================
+\begin{frame}[label=estparams]{Estimation: Data and Parameters}
+\small\textbf{Data inputs}\par
+\vspace{0.25em}
+\scriptsize
+\begin{tabularx}{0.94\textwidth}{@{}p{0.28\textwidth}X@{}}
+\toprule
+Raw data & Source and coverage \tabularnewline
+\midrule
+Home and workplace locations & Baidu 2022 home and work points, Beijing \tabularnewline
+Commuting flows & Baidu 2022 road-commuting OD matrix \tabularnewline
+Directed road speeds & Baidu 10-minute road-segment panel, May 19--25, 2025; weekdays 07:00--09:00 and 22:00--05:00 \tabularnewline
+Road network and lanes & Baidu road geometry, functional class, and lane records \tabularnewline
+Spatial units & Beijing $3\times3$ km square grid and directed adjacent-cell network \tabularnewline
+\bottomrule
+\end{tabularx}
+
+\vspace{0.80em}
+\small\textbf{Parameters}\par
+\vspace{0.25em}
+\scriptsize
+\begin{tabularx}{0.94\textwidth}{@{}p{0.13\textwidth}p{0.16\textwidth}X@{}}
+\toprule
+Parameter & Value & Role / source \tabularnewline
+\midrule
+$\theta$ & $6.83$ & Fr\'echet dispersion \citep{ahlfeldt2015,allenarkolakis2022} \tabularnewline
+$\alpha$ & $+0.05$ & Agglomeration \tabularnewline
+$\beta$ & $-0.10$ & Crowding \tabularnewline
+$\lambda$ & $1.1$ & Physical time-flow elasticity \citep{barwick2024} \tabularnewline
+\bottomrule
+\end{tabularx}
+\vspace{0.45em}
+
+{\footnotesize All four parameters are externally calibrated in the current specification. \app{appparams}}
+\vspace{0.30em}
+
+{\tiny Baseline: 1,104 cells, 2,642 directed links, 310,525 OD pairs, and 88,110 road commuters.}
+\end{frame}
+\note{\textbf{Talk track, 65 seconds.} These are the raw inputs rather than the model objects constructed from them. Home and workplace points and commuting flows come from Baidu 2022. Directed speeds come from a 10-minute road-segment panel in May 2025, and the road files provide geometry, functional class, and lanes. The next slide shows how these inputs become physical link minutes and model link costs. All four parameters are externally calibrated.}
+
+\begin{frame}[label=linkmeasurement]{From Segment Speeds to Directed Link Costs}
+\begin{columns}[T,onlytextwidth]
+\column{0.51\textwidth}
+\begin{itemize}\footnotesize\setlength\itemsep{0.22em}
+  \item \textbf{Pair-specific path.} For each adjacent grid pair $(k,l)$, select the directed raw-road path $p_{kl}$ that minimizes observed AM minutes; evaluate observed and free-flow speeds on that same path. \app{appmeasurementrouting}
+  \item \textbf{Physical minutes.} Add raw-segment traversal minutes and endpoint access minutes $c_k^q,c_l^q$:
+  \vspace{-0.45em}
+  \begin{align}
+    m_{kl}^{q}=c_{k}^{q}
+    +60\sum_{a\in p_{kl}}\frac{\ell_a}{v_a^{q}}
+    +c_{l}^{q},
+    \qquad q\in\{obs,ff\}. \label{eq:linkminutes}
+  \end{align}
+  \vspace{-0.75em}
+  \item \textbf{Model link cost.} Map minutes into the AA iceberg object:
+  \vspace{-0.45em}
+  \begin{align}
+    t_{kl}^{q}=\left(m_{kl}^{q}\right)^{1/\theta},
+    \qquad \left(t_{kl}^{q}\right)^{-\theta}=\frac{1}{m_{kl}^{q}}. \label{eq:linkiceberg}
+  \end{align}
+  \vspace{-0.75em}
+  \item Direction is retained, so $(m_{kl}^{q},t_{kl}^{q})$ need not equal $(m_{lk}^{q},t_{lk}^{q})$.
+\end{itemize}
+\column{0.47\textwidth}
+\centering
+\includegraphics[width=\linewidth,height=0.68\textheight,keepaspectratio]{figs/link_time_construction_actual.png}
+\end{columns}
+\end{frame}
+\note{\textbf{Talk track, 60 seconds.} For each adjacent grid pair, I select the path that minimizes observed morning minutes on the directed raw-road network. The figure shows one actual Beijing pair. Its five raw-road pieces contribute 8.28 minutes, and the two endpoint access links contribute 0.73 minute, giving 9.01 physical minutes. Observed and free-flow speeds are applied to the same selected path. The model then maps physical minutes into $t_{kl}=m_{kl}^{1/\theta}$ before constructing route and bilateral costs.}
+
+\begin{frame}{Estimation: Invert, Anchor, and Solve}
+\begin{itemize}\small
+  \item \textbf{Invert fundamentals.} Recover $(\bar u_i,\bar A_j)$ so that observed residence and workplace marginals form an equilibrium at $t_{kl}^{obs}$.
+  \item \textbf{Construct the baseline link-load anchor.} $\Xi_{kl}^{0}$ is the model-implied directed link load evaluated at baseline allocation and observed directed link costs.
+  \item \textbf{Update directed link cost around that operating point:}
+  \vspace{-0.45em}\begin{equation}\label{eq:anchor}
+    t_{kl}=\max\!\left\{
+    t_{kl}^{ff},\;
+    t_{kl}^{obs}
+    \left[
+    \frac{\Xi_{kl}}{\Xi_{kl}^{0}}
+    \frac{n_{kl}^{0}}{n_{kl}}
+    \right]^{\lambda/\theta}
+    \right\}.
+  \end{equation}
+  \vspace{-0.65em}
+  \item \textbf{Solve in levels.} Recompute $(t,\tau,\Xi,L^R,L^F,\Pi,P,\bar W)$ with fundamentals fixed.
+\end{itemize}
+\vspace{-0.25em}
+\begin{center}\footnotesize
+$\Xi_{kl}^{0}$ is a baseline model-implied load, not an observed vehicle count.
+\end{center}
+\end{frame}
+\note{\textbf{Talk track, 55 seconds.} The inversion recovers fundamentals that rationalize the observed marginals. The anchor fixes the baseline operating point at observed directed link costs. Counterfactual link cost responds to traffic per lane with elasticity $\lambda/\theta$ and remains bounded below by $t_{kl}^{ff}$. Only the ratio $\Xi_{kl}/\Xi_{kl}^{0}$ enters, so the scale of model-implied link load cancels.}
+
+\begin{frame}[label=fundamentals]{Baseline Fundamentals (inverted)}
+\begin{columns}[T,onlytextwidth]
+\column{0.5\textwidth}
+\centering \scriptsize Residence amenity $\bar u_i$\\
+\includegraphics[width=\linewidth,height=0.52\textheight,keepaspectratio]{fund_ubar.png}
+\column{0.5\textwidth}
+\centering \scriptsize Workplace productivity $\bar A_j$\\
+\includegraphics[width=\linewidth,height=0.52\textheight,keepaspectratio]{fund_abar.png}
+\end{columns}
+\vspace{0.1em}
+\begin{itemize}\footnotesize
+  \item $\bar u,\bar A$ are inverted to match observed residence and workplace shares at observed travel times.
+  \item $\mathrm{corr}(\bar A_j,L_j^F)=\good{0.67}$ vs.\ $\mathrm{corr}(\bar u_i,L_i^R)=0.30$: jobs pinned by productivity, residence is access-driven.
+  \item Treated corridors land on \bad{high-flow employment bottlenecks} (TidalCandidateScore vs.\ slow-direction $\Xi_s$: corr.\ $\approx+0.91$ on selected top-100 pairs). \app{appfund}
+\end{itemize}
+\end{frame}
+\note{\textbf{Talk track, 35 seconds.} These maps are recovered objects, not directly observed amenities or productivity. The inversion matches baseline residence and workplace marginals at observed directed times. Use the maps to establish the spatial fundamentals that remain fixed in the tidal-lane counterfactuals.}
+
+% =====================================================================
+\section{Counterfactuals}
+% =====================================================================
+\begin{frame}{What Symmetry Misses}
+\framesubtitle{Reciprocal averaging removes directional exposure and revises local spatial fundamentals.}
+\begin{itemize}\small\setlength\itemsep{0.25em}
+  \item \textbf{Physical time.} More commuters travel in the slower direction, so reciprocal averaging understates experienced AM travel time.
+  \item \textbf{Recovered fundamentals.} Symmetry understates central residential fundamentals by understating peak travel times from the periphery.
+\end{itemize}
+\vspace{0.10em}
+\begin{columns}[T,onlytextwidth]
+\column{0.40\textwidth}
+\centering
+{\scriptsize\textbf{AM exposure and physical-time bias}\par}
+\vspace{0.35em}
+{\scriptsize
+\hspace{0.04\linewidth}%
+\begin{tabularx}{0.93\linewidth}{@{}Xr@{}}
+\toprule
+\textbf{Statistic} & \textbf{Share / change} \\
+\midrule
+Slower direction & \textbf{56.3\%} \\
+Faster direction & 43.7\% \\
+\addlinespace[0.25em]
+Fixed passages & \good{\textbf{$-5.0\%$}} \\
+Full re-estimation & \good{\textbf{$-5.5\%$}} \\
+\bottomrule
+\end{tabularx}
+}
+\vspace{0.45em}
+{\tiny Changes are relative to the directed baseline.}
+
+\column{0.58\textwidth}
+\centering
+{\scriptsize\textbf{Revision in recovered fundamentals}\par}
+\vspace{0.18em}
+\includegraphics[width=\linewidth,height=0.43\textheight,keepaspectratio]{symmetry_fundamental_relative_change.pdf}
+\end{columns}
+\end{frame}
+\note{\textbf{Talk track, 35 seconds.} Arithmetic symmetrization leaves the unweighted mean link time unchanged. The slower direction carries 56.3 percent of baseline model-implied passages, versus 43.7 percent in the faster direction. Equalizing reciprocal times lowers passage-weighted physical time by 5.0 percent with passages fixed and by 5.5 percent after routes, OD flows, fundamentals, and equilibrium are re-estimated. On the right, the symmetric-minus-directed residential fundamental is negative near the center and rises with distance. Symmetry understates central residential fundamentals by understating peak travel times from the periphery. Because residence and workplace fundamentals are jointly re-inverted, the profile is a spatial-attribution result rather than a one-equation causal decomposition.}
+
+\begin{frame}{Where the Tidal Policy Lands}
+\framesubtitle{Top-100 corridors by TidalCandidateScore (TCS).}
+\begin{columns}[T,totalwidth=0.96\textwidth]
+\column{0.42\textwidth}
+\begin{itemize}\footnotesize
+  \item For each reciprocal pair, label the slower AM direction $s$ and the faster direction $f$.
+  \item Reallocate one lane while holding total road width fixed:
+  \vspace{-0.35em}
+  \[
+    n_s'=n_s+1,\qquad n_f'=n_f-1.
+  \]
+  \vspace{-0.75em}
+  \item \textbf{TCS} is the slow-minus-fast congestion-delay mass:
+  \vspace{-0.35em}\[
+    \begin{aligned}
+    \mathrm{TCS}={}&\Xi_s(m_s^{obs}-m_s^{ff})\\
+    &-\Xi_f(m_f^{obs}-m_f^{ff}).
+    \end{aligned}
+  \]
+  \vspace{-0.65em}
+  \item Red edges receive the lane among the top-100 reciprocal pairs.
+\end{itemize}
+\column{0.54\textwidth}
+\centering
+\vspace{-0.2em}
+\includegraphics[width=\linewidth,height=0.78\textheight,keepaspectratio]{map_treated_overlay.png}
+\end{columns}
+\end{frame}
+\note{\textbf{Talk track, 60 seconds.} The intervention is capacity reallocation, not capacity expansion. One lane moves from the faster AM direction to the slower direction on each selected reciprocal corridor. TCS ranks corridors by the difference in baseline flow times excess traversal time. The map identifies the lane-receiving directions.}
+
+\begin{frame}{Short Run vs.\ Long Run}
+\small
+\begin{itemize}
+  \item \textbf{Short run (ST):} pin residence $L^R$ and employment $L^F$ at baseline; routes, link traffic, link costs $t_{kl}$, and bilateral costs $\tau_{ij}$ re-equilibrate.
+  \item \textbf{Long run (LT):} allow $L^R$, $L^F$, and OD shares to sort, with congestion feedback.
+  \item $s_{ij}^h$ is the OD commuter share and $\bar\tau^h=\sum_{ij}s_{ij}^h\tau_{ij}^h$ is the OD-weighted bilateral cost index for $h\in\{0,ST,LT\}$.
+\end{itemize}
+\vspace{-0.55em}
+{\footnotesize
+\begin{equation*}
+\Delta\bar\tau^{LT}=
+\underbrace{\textstyle\sum_{ij}s_{ij}^0\left(\tau_{ij}^{ST}-\tau_{ij}^0\right)}_{\text{ST cost}}
++\underbrace{\textstyle\sum_{ij}s_{ij}^0\left(\tau_{ij}^{LT}-\tau_{ij}^{ST}\right)}_{\text{LT cost feedback}}
++\underbrace{\textstyle\sum_{ij}\left(s_{ij}^{LT}-s_{ij}^0\right)\tau_{ij}^{LT}}_{\text{OD reallocation}}.
+\end{equation*}
+}
+\vspace{-0.85em}
+\begin{itemize}\scriptsize\setlength\itemsep{0.25em}
+  \item \textbf{ST cost:} baseline OD weights, baseline-to-ST change in bilateral costs.
+  \item \textbf{LT cost feedback:} baseline OD weights, ST-to-LT change in bilateral costs.
+  \item \textbf{OD reallocation:} baseline-to-LT change in OD weights, evaluated at LT costs.
+  \item The three terms sum exactly to $\bar\tau^{LT}-\bar\tau^0$; $\tau_{ij}$ is a cost index, not physical minutes.
+\end{itemize}
+\end{frame}
+\note{\textbf{Talk track, 60 seconds.} The short run fixes residence and workplace marginals while routes, link costs, and bilateral costs adjust. The long run also permits sorting. The first term measures the baseline-to-short-run change in bilateral costs at baseline OD weights. The second retains those weights and adds the long-run cost feedback. The third captures OD reallocation between the baseline and long run, evaluated at long-run costs. These terms sum exactly to the long-run change in the OD-weighted bilateral cost index. The next slide reports physical minutes separately.}
+
+\begin{frame}[label=result2]{Short-Run Time Gains Are Reversed by Long-Run Reallocation}
+\framesubtitle{Changes relative to the baseline equilibrium.}
+\centering
+\vspace{0.25em}
+\scriptsize
+\renewcommand{\arraystretch}{1.22}
+\setlength{\tabcolsep}{14pt}
+\begin{tabular}{lcc}
+\toprule
+Outcome, change from baseline & Short run & Long run \\
+\midrule
+\multicolumn{3}{l}{\textbf{Physical commuting time}} \\
+Change in total hours per AM peak & \good{$-1{,}031$} & \bad{$+352$} \\
+\addlinespace[0.25em]
+\multicolumn{3}{l}{\textbf{Expected-utility welfare}} \\
+$\Delta\bar W$ & \good{$+0.87\%$} & \good{$+0.32\%$} \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.85em}
+\begin{itemize}\footnotesize\setlength\itemsep{0.35em}
+  \item \textbf{Time.} Short-run total time saved: $1{,}031$ hours per AM peak; long-run sorting and congestion feedback raise total time $352$ hours above baseline. \app{appphysicaltime}
+  \item \textbf{Welfare.} Expected utility remains above baseline because residence and workplace choices also respond to productivity, amenities, wages, and market access.
+\end{itemize}
+\end{frame}
+\note{\textbf{Talk track, 60 seconds.} Across all commuters, the policy saves 1,031 hours in one AM peak during the short run. Long-run sorting and congestion feedback reverse that gain, raising total commuting time 352 hours above baseline. Expected utility remains 0.32 percent higher because households jointly value productivity, amenities, wages, and market access. Physical time and welfare therefore need not move in the same direction.}
+
+\begin{frame}{Long-Run Sorting}
+\begin{columns}[T,onlytextwidth]
+\column{0.35\textwidth}
+\begin{itemize}\footnotesize
+  \item Totals are fixed at $\bar L$; maps report demeaned share changes, not citywide growth.
+  \item Positive cells gain share relative to baseline; black circles mark treated-corridor endpoint nodes.
+  \item \textbf{Residential shares} rise near treated endpoints because lower OD costs raise residential market access.
+  \item \textbf{Employment gains} are concentrated in a smaller set of red cells.
+\end{itemize}
+\column{0.63\textwidth}
+\centering
+{\scriptsize
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{Treated endpoints} & \multicolumn{2}{c}{Rest} \\
+ & $\ell^R$ & $\ell^F$ & $\ell^R$ & $\ell^F$ \\
+\midrule
+Mean $\Delta\log$ & \good{$+0.017$} & $-0.006$ & \bad{$-0.012$} & \bad{$-0.016$} \\
+\bottomrule
+\end{tabular}
+}
+
+\vspace{1em}
+\begin{minipage}[t]{0.49\linewidth}
+\centering \scriptsize demeaned $\Delta\log\ell^R$\\
+\includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{sort_lR.png}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}
+\centering \scriptsize demeaned $\Delta\log\ell^F$\\
+\includegraphics[width=\linewidth,height=0.45\textheight,keepaspectratio]{sort_lF.png}
+\end{minipage}
+\end{columns}
+\end{frame}
+
+\begin{frame}[label=result4]{Transportation Policy Comparison}
+\framesubtitle{Endogenous GE under anchored congestion and long-run sorting.}
+\begin{center}\scriptsize
+\begin{tabular}{lcccc}
+\toprule
+Policy & ST $\bar W$ & LT $\bar W$ & net lane-km & cost/lane-km \\
+\midrule
+Tidal reallocation & $+0.87\%$ & $+0.32\%$ & \good{\textbf{0}} & near zero capex \\
+Road Expansion & $+1.26\%$ & $+0.44\%$ & 1{,}140 & $\approx$ CNY 5m \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.3em}
+\begin{itemize}\footnotesize
+  \item Tidal reallocation lifts LT welfare $+0.32\%$ at zero net lane-km.
+  \item Delivering comparable long-run welfare by building capacity takes about $1{,}140$ lane-km: Road Expansion adds lanes where baseline flow$\times$delay is highest and reaches $+0.44\%$.
+  \item Urban arterial widening runs on the order of CNY 5m per lane-km (roughly CNY 30m/km for a six-lane arterial), so the expansion benchmark is order CNY 6bn; tidal reallocation avoids this outlay. \app{apppolicy}
+\end{itemize}
+\end{frame}
+\note{\textbf{Talk track, 45 seconds.} The comparison is limited to welfare, capacity, and construction cost because the two policies do not share the same treated-link support. Tidal reallocation changes the direction in which existing capacity is deployed; the expansion benchmark builds about 1,140 lane-kilometers. The preceding slide reports citywide physical time separately from expected utility.}
+
+\begin{frame}{Conclusion}
+\begin{enumerate}
+  \item \textbf{Directional congestion is a widespread urban feature.}
+  \begin{itemize}\footnotesize
+    \item Across the top 100 congested cities, flow-weighted median \SAR\ is \good{0.878}; the same asymmetry persists on Beijing road segments.
+  \end{itemize}
+  \item \textbf{Symmetry misses commuter exposure and spatial attribution.}
+  \begin{itemize}\footnotesize
+    \item \good{$56.3\%$} of AM passages take the slower direction; symmetry understates travel time by \good{about $5\%$}.
+    \item Symmetry understates peripheral peak travel time and, in turn, central residential fundamentals.
+  \end{itemize}
+  \item \textbf{Tidal lanes deliver welfare gains through directed capacity reallocation.}
+  \begin{itemize}\footnotesize
+    \item ST total time saved: \good{$1{,}031$ hours per AM peak}; after LT reallocation, total time rises by \bad{$352$ hours} and $\bar W$ remains \good{$+0.32\%$}.
+    \item Supply-side policies with comparable LT welfare require about \bad{$1{,}100$ lane-km}; tidal reallocation uses \good{zero net lane-km}.
+  \end{itemize}
+\end{enumerate}
+\end{frame}
+\note{\textbf{Talk track, 25 seconds.} Directional congestion is widespread. The more congested direction carries 56.3 percent of AM link passages, so symmetry understates experienced travel time by about 5 percent. It also understates peripheral peak travel time and, in turn, central residential fundamentals. Tidal reallocation delivers short-run time savings and positive long-run welfare with zero net lane-kilometers.}
+
+% =====================================================================
+\appendix
+\section{Appendix}
+% =====================================================================
+\begin{frame}[label=appmeasurementrouting]{Appendix: From Grid Pairs to Directed Road Paths}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\small\textbf{Routing rule}\par
+\vspace{0.25em}
+\begin{itemize}\scriptsize\setlength\itemsep{0.42em}
+  \item \textbf{Access.} Project each grid centroid to at most three directed road edges within search radii of 300--2,500 meters.
+  \item \textbf{Path.} For each ordered adjacent pair $(k,l)$, minimize observed AM minutes on the directed raw-road graph, including endpoint connectors.
+  \item \textbf{Screen.} Drop paths with a route-to-centroid distance ratio above five; retain the largest connected component.
+\end{itemize}
+\column{0.47\textwidth}
+\small\textbf{Main settings}\par
+\vspace{0.25em}
+\scriptsize
+\begin{tabularx}{\linewidth}{@{}p{0.48\linewidth}X@{}}
+\toprule
+Setting & Main value \tabularnewline
+\midrule
+Access candidates & 3 per grid \tabularnewline
+Max. connector distance & 2.5 km \tabularnewline
+Path weight & observed AM minutes \tabularnewline
+Minimum edge time & 0.02 min \tabularnewline
+Detour gate & $G=5$ \tabularnewline
+Lane proxy & path-length weighted \tabularnewline
+All-missing lane fallback & 2 lanes \tabularnewline
+\bottomrule
+\end{tabularx}
+\end{columns}
+\vspace{0.45em}
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\centering\scriptsize\textbf{Connector-assisted path}\par
+\vspace{0.15em}
+\includegraphics[width=0.96\linewidth,height=0.24\textheight,keepaspectratio]{figs/route_examples/route_example_01.png}
+\column{0.49\textwidth}
+\centering\scriptsize\textbf{Direct road path}\par
+\vspace{0.15em}
+\includegraphics[width=0.96\linewidth,height=0.24\textheight,keepaspectratio]{figs/route_examples/route_example_03.png}
+\end{columns}
+\vspace{0.05em}
+
+{\tiny The same directed road sequence is used for $m_{kl}^{obs}$ and $m_{kl}^{ff}$; orange dashed segments denote endpoint connectors.}
+\vspace{-0.15em}
+\navback{linkmeasurement}
+\end{frame}
+
+\begin{frame}[label=approute]{Appendix: Route Costs and Bilateral Commuting Costs}
+\begin{itemize}\small
+  \item Define the directed adjacency matrix $A=[a_{kl}]$ by
+  \vspace{-0.5em}\begin{equation}
+    a_{kl} = t_{kl}^{-\theta}
+  \end{equation}
+  \item Summing over all feasible route lengths gives
+  \vspace{-0.5em}\begin{equation}
+    B = \sum_{K=0}^{\infty}A^K = (I-A)^{-1}
+  \end{equation}
+  \item The bilateral commuting-cost aggregator can be written as
+  \vspace{-0.5em}\begin{equation}\label{eq:inverse}
+    \tau_{ij} = B_{ij}^{-1/\theta}
+  \end{equation}
+  \vspace{-0.5em}
+  \item The implementation applies a common link-cost rescaling $\zeta$ to keep the spectral radius of $A$ below one. This scalar is distinct from $\kappa_{ij}^{kl}$, the expected use of link $(k,l)$ by an $i\to j$ commuter.
+\end{itemize}
+\navback{bilateral}
+\end{frame}
+
+\begin{frame}[label=appphysicaltime]{Appendix: Expected Physical Travel Time}
+\scriptsize
+\begin{itemize}\setlength\itemsep{0.45em}
+  \item Physical minutes add along route $r$:
+  \vspace{-0.35em}
+  \[
+    M_{ij,r}=\sum_{(k,l)\in r}m_{kl}.
+  \]
+  \vspace{-0.75em}
+  \item Iceberg link costs compound, $C_{ij,r}=\prod_{(k,l)\in r}t_{kl}$, and the conditional route probability is
+  \vspace{-0.35em}
+  \[
+    \rho_{ij,r}=\frac{C_{ij,r}^{-\theta}}{\sum_{s\in\mathcal R_{ij}}C_{ij,s}^{-\theta}},
+    \qquad t_{kl}=m_{kl}^{1/\theta}.
+  \]
+  \vspace{-0.75em}
+  \item Expected OD minutes and the citywide mean are
+  \vspace{-0.35em}
+  \[
+    M_{ij}=\sum_r\rho_{ij,r}M_{ij,r},
+    \qquad
+    \bar M=\frac{1}{\bar L}\sum_{i,j}L_{ij}M_{ij}
+    =\frac{1}{\bar L}\sum_{k,l}\Xi_{kl}m_{kl}.
+  \]
+  \vspace{-0.75em}
+  \item No transformation of $\tau_{ij}$ produces additive route minutes. The implementation computes $\bar M$ from equilibrium link passages and $m_{kl}$.
+\end{itemize}
+\navback{result2}
+\end{frame}
+
+\begin{frame}[label=apptreatedtime]{Appendix: Treated-Link Time Incidence}
+\framesubtitle{A local engineering incidence measure, distinct from citywide experienced travel time.}
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+\scriptsize
+\begin{align*}
+\text{Gross savings}^{h}
+  &=\sum_{e\in\mathcal E^*}\max\{m_e^0-m_e^h,0\}\,\Xi_e^0,\\
+\text{Offsetting losses}^{h}
+  &=-\sum_{e\in\mathcal E^*}\max\{m_e^h-m_e^0,0\}\,\Xi_e^0.
+\end{align*}
+\begin{itemize}\scriptsize
+  \item $\mathcal E^*$ contains the 200 treated directed links.
+  \item Baseline link-passage weights isolate time changes on treated links.
+\end{itemize}
+\column{0.45\textwidth}
+\centering\scriptsize
+\begin{tabular}{lcc}
+\toprule
+Person-hours & ST & LT \\
+\midrule
+Gross savings & $1{,}385$ & $804$ \\
+Offsetting losses & $-109$ & $-90$ \\
+Net savings & $1{,}276$ & $714$ \\
+\bottomrule
+\end{tabular}
+\vspace{0.55em}
+
+\raggedright\scriptsize A commuter can traverse multiple treated links. These totals therefore cannot be divided by unique exposed commuters to obtain seconds per commuter.
+\end{columns}
+\navback{result2}
+\end{frame}
+
+\begin{frame}[label=appfund]{Appendix: Estimation Algorithm}
+\begin{columns}[T,onlytextwidth]
+\column{0.47\textwidth}
+\small\textbf{Baseline inversion}\par
+\vspace{0.25em}
+\begin{itemize}\footnotesize\setlength\itemsep{0.42em}
+  \item Treat observed residence and workplace marginals as the baseline equilibrium.
+  \item Recover $(\bar u_i^\theta,\bar A_j^\theta)$ by alternating updates with geometric-mean normalization.
+  \item Match $(L_i^R,L_j^F)$, not the full bilateral OD matrix. Gravity determines model-implied $L_{ij}$.
+  \item Evaluate baseline route choice at $t_{kl}^{obs}$ to construct the link-load anchor $\Xi_{kl}^{0}$.
+\end{itemize}
+\column{0.50\textwidth}
+\small\textbf{Counterfactual fixed point}\par
+\vspace{0.25em}
+\begin{itemize}\footnotesize\setlength\itemsep{0.40em}
+  \item Hold $(\bar u_i,\bar A_j)$ and calibrated parameters fixed.
+  \item Update link cost around the observed operating point:
+\end{itemize}
+\vspace{-0.55em}
+\[
+  t_{kl}=\max\!\left\{t_{kl}^{ff},\;
+  t_{kl}^{obs}
+  \left[
+  \frac{\Xi_{kl}}{\Xi_{kl}^{0}}
+  \frac{n_{kl}^{0}}{n_{kl}}
+  \right]^{\lambda/\theta}\right\}.
+\]
+\vspace{-0.65em}
+\begin{itemize}\footnotesize\setlength\itemsep{0.40em}
+  \item Recompute $(t,\tau,\Xi,L^R,L^F,\Pi,P)$ until the directed network and location choices are mutually consistent.
+\end{itemize}
+\end{columns}
+\navback{fundamentals}
+\end{frame}
+
+\begin{frame}[label=appduncan]{Appendix: Jobs--Housing Dissimilarity Benchmarks}
+\framesubtitle{Township-level cross-city benchmark; levels are not directly comparable to the Beijing grid measure in the main deck.}
+\begin{columns}[T,onlytextwidth]
+\column{0.60\textwidth}
+\centering
+\includegraphics[width=\linewidth,height=0.58\textheight,keepaspectratio]{app_duncan_cross_city.png}
+\column{0.38\textwidth}
+\begin{itemize}\footnotesize
+  \item \textbf{Cross-city.} Township $D$, top-100 cities (residents $=$ origin, jobs $=$ dest mass, 2021 flows): Beijing $\good{0.20}$ ranks \good{1/100} (median $0.09$).
+  \item \textbf{Caveat.} $D$ is aspatial, rising with size (corr $0.50$; $0.21$ with unit count): Beijing's lead is not a unit-count artefact, but $D$ ignores distance.
+\end{itemize}
+\end{columns}
+\navback{jobhousing}
+\end{frame}
+
+\begin{frame}[label=appparams]{Appendix: Parameter Interpretation}
+\centering
+\vspace{0.25em}
+\scriptsize
+\renewcommand{\arraystretch}{1.32}
+\begin{tabularx}{0.94\textwidth}{@{}p{0.10\textwidth}p{0.25\textwidth}X@{}}
+\toprule
+Parameter & Economic role & Direct margin in the model \\
+\midrule
+$\theta$ & Fr\'echet dispersion & Governs sensitivity across residence, workplace, and route alternatives; also maps $m_{kl}$ into $t_{kl}=m_{kl}^{1/\theta}$. \\
+$\alpha>0$ & Workplace agglomeration & Raises productivity with employment density: $w_j=\bar A_j(L_j^F)^\alpha$. \\
+$\beta<0$ & Residential crowding & Lowers residential amenity with resident density: $u_i=\bar u_i(L_i^R)^\beta$. \\
+$\lambda$ & Physical time-flow elasticity & Maps traffic per lane into physical minutes; the corresponding link-cost elasticity is $\lambda/\theta$. \\
+\bottomrule
+\end{tabularx}
+\vspace{0.55em}
+
+\begin{minipage}{0.92\textwidth}
+\footnotesize Sorting combines accessibility, workplace agglomeration, and residential crowding. The current specification calibrates all four parameters externally.
+\end{minipage}
+\navback{estparams}
+\end{frame}
+
+\begin{frame}[label=appsens]{Appendix: Sensitivity Summary}
+\framesubtitle{Final mainline rerun, TCS top-100, primitive $\bar W$, $\lambda=1.1$.}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.13}
+\begin{tabular}{lcc}
+\toprule
+Specification & Parameter & LT $\bar W$ \\
+\midrule
+\multicolumn{3}{l}{\textbf{Vary $\alpha$; hold $\beta=-0.10$}} \\
+ & $-0.12$ & $+0.37\%$ \\
+ & $0.00$ & $+0.34\%$ \\
+ & $+0.03$ & $+0.33\%$ \\
+ & $\mathbf{+0.05}$ & $\mathbf{+0.32\%}$ \\
+ & $+0.10$ & $+0.29\%$ \\
+\addlinespace[0.25em]
+\multicolumn{3}{l}{\textbf{Vary $\beta$; hold $\alpha=+0.05$}} \\
+ & $\mathbf{-0.10}$ & $\mathbf{+0.32\%}$ \\
+ & $0.00$ & $+0.31\%$ \\
+ & $+0.05$ & $+0.28\%$ \\
+ & $+0.10$ & \emph{not converged} \\
+\bottomrule
+\end{tabular}
+\column{0.47\textwidth}
+\small\textbf{Interpretation}\par
+\vspace{0.25em}
+\begin{itemize}\footnotesize\setlength\itemsep{0.45em}
+  \item LT welfare remains positive in every converged $\alpha$--$\beta$ cell.
+  \item Every cell on this page uses the current anchored specification, TCS top-100 treatment, and $\lambda=1.1$.
+  \item The $\theta$ grid re-inverts fundamentals and re-solves each equilibrium. \app{appsens_theta}
+  \item The asymmetry-ratio selection rule is weaker than TCS selection and can reverse the LT welfare sign.
+\end{itemize}
+\end{columns}
+\navback{result2}
+\end{frame}
+
+\begin{frame}[label=appsens_theta]{Appendix: Theta Sensitivity}
+\framesubtitle{TCS top-100; each $\theta$ re-inverts fundamentals and re-solves baseline + tidal ST/LT.}
+\scriptsize
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\setlength{\tabcolsep}{12pt}
+\begin{tabular}{ccccc}
+\toprule
+$\theta$ & ST $\bar W$ & LT $\bar W$ & res.\ dissim & job dissim \\
+\midrule
+$3$ & $+1.99\%$ & $+0.75\%$ & $1.11$ & $1.55$ \\
+$5$ & $+1.19\%$ & $+0.45\%$ & $0.97$ & $1.67$ \\
+$\mathbf{6.83}$ & $\mathbf{+0.87\%}$ & $\mathbf{+0.32\%}$ & $\mathbf{0.86}$ & $\mathbf{1.79}$ \\
+$8$ & $+0.74\%$ & $+0.27\%$ & $0.80$ & $1.89$ \\
+$10$ & $+0.59\%$ & $+0.21\%$ & $0.70$ & $2.07$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.4em}
+\begin{itemize}\footnotesize
+  \item LT $\bar W$ stays positive across the grid; magnitudes fall as $\theta$ rises (stronger cost sensitivity).
+  \item Resident dissim falls and job dissim rises with $\theta$; baseline $\bar W$ levels are not comparable across $\theta$.
+\end{itemize}
+\note{Mainline $\theta=6.83$ matches the tidal diagnostics row; baseline $\bar W$ levels are not comparable across $\theta$.}
+\navback{appsens}
+\end{frame}
+
+\begin{frame}[label=apppolicy]{Appendix: Policy Definitions and Selected Effects}
+\scriptsize
+\begin{center}
+\renewcommand{\arraystretch}{1.20}
+\begin{tabularx}{0.96\textwidth}{@{}p{0.17\textwidth}Xccc@{}}
+\toprule
+Policy & Capacity rule & ST $\bar W$ & LT $\bar W$ & lane-km \\
+\midrule
+Tidal reallocation & TCS top-100; add one lane in the slow direction and remove one from the reciprocal fast direction. & $+0.87\%$ & $+0.32\%$ & 0 \\
+Targeted expansion & Top 100 by baseline flow $\times$ excess travel time; add one lane in each direction. & $+1.26\%$ & $+0.44\%$ & 1{,}140 \\
+Uniform expansion & Scale all links by $+2.4\%$ so added lane-km matches the targeted-expansion budget. & $+0.21\%$ & $+0.10\%$ & 1{,}092 \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\vspace{0.35em}
+\begin{itemize}\footnotesize\setlength\itemsep{0.40em}
+  \item ST pins residence and workplace shares at baseline; LT re-solves residence--workplace sorting.
+  \item Targeted expansion assigns capacity using baseline flow and delay; uniform expansion spreads a comparable lane-km budget over the network.
+  \item The cost benchmark is roughly CNY 5m per widened urban-arterial lane-km, placing targeted expansion near CNY 6bn. Tidal reallocation has near-zero construction capex.
+\end{itemize}
+\navback{result4}
+\end{frame}
+
+\begin{frame}[label=resultelast]{Appendix: Targeting Tidal Lanes}
+\framesubtitle{Per-link welfare elasticity from $d\bar W^\theta=dA_{ab}\phi_a\psi_b$.}
+\begin{columns}[T,onlytextwidth]
+\column{0.44\textwidth}
+\centering
+\includegraphics[width=\linewidth,height=0.66\textheight,keepaspectratio]{map_link_welfare_elast.png}
+\column{0.53\textwidth}
+\scriptsize
+\textbf{Selection rule} (top-100):
+\begin{tabular}{lc}
+\toprule
+rule & LT $\bar W$ \\
+\midrule
+\good{welfare elast.} & \good{$+0.35\%$} \\
+TCS score & $+0.32\%$ \\
+speed only & $+0.13\%$ \\
+\bottomrule
+\end{tabular}
+\vspace{0.5em}
+\begin{itemize}\footnotesize
+  \item The local score decomposes into edge gain $\times$ upstream residence access $\times$ downstream workplace opportunity. \app{appelast}
+  \item Flow matters: the speed-only rank correlation with welfare elasticity is \bad{$0.08$}; the flow$\times$delay correlation is $0.65$.
+  \item Welfare-elasticity and TCS targeting select the high-flow spine; speed-only also selects slow, low-flow links.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}[label=appelast]{Appendix: Welfare-Elasticity Score}
+\scriptsize
+\begin{itemize}
+  \item Define the directed-link accessibility matrix by $A_{ab}=t_{ab}^{-\theta}$ and the network multiplier by $B=(I-A)^{-1}$.
+  \item A local gain on one directed edge uses the matrix-inverse differential:
+  \[
+    dB=B(dA)B.
+  \]
+  \item If only edge $a\to b$ changes, $dA$ has one nonzero entry, so the welfare-index numerator has the local derivative
+  \[
+    d\bar W^\theta=dA_{ab}\phi_a\psi_b.
+  \]
+  \item $dA_{ab}$ is the direct gain from one more lane; $\phi_a$ is upstream residence-access weight reaching node $a$; $\psi_b$ is downstream workplace-opportunity weight from node $b$.
+  \item The score is a local ranking device. The reported LT $\bar W$ values still come from re-solving the endogenous GE counterfactual.
+\end{itemize}
+\navback{resultelast}
+\end{frame}
+
+\begin{frame}[label=nextsteps]{Appendix: Validation and Extensions}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\small\textbf{Field validation}\par
+\vspace{0.25em}
+\begin{itemize}\footnotesize\setlength\itemsep{0.42em}
+  \item Shenzhen field visits document operational tidal-lane corridors, lane-switch procedures, and feasible camera positions.
+  \item The current video pilot recovers directed counts and preliminary speed and density measures around a switch window.
+  \item The next collection requires repeated days, synchronized cameras, and one verified physical distance for speed calibration.
+\end{itemize}
+\column{0.49\textwidth}
+\small\textbf{Model extensions}\par
+\vspace{0.25em}
+\begin{itemize}\footnotesize\setlength\itemsep{0.42em}
+  \item Discipline $\lambda$ with repeated speed--flow observations around lane-direction switches.
+  \item Revisit the external calibrations of $\alpha$, $\beta$, and $\theta$.
+  \item Extend the directed measurement and counterfactual pipeline to PM peaks, alternative grids, and additional cities.
+\end{itemize}
+\end{columns}
+\vspace{0.45em}
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}
+\centering\includegraphics[width=\linewidth,height=0.24\textheight,keepaspectratio]{fieldvisit_crop_1.jpg}
+\column{0.32\textwidth}
+\centering\includegraphics[width=\linewidth,height=0.24\textheight,keepaspectratio]{fieldvisit_crop_5.jpg}
+\column{0.32\textwidth}
+\centering\includegraphics[width=\linewidth,height=0.24\textheight,keepaspectratio]{fieldvisit_crop_6.jpg}
+\end{columns}
+\end{frame}
+
+\begin{frame}[label=appexist]{Appendix: Theoretical Scope and Numerical Solution}
+\framesubtitle{The AA core conditions do not automatically establish uniqueness for the full anchored directed-congestion system.}
+\begin{columns}[T,onlytextwidth]
+\column{0.47\textwidth}
+\small\textbf{AA network-location core}\par
+\vspace{0.25em}
+\begin{itemize}\footnotesize\setlength\itemsep{0.45em}
+  \item Fr\'echet residence, workplace, and route choice deliver gravity and market-access equations on the network.
+  \item The all-route representation requires the weighted adjacency matrix to have spectral radius below one.
+  \item \citet[Proposition~1]{allenarkolakis2022} provide sufficient existence and uniqueness conditions under their primitive congestion mapping.
+\end{itemize}
+\column{0.50\textwidth}
+\small\textbf{Full empirical implementation}\par
+\vspace{0.25em}
+\begin{itemize}\footnotesize\setlength\itemsep{0.45em}
+  \item Directed costs are anchored at $(t_{kl}^{obs},\Xi_{kl}^{0},n_{kl}^{0})$ and bounded below by $t_{kl}^{ff}$.
+  \item The equilibrium is computed as a damped fixed point over link costs, route traffic, market access, and location shares.
+  \item Each reported counterfactual must satisfy convergence tolerances and equilibrium adding-up checks.
+  \item No formal uniqueness claim is made for the complete anchored directed-congestion system.
+\end{itemize}
+\end{columns}
+\navback{equilibrium}
+\end{frame}
+
+\nobibliography{references}
+
+\end{document}

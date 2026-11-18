@@ -108,7 +108,9 @@ def main(argv=None) -> None:
     baseline = eq.solve_equilibrium(
         prim, fund.ubar_theta, fund.abar_theta, params,
         max_outer=args.max_outer, tol=args.tol, damping=args.damping,
-        kappa=fund.kappa,
+        kappa=fund.kappa, chi=fund.chi,
+        tau_min_init=prim.tau_obs_min.copy(),
+        label="baseline_endogenous",
     )
     baseline.write(out_root / "baseline_check")
     LOG.info(f"  converged={baseline.converged} outer={baseline.n_outer} "

@@ -1,0 +1,138 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,booktabs}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+\title{Welfare Normalization in the Tidal-Lane Spatial Equilibrium}
+\author{}
+\date{July 1, 2026}
+
+\begin{document}
+\maketitle
+
+\section{Object}
+
+The primitive welfare index in the model is the Frechet denominator over residence, workplace, and routes. After aggregating routes into the bilateral commuting-cost index, the object is
+\begin{equation}
+\label{eq:primitive_welfare}
+    W^\theta
+    =
+    \sum_i \sum_j
+    \tau_{ij}^{-\theta} u_i^\theta w_j^\theta ,
+\end{equation}
+where
+\[
+    u_i^\theta = \bar u_i^\theta (L_i^R)^{\beta\theta},
+    \qquad
+    w_j^\theta = \bar A_j^\theta (L_j^F)^{\alpha\theta}.
+\]
+Equation \eqref{eq:primitive_welfare} is invariant to any normalization of the resident and firm market-access indices. It is therefore the correct object for comparing welfare across counterfactual equilibria.
+
+\section{Market-Access Representation}
+
+The solver also computes resident and firm market-access indices from
+\begin{align}
+\label{eq:market_access_pi}
+    \Pi_i^{-\theta}
+    &=
+    \sum_j \tau_{ij}^{-\theta} L_j^F P_j^\theta, \\
+\label{eq:market_access_p}
+    P_j^{-\theta}
+    &=
+    \sum_i \tau_{ij}^{-\theta} L_i^R \Pi_i^\theta .
+\end{align}
+This system does not determine the absolute scale of $(\Pi,P)$. If $(\Pi,P)$ solves \eqref{eq:market_access_pi}--\eqref{eq:market_access_p}, then for any $c>0$,
+\[
+    \tilde \Pi_i = c\Pi_i,
+    \qquad
+    \tilde P_j = P_j/c
+\]
+is also a solution. The transformation leaves link traffic invariant because
+\[
+    \tilde P_k^{-\theta}\tilde \Pi_l^{-\theta}
+    =
+    c^\theta P_k^{-\theta}
+    c^{-\theta} \Pi_l^{-\theta}
+    =
+    P_k^{-\theta}\Pi_l^{-\theta}.
+\]
+It follows that edge times, bilateral costs, link traffic, residence shares, workplace shares, and OD-weighted commuting time are unaffected by this scale choice.
+
+\section{Why the Previous Welfare Number Drifted}
+
+The previous implementation evaluated
+\begin{equation}
+\label{eq:pi_welfare}
+    W_\Pi^\theta = \sum_i u_i^\theta \Pi_i^{-\theta}.
+\end{equation}
+This expression is invariant only after the market-access gauge is fixed consistently across scenarios. Under $\Pi_i \mapsto c\Pi_i$,
+\[
+    W_\Pi^\theta \mapsto c^{-\theta}W_\Pi^\theta.
+\]
+The fixed-point routine initialized $(\Pi,P)$ at $(1,1)$ in each scenario. That procedure selects a deterministic scale, but the selected scale is scenario-specific and has no economic content. A cross-scenario comparison of \eqref{eq:pi_welfare} can therefore combine the primitive welfare change with a pure normalization change.
+
+The market-access representation is equivalent to the primitive welfare index only under a gauge that maps firm market access into wages:
+\begin{equation}
+\label{eq:gauge_condition}
+    L_j^F P_j^\theta = w_j^\theta
+    \quad \text{for all } j.
+\end{equation}
+When \eqref{eq:gauge_condition} holds,
+\[
+    \Pi_i^{-\theta}
+    =
+    \sum_j \tau_{ij}^{-\theta} w_j^\theta ,
+\]
+and substituting this expression into \eqref{eq:pi_welfare} recovers \eqref{eq:primitive_welfare}. Without \eqref{eq:gauge_condition}, \eqref{eq:pi_welfare} has a normalization component.
+
+\section{Correct Implementation}
+
+The implementation should compute welfare directly from
+\begin{equation}
+\label{eq:implemented_welfare}
+    W
+    =
+    \left[
+    (u^\theta)^\top
+    (I-A)^{-1}
+    w^\theta
+    \right]^{1/\theta},
+\end{equation}
+with
+\[
+    A_{kl} = (t_{kl})^{-\theta},
+    \qquad
+    (I-A)^{-1}_{ij} = \tau_{ij}^{-\theta}.
+\]
+This formula uses objects already solved in each equilibrium and does not require $\Pi$ or $P$. A gauge-corrected resident market-access map can still be reported, but it should be computed as
+\begin{equation}
+\label{eq:gauge_free_pi}
+    \Pi_{i,w}^{-\theta}
+    =
+    \sum_j \tau_{ij}^{-\theta} w_j^\theta .
+\end{equation}
+Maps based on the raw $\Pi$ from \eqref{eq:market_access_pi} should be interpreted only after removing the scenario-level scale component.
+
+\section{Numerical Implication for the Main Tidal-Lane Run}
+
+For the gate5 BPR-selected top-100 tidal-lane counterfactual with $(\alpha,\beta)=(0.05,-0.10)$, the old market-access welfare number and the primitive welfare number differ in the long run:
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Welfare formula & Short run & Long run \\
+\midrule
+$\sum_i u_i^\theta\Pi_i^{-\theta}$ with raw solver gauge
+    & $+0.94\%$ & $-0.85\%$ \\
+$\sum_{ij}\tau_{ij}^{-\theta}u_i^\theta w_j^\theta$
+    & $+0.87\%$ & $+0.32\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+The OD-weighted commuting-cost decomposition remains a separate object. In the same run, the average bilateral commuting cost falls in the short run and is nearly unchanged in the long run: the long-run total is about $+0.065$ seconds per commuter, equal to the sum of a negative direct effect and positive general-equilibrium and sorting wedges.
+
+\section{Reporting Rule}
+
+All welfare tables and slide bullets should report \eqref{eq:implemented_welfare}. Raw $\Pi$ maps should be replaced by either the gauge-free market-access object in \eqref{eq:gauge_free_pi} or a demeaned change in $\log \Pi$ that removes the scenario-level normalization. Population sorting, workplace sorting, link traffic, travel time, and person-minute results do not require this correction.
+
+\end{document}

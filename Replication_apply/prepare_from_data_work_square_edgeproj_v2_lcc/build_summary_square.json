@@ -1,0 +1,9 @@
+{
+  "source_version": "model_input_edgeproj_v2_lcc_v1",
+  "scope": "largest_connected_component",
+  "node_rows": 1153,
+  "edge_rows": 1462,
+  "od_rows": 330497,
+  "traffic_formula": "lanes * (tau_obs/tau_ff)^(1/delta1)",
+  "delta1": 0.488
+}

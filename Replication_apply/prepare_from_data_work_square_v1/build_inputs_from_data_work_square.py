@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 
-ROOT = Path("/Users/fxr/Desktop/TidalLanes")
+ROOT = Path("/Users/fxr/Dropbox/Projects/TidalLanes")
 REPL_ROOT = ROOT / "Replication_apply"
 SOURCE_DIR = ROOT / "data_work" / "outputs" / "manual_centerline_rules_v11" / "data"
 OUT_COUNTER = REPL_ROOT / "counterfactuals" / "seattle"

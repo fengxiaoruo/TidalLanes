@@ -1,55 +1,37 @@
-# AGENTS
+# AGENTS: data_work
 
-This file is a project-level coordination document for future work.
+Working rules for code and outputs under `data_work/`. Project-wide rules are in the root `AGENTS.md`.
 
-## Purpose
+## Before running anything
 
-- Provide a stable place for project-wide working rules
-- Keep coding style and workflow guidance consistent across refactor stages
-- Allow future additions without changing the overall structure
+The current model specification, input bundle, and run commands are stated once, in the "Current mainline" table of [`DOCUMENT_INDEX.md`](../DOCUMENT_INDEX.md). Read it first. Do not take the mainline from script defaults, from older READMEs, or from file names.
 
-## Current Guidance
+Script defaults in `src/model/full_estimation/` still describe the old gate5 mainline (anchored form, λ = 1.1, 2022 OD). Every mainline run passes its flags explicitly, as in the commands in `outputs/beta_c_rerun_b035_summary_v1/README.md`. A `gate5` in a script name does not mean the script only runs gate5.
 
-No strict project-specific rules have been added yet.
+Python environment: `/Users/fxr/miniconda3/envs/research/bin/python`, run from `data_work/` with `--repo-root` set to this directory.
 
-Default expectations:
+## Where code lives
 
-- Prefer simple, clear code
-- Keep structure consistent across stages
-- Avoid unnecessary complexity
-- Make pipeline inputs and outputs explicit
-- Preserve comparability across versions
-- Use `nextstep.md` as a short live plan only
-- Record completed work and locked decisions in `data_work/docs/WORK_LOG.md`
-- When updating project status, remove finished items from `nextstep.md` and append the result to the work log instead
+| Path | Role |
+|---|---|
+| `src/model/full_estimation/` | Mainline model: inversion, equilibrium solver, counterfactuals, policy comparison. Entry scripts are named in the index table |
+| `src/model/travel_cost_bundle/` | Builds model input bundles (`build_osm_model_bundle.py` for 1B and 1A) |
+| `src/network/` | OSM networks and grid-pair travel times |
+| `src/validation/` | Checks against external data (background traffic, flow validation) |
+| `src/raw_baidu_validation/`, `src/centerline_baidu_validation/` | Baidu route collection and validation |
+| `src/stages/` | March stage pipeline (centreline match through grid inputs); upstream of the old gate5 bundles, not rerun for the current mainline |
+| `src/model/directional_cost/`, `estimation_v2/`, `full_estimation_flat/`, `road_level/` | Parallel or earlier model lines; see each README before use |
+| `src/raw_connected_v1/` to `v3/` | Earlier grid travel-cost builds, kept for reproducing old bundles |
 
-## Common Commands
+## Outputs
 
-Use these as the default entry points for routine work:
+- Every run writes a new folder under `outputs/`. Never overwrite an existing folder; bump the `_vN` suffix instead.
+- A folder that ends with only a failed `run.log` is recorded as void in `docs/WORK_LOG.md`.
+- A run that becomes part of the mainline is added to [`docs/MAINLINE_MANIFEST.md`](docs/MAINLINE_MANIFEST.md), which lists what must be backed up.
+- Give each retained result folder a `README.md` with the conclusion, the numbers, and the exact command.
 
-```bash
-python src/stages/run_full_pipeline.py --version-id raw_rebuild_validation
-python src/stages/run_full_pipeline.py --version-id raw_rebuild_validation --from-stage stage06 --to-stage stage10
-python src/stages/run_full_pipeline.py --version-id raw_rebuild_validation --skip-figures
-python src/stages/stage10_generate_figures.py --version-id raw_rebuild_validation
-python src/stages/stage10_generate_figures.py --version-id raw_rebuild_validation --figure-group match
-python src/stages/stage10_generate_figures.py --version-id raw_rebuild_validation --figure-group grid --grid-type voronoi
-```
+## Recording work
 
-Notes:
-
-- `outputs/{version_id}` is the working directory for one retained run
-- plotting entry points automatically use `outputs/.mpl_cache` and `outputs/.cache`
-- prefer stage scripts and `run_full_pipeline.py` over ad hoc notebook execution
-
-## Reserved Sections
-
-These sections are intentionally left open for future use:
-
-- Coding conventions
-- Naming conventions
-- Data schema rules
-- Version comparison rules
-- Output directory rules
-- Diagnostic requirements
-- QSM integration notes
+- Completed work, locked decisions, and new output folders go in `docs/WORK_LOG.md`.
+- `nextstep.md` at the root holds only current status and next actions.
+- Do not modify `raw_data/`.

@@ -57,7 +57,7 @@ delta1 = 0.488 (Seattle 估计值，论文 Table)
 cd /path/to/TidalLanes
 python Replication_apply/prepare_from_data_work_square_v2/build_inputs_from_data_work_square_v2.py
 ```
-注意：脚本中 ROOT 用 `/Users/fxr/Desktop/TidalLanes`（用户机器路径），sandbox 需手动映射。
+注意：脚本中 ROOT 用 `/Users/fxr/Dropbox/Projects/TidalLanes`（用户机器路径），sandbox 需手动映射。
 
 ---
 
@@ -121,7 +121,7 @@ python compare_batch.py --batch-size 30 --workers 4 --tol 1e-4 --inner-update 0.
 
 **在用户 Mac 上全量运行**（推荐）：
 ```bash
-cd /Users/fxr/Desktop/TidalLanes/Replication_apply/python_commuting
+cd /Users/fxr/Dropbox/Projects/TidalLanes/Replication_apply/python_commuting
 python compare_asym_vs_sym.py --workers 8 --tol 1e-4 --inner-update 0.3
 # 预计 ~40 分钟（8核 Mac）
 ```

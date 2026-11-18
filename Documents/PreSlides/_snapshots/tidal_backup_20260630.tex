@@ -1,0 +1,879 @@
+\documentclass[11pt,aspectratio=169]{beamer}
+\usetheme{Boadilla}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\graphicspath{{figs/}}
+
+% Show section in a small headline so the audience tracks the arc
+\setbeamertemplate{headline}{%
+  \hbox{}\vskip2pt\hfill\textcolor{gray!70}{\scriptsize\insertsectionhead}\hspace{1em}\vskip-6pt%
+}
+\setbeamertemplate{section in toc}[sections numbered]
+\setbeamertemplate{frametitle}[default][left]
+\setbeamerfont{framesubtitle}{size=\small}
+
+\newcommand{\figplaceholder}[1]{\begin{center}\fbox{\begin{minipage}[c][0.32\textheight][c]{0.82\textwidth}\centering\large #1\end{minipage}}\end{center}}
+\newcommand{\shortfigplaceholder}[1]{\begin{center}\fbox{\begin{minipage}[c][0.22\textheight][c]{0.82\textwidth}\centering\large #1\end{minipage}}\end{center}}
+\newcommand{\compactfigplaceholder}[1]{\begin{center}\fbox{\begin{minipage}[c][0.10\textheight][c]{0.82\textwidth}\centering\normalsize #1\end{minipage}}\end{center}}
+\newcommand{\R}{\mathcal{R}}
+\newcommand{\E}{\mathcal{E}}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\good}[1]{\textcolor{blue!70!black}{#1}}
+\newcommand{\bad}[1]{\textcolor{red!70!black}{#1}}
+\newcommand{\app}[1]{\hyperlink{#1}{\beamergotobutton{details}}}
+\newcommand{\back}[1]{\hyperlink{#1}{\beamerreturnbutton{back}}}
+
+\title[Directional Congestion]{Directional Congestion}
+\subtitle{Measurement, Spatial Equilibrium, and Tidal-Lane Reallocation}
+\author[Duan, Feng, Gu]{Yige Duan (SJTU) $\quad$ Xiaoruo Feng (PKU) $\quad$ Yizhen Gu (PKU)}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Roadmap}
+\footnotesize\tableofcontents
+\end{frame}
+
+% =====================================================================
+\section{Motivation}
+% =====================================================================
+\begin{frame}{Motivation}
+\begin{itemize}
+  \item \textbf{Peak-direction imbalance.}
+  \begin{itemize}\footnotesize
+    \item The two directions of the \emph{same} physical road carry very different traffic at the same time.
+    \item Where workers live vs.\ where jobs sit pins down which direction floods.
+    \item Same lanes, symmetric pavement, yet \bad{directional} congestion.
+  \end{itemize}
+  \item \textbf{The daily round trip.}
+  \begin{itemize}\footnotesize
+    \item Morning and evening reverse the same flows.
+    \item Value-of-time costs should count both legs.
+  \end{itemize}
+  \item \textbf{A cheap policy margin.}
+  \begin{itemize}\footnotesize
+    \item \good{Tidal (reversible) lanes} shift one lane toward the busy direction at \good{zero net lane-km}.
+    \item They can still move route choice \emph{and} residence--workplace sorting.
+  \end{itemize}
+\end{itemize}
+\vspace{0.2em}
+\compactfigplaceholder{Figure 1 (to insert): AM directional speed / traffic-per-lane asymmetry on the study network}
+\end{frame}
+
+% =====================================================================
+\section{This Paper}
+% =====================================================================
+\begin{frame}{This Paper}
+\begin{itemize}
+  \item \textbf{Model directional congestion in a spatial GE.}
+  \begin{itemize}\footnotesize
+    \item Extend the Allen--Arkolakis inner-city model.
+    \item Keep each road \good{physically symmetric} ($t_{kl}^{\mathrm{ff}}=t_{lk}^{\mathrm{ff}}$) but let \good{traffic-per-lane} differ by direction, so realized $t_{kl}\neq t_{lk}$ and $\tau_{ij}\neq\tau_{ji}$ endogenously.
+  \end{itemize}
+  \item \textbf{Evaluate tidal lanes as a capacity-neutral instrument.}
+  \begin{itemize}\footnotesize
+    \item Top-100 reciprocal pairs, $+1$ lane to the slow direction, $-1$ to the fast direction, total capacity fixed.
+  \end{itemize}
+  \item \textbf{Decompose the effect into three transparent channels.}
+  \begin{itemize}\footnotesize
+    \item \good{ST engineering gain} (fixed sorting) $\to$ \good{network GE wedge} $\to$ \bad{residence--workplace sorting}.
+  \end{itemize}
+  \item \textbf{Headline.}
+  \begin{itemize}\footnotesize
+    \item ST \good{saves time and raises welfare}; long-run \bad{sorting capitalizes the gain into market access}.
+    \item Commute time nets out near zero; aggregate welfare turns slightly negative, with the loss running through $\Pi$ rather than amenities.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% =====================================================================
+\section{Literature}
+% =====================================================================
+\begin{frame}{Literature}
+\begin{itemize}
+  \item \textbf{Spatial equilibrium and agglomeration.}
+  \begin{itemize}\footnotesize
+    \item Allen and Arkolakis (RES, 2022); Ahlfeldt et al.\ (2015).
+  \end{itemize}
+  \item \textbf{Transportation policy and congestion.}
+  \begin{itemize}\footnotesize
+    \item Barwick et al.\ (AER, 2024); Yang et al.\ (AEJ:\ Policy, 2020).
+  \end{itemize}
+  \item \textbf{Calibration and contribution.}
+  \begin{itemize}\footnotesize
+    \item Beijing evidence gives a congestion elasticity $\lambda\approx1.1$ (edge time rises with traffic per lane).
+    \item We add a \underline{tidal-lane margin} and a full ST / GE / sorting welfare decomposition under endogenous \emph{directional} congestion.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+% =====================================================================
+\section{Data}
+% =====================================================================
+\begin{frame}[label=data]{Data}
+\small
+\begin{columns}[T,onlytextwidth]
+\column{0.58\textwidth}
+\begin{itemize}
+  \item \textbf{Travel cost (Map API).}
+  \begin{itemize}\footnotesize
+    \item Directional travel time and speed, crawled by direction and time of day; the core directional-cost input.
+    \item Collected at several scales: national township-pair OD, city grids (Shenzhen 1\,km), and Beijing road centerlines.
+  \end{itemize}
+  \item \textbf{Congestion index.}
+  \begin{itemize}\footnotesize
+    \item City-level congestion ranking (Baidu, 2025), used to relate congestion to asymmetry.
+  \end{itemize}
+  \item \textbf{Roads and capacity.}
+  \begin{itemize}\footnotesize
+    \item Road geometry, length, lanes, and functional class.
+  \end{itemize}
+  \item \textbf{Commuting.}
+  \begin{itemize}\footnotesize
+    \item Residence, workplace, OD flows, and directional travel demand.
+  \end{itemize}
+  \item \textbf{Estimation sample.}
+  \begin{itemize}\footnotesize
+    \item $\sim$1{,}100 grid nodes, $\sim$2{,}600 directed edges, $\sim$88{,}000 commuters, AM peak.
+  \end{itemize}
+\end{itemize}
+\column{0.40\textwidth}
+\compactfigplaceholder{Figure (to insert): study area and main road network}
+\end{columns}
+\vspace{0.2em}
+\centering\app{appdata}\; sources, crawling, and construction
+\end{frame}
+
+% =====================================================================
+\section{Pattern: Directional Asymmetry}
+% =====================================================================
+\begin{frame}{Pattern: A Ladder of Evidence}
+\framesubtitle{Directional congestion is a \good{general urban feature}, not a Shenzhen tidal-lane special case.}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}p{0.30\textwidth}X@{}}
+\toprule
+Scale & What it shows \\
+\midrule
+1. National city OD & Asymmetry is \emph{widespread} across Chinese cities \\
+2. Congested-city ranking & Congested cities are \emph{more} directional; AM/PM can reverse \\
+3. \good{Shenzhen grid OD (bridge)} & Within one city, \good{real commute flow} is exposed to stronger asymmetry \\
+4. Beijing road / grid & Asymmetry exists at the \emph{road-segment} level, not just OD aggregation \\
+5. Beijing demand direction & Commuting pressure is itself directional, so symmetric cost mis-measures exposure \\
+\midrule
+($\ast$) Shenzhen corridor / tidal lane & A real policy already manages \emph{directional capacity} (illustration, not framing) \\
+\bottomrule
+\end{tabularx}
+\vspace{0.4em}
+\begin{itemize}\footnotesize
+  \item Metric throughout: $\min(t_{ij},t_{ji})/\max(t_{ij},t_{ji})$, where a lower ratio means more asymmetric.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Level 1. National Cities: Asymmetry Is Widespread}
+\framesubtitle{Township-pair AM travel time, top-50 cities (2021).}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\scriptsize
+\begin{tabular}{lccc}
+\toprule
+City & med.\ ratio & $\leq0.90$ & AM$>$night \\
+\midrule
+Beijing & \good{0.837} & 71.6\% & 77.3\% \\
+Chengdu & 0.853 & 75.8\% & 63.4\% \\
+Chongqing & 0.856 & 70.0\% & 66.6\% \\
+Shenzhen & 0.864 & 63.3\% & 72.1\% \\
+Xi'an & 0.873 & 65.6\% & 62.4\% \\
+Guangzhou & 0.879 & 66.1\% & 65.8\% \\
+Shanghai & 0.880 & 65.1\% & 79.1\% \\
+\bottomrule
+\end{tabular}
+\vspace{0.3em}
+\begin{itemize}\footnotesize
+  \item Pooled weighted median \good{$0.903$}; \good{$52.2\%$} of weighted OD pairs $\leq0.90$.
+  \item A typical two-way OD differs $\sim$10\% by direction, and AM is more asymmetric than night.
+\end{itemize}
+\column{0.49\textwidth}
+\centering\scriptsize AM directional asymmetry by city\\
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{pat_national_city.png}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Level 2. Congested Cities Are More Directional}
+\framesubtitle{Baidu 2025 congestion ranking vs.\ asymmetry (99 cities).}
+\begin{center}\scriptsize
+\begin{tabular}{lcccc}
+\toprule
+City & congestion rank & AM med. & PM med. & AM/PM reversal \\
+\midrule
+Beijing & 1 & \good{0.805} & 0.866 & 37.3\% \\
+Chongqing & 2 & 0.790 & 0.872 & 46.1\% \\
+Wuhan & 3 & 0.866 & 0.916 & 42.2\% \\
+Guangzhou & 4 & 0.854 & 0.879 & 34.1\% \\
+Shanghai & 5 & 0.862 & 0.894 & \good{66.7\%} \\
+Chengdu & 9 & 0.767 & 0.889 & 47.2\% \\
+Xi'an & 12 & 0.768 & 0.861 & 42.8\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.2em}
+\begin{itemize}\footnotesize
+  \item High-congestion cities are not just slow; they are slow \bad{with a direction}.
+  \item A large share of OD pairs \emph{reverse} their slow direction between AM and PM.
+  \item Directional congestion is a peak-timing phenomenon, exactly the tidal margin.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Level 3. Shenzhen Grid: Real Flow Sees Stronger Asymmetry}
+\framesubtitle{Shenzhen 1\,km fishnet two-way travel-time matrix; the cleanest within-city evidence.}
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+\scriptsize
+\begin{tabular}{lccc}
+\toprule
+Weighting & med.\ ratio & $\leq0.90$ & $\leq0.83$ \\
+\midrule
+All grid pairs (1.46M) & 0.879 & 57.5\% & 35.1\% \\
+\good{Observed commute flow} & \good{0.819} & \good{71.6\%} & 53.0\% \\
+Car-asset weighted & 0.821 & 71.2\% & 52.5\% \\
+\bottomrule
+\end{tabular}
+\vspace{0.4em}
+\begin{itemize}\footnotesize
+  \item \good{Flow-weighting makes asymmetry stronger}, not weaker: it overlaps with real commute \bad{exposure}.
+  \item Heterogeneous within the city: workplace in econ-zone 1 has median $0.805$ ($73.7\%\leq0.90$).
+  \item Caveat: grid500 flow-aggregate path (coverage $85.4\%$), not the raw 1\,km OD crosswalk.
+\end{itemize}
+\column{0.46\textwidth}
+\centering\scriptsize All-pair vs.\ flow-weighted\\
+\includegraphics[width=\linewidth,height=0.62\textheight,keepaspectratio]{pat_sz_floww.png}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Level 4. Beijing Road / Grid: Not an OD Artifact}
+\begin{columns}[T,onlytextwidth]
+\column{0.50\textwidth}
+\begin{itemize}\small
+  \item \textbf{Centerline segments (AM, 3{,}670 two-way).}
+  \begin{itemize}\scriptsize
+    \item Median ratio $\approx0.884$, $54.7\%\leq0.90$.
+  \end{itemize}
+\end{itemize}
+\scriptsize
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+strict rule & AM segments & share \\
+\midrule
+unsym1 & 405 & 11.0\% \\
+unsym2 & 179 & 4.9\% \\
+unsym3 & 98 & 2.7\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.2em}
+\begin{itemize}\small
+  \item \textbf{Adjacent-grid (AM, 1{,}894 two-way).}
+  \begin{itemize}\scriptsize
+    \item Median ratio \good{$0.794$}, $69.7\%<0.90$.
+  \end{itemize}
+  \item Asymmetry shows up in \emph{local segments and neighboring cells}, a network mechanism rather than aggregation.
+  \item \textbf{Quantification sample:} structural counterfactuals use the Beijing square grid (gate5 LCC; $\S$\ref{sec:quant}).
+\end{itemize}
+\column{0.49\textwidth}
+\centering\scriptsize Directionally asymmetric AM segments (Beijing)\\
+\includegraphics[width=\linewidth,height=0.66\textheight,keepaspectratio]{pat_bj_centerline.png}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Level 5. Directional Demand and a Real Tidal Lane}
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+\begin{itemize}\small
+  \item \textbf{Demand is directional (Beijing).}
+  \begin{itemize}\footnotesize
+    \item \good{64.8\%} of car$+$bus weighted demand moves \emph{toward} the nearer job cluster; mean distance-to-center falls \good{$4.68$ km}.
+    \item Some inbound sectors: inbound/reverse demand ratio $2$ to $6$.
+    \item If demand is directional and congestion is direction-specific, \bad{a symmetric commuting cost mis-allocates exposure}.
+  \end{itemize}
+  \item \textbf{Policy already does this (Caitian Rd, Shenzhen).}
+  \begin{itemize}\footnotesize
+    \item Post-only: policy/anti-direction speed ratio $0.789\to\good{0.982}$; asymmetry DDD $>0$ vs.\ four control sets.
+    \item Reverse-direction loss is more consistent than the treated gain, so it illustrates directional capacity management, not the main framing.
+  \end{itemize}
+\end{itemize}
+\column{0.46\textwidth}
+\centering\scriptsize Beijing directional commuting demand\\
+\includegraphics[width=\linewidth,height=0.42\textheight,keepaspectratio]{pat_bj_demand.png}\\[2pt]
+\scriptsize Caitian Rd event study (DiD)\\
+\includegraphics[width=\linewidth,height=0.30\textheight,keepaspectratio]{pat_caitian.png}
+\end{columns}
+\end{frame}
+
+% =====================================================================
+\section{Model}
+% =====================================================================
+% --- Original model section (preserved verbatim from tidalraw.tex) ---
+
+\begin{frame}{Model: Environment}
+\begin{itemize}
+  \item Locations $i,j\in N$ host $\bar{L}$ mass of residents and jobs
+  \vspace{0.5em}
+  \item A physical road is represented by two directed links, $(k,l)$ and $(l,k)$
+  \begin{itemize}
+    \item Symmetric \textbf{free-flow} time $t_{kl}^{ff}=t_{lk}^{ff}$, but directed lanes $n_{kl}$ and $n_{lk}$ can differ
+    \item A tidal-lane policy shifts one lane across directions while holding $n_{kl}+n_{lk}$ fixed
+  \end{itemize}
+  \vspace{0.5em}
+  \item The realized edge time $t_{kl}$ is \textcolor{blue}{endogenous} and \textcolor{red}{directed}
+  \begin{itemize}
+    \item $t_{kl}$ rises with traffic per lane $\Xi_{kl}/n_{kl}$
+    \item $t_{kl} \neq t_{lk}$ when traffic differs by direction
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Individual Location Choice}
+\begin{itemize}
+  \item An individual $\omega$ living in $i$, working in $j$, and taking route $r\in\R_{ij}$ obtains
+  \vspace{-0.5em}\begin{footnotesize}\begin{equation}
+    V_{ij,r}(\omega) = \left( \frac{u_i w_j}{C_{ij,r}} \right)\varepsilon_{ij,r}(\omega),
+    \qquad
+    C_{ij,r} = \prod_{\ell=1}^{K_r} t_{r_{\ell-1},r_\ell}
+  \vspace{-1.25em}\end{equation}\end{footnotesize}
+  \begin{itemize}
+    \item $u_i$ is amenity; $w_j$ is wage; $\epsilon$ is i.i.d. Frechet
+    \item $C_{ij,r}$ is the route cost (product of edge times); route $r=[r_0,\dots,r_{K_r}]$, $r_0=i$, $r_{K_r}=j$
+  \end{itemize}
+  \vspace{0.5em}
+  \item Choice probabilities are
+  \vspace{-0.5em}\begin{equation}\label{eq:pi}
+    \pi_{ij,r} = \frac{\left(u_i w_j/C_{ij,r}\right)^\theta}{\sum_{a}\sum_b\sum_{s\in\R_{ab}}\left(u_a w_b/C_{ab,s}\right)^\theta}
+  \end{equation}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bilateral Commuting Costs and Flows}
+\begin{itemize}
+  \item The bilateral commuting-cost, aggregated across all routes (Frechet expectation)
+  \vspace{-0.5em}\begin{equation}
+    \tau_{ij} = \left[ \sum_{r\in\R_{ij}} C_{ij,r}^{-\theta} \right]^{-1/\theta}
+  \end{equation}
+  \item Thus, residence-workplace choice shares satisfy
+  \vspace{-0.25em}\begin{equation}\label{eq:gravity}
+    L_{ij} = \sum_{r\in\R_{ij}}L_{ij,r} = \tau_{ij}^{-\theta} \left(\frac{L_i^R}{\Pi_i}\right) \left(\frac{L_j^F}{P_j}\right), \,\, L_i^R=\sum_jL_{ij}, \,\, L_j^F=\sum_iL_{ij}
+  \vspace{-1em}\end{equation}
+  \begin{itemize}
+    \item Directional congestion implies $\tau_{ij}\neq\tau_{ji}$ in general
+    \item $\Pi_i$ and $P_j$ are origin and destination market-access terms
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Amenity, Productivity, and Location Choices}
+\begin{itemize}
+  \item Agglomeration of local fundamentals
+  \vspace{-0.5em}\begin{equation}\label{eq:agglom}
+    w_j = A_j = \bar A_j\left(L_j^F\right)^\alpha, \qquad u_i=\bar u_i\left(L_i^R\right)^\beta
+  \end{equation}
+  \item Resident ($R$) and workplace ($F$) distribution across space (level-form shares; v4 eqs.\ invert\_R--invert\_F)
+  \begin{align}
+  (l_i^R)^{1-\beta\theta} & = \chi \sum_j\tau_{ij}^{-\theta}\,\bar u_i^{\theta}\,\bar A_j^{\theta}\,(l_j^F)^{\alpha\theta} \label{eq:clear1} \\
+  (l_j^F)^{1-\alpha\theta} & = \chi \sum_i\tau_{ij}^{-\theta}\,\bar u_i^{\theta}\,\bar A_j^{\theta}\,(l_i^R)^{\beta\theta} \label{eq:clear2}
+  \end{align}
+  \begin{itemize}\footnotesize
+    \item Mainline: $\theta=6.83$, $\alpha=+0.05$, $\beta=-0.10$ $\Rightarrow$ exponents $\approx 1.66$ (residence) and $\approx 0.66$ (workplace).
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{From Edge Times to Bilateral Commuting Cost}
+\begin{itemize}
+  \item Define the directed adjacency matrix $A=[a_{kl}]$ by
+  \vspace{-0.5em}\begin{equation}
+    a_{kl} = t_{kl}^{-\theta}
+  \end{equation}
+  \item Summing over all feasible route lengths gives
+  \vspace{-0.5em}\begin{equation}
+    B = \sum_{K=0}^{\infty}A^K = (I-A)^{-1}
+  \end{equation}
+  \item The bilateral commuting-cost aggregator can be written as
+  \vspace{-0.5em}\begin{equation}\label{eq:inverse}
+    \tau_{ij} = B_{ij}^{-1/\theta}
+  \end{equation}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Feedback between Location Choice, Traffic, and Edge Time}
+\begin{itemize}
+  \item For a directed trip $i\to j$, define $\kappa^{kl}_{ij}$ as expected use of link $(k,l)$
+  \vspace{-1em}\begin{equation}
+    \kappa^{kl}_{ij} = \left( \frac{\tau_{ij}} {\tau_{ik}\,t_{kl}\,\tau_{lj}} \right)^\theta
+  \vspace{-0.5em}\end{equation}
+  \item The directional traffic is
+  \begin{equation}\label{eq:Xi_c}
+  \Xi_{kl} = \sum_i\sum_j \kappa^{kl}_{ij}L_{ij}
+  \end{equation}
+  \item Traffic, in turn, raises the directed edge time (\good{constant-elasticity / power form})
+  \vspace{-0.5em}\begin{equation}\label{eq:c_Xi}
+    t_{kl} = t_{kl}^{ff} \left(\frac{\Xi_{kl}}{n_{kl}}\right)^{\lambda},\qquad \lambda\approx 1.1
+  \vspace{-0.5em}\end{equation}
+    This yields asymmetric edge times $t_{kl}\neq t_{lk}$ even when $t_{kl}^{ff}=t_{lk}^{ff}$
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Equilibrium}
+\begin{itemize}
+  \item Given fundamentals $\{\bar u_i,\bar A_i,t_{kl}^{ff},n_{kl}\}$ with $t_{kl}^{ff}=t_{lk}^{ff}$ on each physical road and parameters $(\theta,\alpha,\beta,\lambda)$, an equilibrium is
+  \vspace{-0.5em}\begin{equation}
+    \left\{L_i^R,L_i^F,L_{ij},\tau_{ij},t_{kl},\Xi_{kl},\Pi_i,P_j,\chi\right\}
+  \vspace{-0.5em}\end{equation}
+  such that
+  \begin{itemize}
+    \item residents choose residence-workplace-route options according to \eqref{eq:pi}
+    \item bilateral flows satisfy commuting gravity \eqref{eq:gravity} and market clearing \eqref{eq:clear1}--\eqref{eq:clear2}
+    \item amenities and productivity satisfy \eqref{eq:agglom}
+    \item bilateral costs are generated by the directed road network \eqref{eq:inverse}
+    \item directed link traffic and directed edge times are mutually consistent \eqref{eq:Xi_c}--\eqref{eq:c_Xi}
+  \end{itemize}
+  \item Existence and uniqueness: see Allen and Arkolakis (2022)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Tidal Policy and Observed-Anchored Congestion}
+\begin{itemize}
+  \item \textbf{Instrument.} On a physical road $\{k,l\}$ hold $N_{kl}=n_{kl}+n_{lk}$ fixed and shift $\Delta$ lanes
+  \vspace{-0.4em}\begin{equation}
+    n'_{kl}=n_{kl}+\Delta\ (\text{slow}),\qquad n'_{lk}=n_{lk}-\Delta\ (\text{fast}).
+  \end{equation}
+  \item \textbf{Congestion anchored at the observed allocation}, the empirical form of $t_{kl}=t_{kl}^{ff}(\Xi_{kl}/n_{kl})^{\lambda}$:
+  \vspace{-0.4em}\begin{equation}\label{eq:anchor}
+    t_{kl}=\max\!\Big( t_{kl}^{\,\mathrm{ff}},\;\;
+    t_{kl}^{\,\mathrm{obs}}\big[(\Xi_{kl}/\Xi_{kl}^{\mathrm{obs}})(n_{kl}^{\mathrm{obs}}/n_{kl})\big]^{\lambda}\Big)
+  \end{equation}
+  \begin{itemize}\footnotesize
+    \item Anchored at $t^{\mathrm{obs}}$: baseline \good{matches the data in the median} ($t/t^{\mathrm{obs}}=1.00$); $\sim$8\% of edges hit the $t^{\mathrm{ff}}$ floor where $\tau^{\mathrm{obs}}<\tau^{\mathrm{ff}}$.
+    \item $\Xi^{\mathrm{obs}}$ is model traffic at the observed allocation; the policy enters only through capacity $n_{kl}$, with a free-flow floor $t^{\mathrm{ff}}$.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Solving the Counterfactual in Levels}
+\begin{itemize}
+  \item Fundamentals $(\bar u_i,\bar A_j)$ are inverted from the observed city and \good{held fixed} across all scenarios.
+  \item A policy changes lane capacity $n_{kl}$; the model recomputes the \good{congested equilibrium} (edge times $t_{kl}$, the sorting of residents and jobs, traffic $\Xi_{kl}$, and market access) and compares it to the baseline solved the same way.
+  \item Counterfactual effects are read off as the change between the two equilibria, both solved in levels.
+  \item \textbf{Welfare} $\;\bar W_\theta=\sum_i u_i\,\Pi_i^{-\theta}$, with $u_i=\bar u_i\,(L_i^R)^{\beta}$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Short Run vs.\ Long Run}
+\begin{itemize}
+  \item The same level solver, two horizons:
+  \begin{itemize}\footnotesize
+    \item \good{Short run (ST)}: pin $L^R,L^F$ at the baseline; only $\tau$ (congestion) re-equilibrates.
+    \item \good{Long run (LT)}: full residence / workplace sorting \emph{and} congestion feedback.
+  \end{itemize}
+  \item \textbf{Decompose} the OD-weighted commuting-cost change ($s$ = OD shares):
+  \vspace{-0.4em}\begin{equation}
+    \Delta\bar\tau^{LT}=\underbrace{\textstyle\sum s^0(\tau^{ST}\!-\tau^0)}_{\text{ST direct}}
+    +\underbrace{\textstyle\sum s^0(\tau^{LT}\!-\tau^{ST})}_{\text{GE wedge}}
+    +\underbrace{\textstyle\sum(s^{LT}\!-s^0)\tau^{LT}}_{\text{sorting}}
+  \end{equation}
+  \item Run the baseline and each policy through the same solver; report ST, GE, and sorting effects on $\bar\tau$ and $\bar W$.
+\end{itemize}
+\end{frame}
+
+% =====================================================================
+\section{Quantification}\label{sec:quant}
+% =====================================================================
+\begin{frame}{Calibration / Main Specification}
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Parameter & Value & Interpretation & Source \\
+\midrule
+$\theta$ & $6.83$ & commuting-cost elasticity & AA / Ahlfeldt et al. \\
+$\alpha$ & $\good{+0.05}$ & production agglomeration & literature gross spillover \\
+$\beta$ & $\bad{-0.10}$ & residential crowding disamenity & AA Seattle \\
+$\lambda$ & $1.1$ & congestion (edge time vs traffic per lane) & Barwick; Yang et al. \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.4em}
+\begin{itemize}\small
+  \item \textbf{Congestion technology} is the power form $t_{kl}=t_{kl}^{ff}(\Xi_{kl}/n_{kl})^{\lambda}$, $\lambda=1.1$ (not a BPR functional form).
+  \item \textbf{Policy.} Top-$100$ reciprocal pairs by the \emph{BPR congestion score}, $\Delta n=1$ (slow $+1$ / fast $-1$).
+  \begin{itemize}\footnotesize
+    \item Score $=\Xi_s(t_s^{\mathrm{obs}}-t_s^{ff})-\Xi_f(t_f^{\mathrm{obs}}-t_f^{ff})$: baseline flow $\times$ congestion delay, slow minus fast.
+    \item Ranks corridors by the first-order short-run relief from moving one lane to the slow side.
+  \end{itemize}
+  \item \textbf{Horizons.} \good{Short run} pins $L^R,L^F$ at baseline; \good{long run} allows full sorting plus congestion feedback.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Baseline Fundamentals (inverted)}
+\begin{columns}[T,onlytextwidth]
+\column{0.5\textwidth}
+\centering \scriptsize Residence amenity $\bar u_i$\\
+\includegraphics[width=\linewidth,height=0.52\textheight,keepaspectratio]{fund_ubar.png}
+\column{0.5\textwidth}
+\centering \scriptsize Workplace productivity $\bar A_j$\\
+\includegraphics[width=\linewidth,height=0.52\textheight,keepaspectratio]{fund_abar.png}
+\end{columns}
+\vspace{0.1em}
+\begin{itemize}\footnotesize
+  \item $\bar u,\bar A$ are inverted to match observed residence and workplace shares at observed travel times (Assumption: observed allocation is an equilibrium).
+  \item $\mathrm{corr}(\bar A_j,L_j^F)=\good{0.67}$ vs.\ $\mathrm{corr}(\bar u_i,L_i^R)=0.30$: jobs pinned by productivity, residence is access-driven.
+  \item Treated corridors land on \bad{high-flow employment bottlenecks} (BPR score vs.\ slow-direction $\Xi_s$: corr.\ $\approx+0.91$ on selected top-100 pairs; gate5 pair-selection QA). \app{appfund}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Result 1. Tidal Lanes: ST / GE / Sorting Cascade}
+\framesubtitle{Average commuter route-cost change (min/person), baseline-OD weighted; main spec ($\alpha{=}{+}.05,\beta{=}{-}.10$).}
+\begin{center}\normalsize
+\begin{tabular}{lc}
+\toprule
+Channel & $\Delta$ commute \\
+\midrule
+ST direct (fixed sorting) & \good{$-1.63$ s} \\
+$+$ network GE wedge & $+0.99$ s \\
+$+$ residence--workplace sorting & \bad{$+0.71$ s} \\
+\midrule
+\textbf{Long-run total} & \textbf{$+0.07$ s} \;($+95$ person-min/day) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.2em}
+\begin{itemize}\small
+  \item ST: holding jobs and homes fixed, the corridor \good{really saves time} ($-1.63$ s; slow-direction $\tau$ down \good{$13.6\%$} median).
+  \item \textbf{Exposure:} \good{56.4\%} of baseline OD commuter mass lies on shortest paths through treated corridors (path-based, not only endpoints).
+  \item LT: \bad{sorting almost exactly offsets it}, so commute nets to $\approx 0$.
+  \item Not ``corridor useless''; this is a long-run sorting-direction problem.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Result 2. Welfare: ST $\uparrow$, LT $\downarrow$, Loss via $\Pi$}
+\begin{columns}[T,onlytextwidth]
+\column{0.46\textwidth}
+\centering\small
+\begin{tabular}{lc}
+\toprule
+$\bar W$ & change \\
+\midrule
+Short run & \good{$+0.94\%$} \\
+Long run & \bad{$-0.85\%$} \\
+\bottomrule
+\end{tabular}
+\vspace{0.6em}
+
+\scriptsize $\Pi^{-\theta}$ four-layer ($u^0$-weighted, $\Delta\bar W_\theta$):
+\begin{tabular}{lc}
+\toprule
+\textcircled{1} ST $\tau$ @ $\ell^0$ & \good{$+4.60$} \\
+\textcircled{2} LT $\tau$ network GE & \bad{$-3.70$} \\
+\textcircled{3} $+\Delta\ell^F$ (jobs) & \bad{$-2.90$} \\
+\textcircled{4} $+\Delta\ell^R$ (homes) & \bad{$-1.91$} \\
+\bottomrule
+\end{tabular}
+\column{0.52\textwidth}
+\centering \scriptsize $\Delta\log\Pi$ (market access), treated endpoints marked\\
+\includegraphics[width=\linewidth,height=0.62\textheight,keepaspectratio]{sort_Pi.png}
+\end{columns}
+\vspace{0.2em}
+\begin{itemize}\footnotesize
+  \item Loss is \bad{almost entirely through market access $\Pi$} (network GE plus job/home reallocation), not amenity $u$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Result 3. Long-Run Sorting (maps)}
+\begin{columns}[T,onlytextwidth]
+\column{0.5\textwidth}
+\centering \scriptsize $\Delta\log\ell^R$ (residence)\\
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{sort_lR.png}
+\column{0.5\textwidth}
+\centering \scriptsize $\Delta\log\ell^F$ (workplace)\\
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{sort_lF.png}
+\end{columns}
+\vspace{0.1em}
+\begin{itemize}\footnotesize
+  \item Treated endpoints gain residents and jobs (net change small) but reshuffle the network.
+  \item \bad{$\beta<0$} pushes homes off the densifying hubs.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Result 4. Why Commute $\neq$ Welfare ($\alpha$--$\beta$ grid)}
+\framesubtitle{BPR-score selection, top 100, $\lambda=1.1$. ST direct $\equiv-1.63$ s and $\bar W$ ST $\equiv+0.94\%$ throughout.}
+\begin{columns}[T,onlytextwidth]
+\column{0.5\textwidth}
+\centering Vary $\alpha$ ($\beta=-0.10$)\\[2pt]
+\scriptsize
+\begin{tabular}{cccc}
+\toprule
+$\alpha$ & sort (s) & per-min/day & $\bar W$ LT \\
+\midrule
+$-0.12$ & $-3.63$ & $-6417$ & $-0.32\%$ \\
+$0$     & $-1.33$ & $-2960$ & $-0.60\%$ \\
+$+0.03$ & $-0.25$ & $-1343$ & $-0.73\%$ \\
+$\mathbf{+0.05}$ & $\mathbf{+0.71}$ & $\mathbf{+95}$ & $\mathbf{-0.85\%}$ \\
+$+0.10$ & $+4.88$ & $+6340$ & $-1.34\%$ \\
+\bottomrule
+\end{tabular}
+\column{0.5\textwidth}
+\centering Vary $\beta$ ($\alpha=+0.05$)\\[2pt]
+\scriptsize
+\begin{tabular}{cccc}
+\toprule
+$\beta$ & sort (s) & per-min/day & $\bar W$ LT \\
+\midrule
+$\mathbf{-0.10}$ & $\mathbf{+0.71}$ & $\mathbf{+95}$ & $\mathbf{-0.85\%}$ \\
+$0$     & $-1.57$ & $-3173$ & $-1.11\%$ \\
+$+0.05$ & $-4.64$ & $-7579$ & $-1.49\%$ \\
+$+0.10$ & \multicolumn{3}{c}{\emph{not converged (appendix only)}} \\
+\bottomrule
+\end{tabular}
+\end{columns}
+\vspace{0.4em}
+\begin{itemize}\footnotesize
+  \item \bad{$\bar W$ LT $<0$ in every converged cell}, monotone in both $\alpha$ and $\beta$.
+  \item Commute-LT sign is the \good{$\alpha$--$\beta$ knife-edge}: at $\alpha{=}{-}.12$ commute improves a lot ($-6417$) yet $\bar W$ still falls.
+  \item \textbf{Time savings $\neq$ welfare.} \app{appgrid}\;\app{appgridext}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Result 5. Exogenous vs.\ Endogenous Feedback}
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+Counterfactual & exogenous $\tau$ & endogenous \\
+\midrule
+CF1 symmetric cost & $-2.77\%$ & $\approx 0\%$ \\
+CF3 uniform $\times1.10$ & $-0.40\%$ & $-0.12\%$ \\
+Tidal top100 (LT) & n/a & $\bad{-0.85\%}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.4em}
+\begin{itemize}\small
+  \item Anchored congestion \good{re-floods} pure-$\tau$ shocks: symmetrization and uniform speed-ups are largely undone as $\Xi$ re-equilibrates.
+  \item \good{Tidal works because it changes capacity $n$} (which enters the anchor), not a $\tau$ multiplier. That is the theoretical reason the instrument bites. \app{appexog}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[label=result6]{Result 6. Policy Comparison (ST / LT $\bar W$)}
+\framesubtitle{Same gate5 mainline; endogenous anchored congestion ($\lambda=1.1$). Lane-km matched to P2/P3 expansion $\approx 1{,}092$ km.}
+\begin{center}\scriptsize
+\begin{tabular}{lcccr}
+\toprule
+Policy & ST $\bar W$ & LT $\bar W$ & lane-km & Role \\
+\midrule
+P6 first-best pricing & \good{$+15.3\%$} & $-0.49\%$ & 0 & welfare upper bound \\
+P3 expansion (qdelay top100) & \good{$+1.65\%$} & \bad{$-1.39\%$} & 1{,}092 & large ST, LT sorting cost \\
+P2 expansion (same corridor) & $+0.99\%$ & $-0.92\%$ & 1{,}092 & matched lane budget \\
+\textbf{P1 tidal (top100)} & \good{$+0.94\%$} & \bad{$-0.85\%$} & \good{\textbf{0}} & \textbf{zero net capacity} \\
+P7 cordon (q0.9) & $-0.19\%$ & $+0.09\%$ & 0 & weak LT gain \\
+P4 uniform (matched km) & $-0.02\%$ & $-0.02\%$ & 1{,}092 & undirected benchmark \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.3em}
+\begin{itemize}\footnotesize
+  \item \textbf{Takeaway:} pricing dominates on $\bar W$; undirected expansion buys lane-km but LT welfare stays negative once sorting feeds back.
+  \item \textbf{Tidal niche:} \good{zero lane-km}, \good{directional} capacity shift; ST welfare near expansion, without building roads. \app{apppolicy}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion}
+\begin{enumerate}
+  \item \textbf{Directional congestion is a widespread, first-order urban feature.}
+  \begin{itemize}\footnotesize
+    \item Across top-50 cities, \good{$\sim$52\%} of weighted OD pairs are $\geq10\%$ asymmetric (median ratio $0.90$); flow-weighted Shenzhen is stronger ($0.82$); it persists down to Beijing road segments.
+  \end{itemize}
+  \item \textbf{Ignoring direction mis-measures welfare.}
+  \begin{itemize}\footnotesize
+    \item A symmetric commuting cost smooths the bottlenecks and \bad{overstates} welfare (CF1 symmetric $-2.77\%$ under exogenous $\tau$ vs $\approx0\%$ once congestion re-equilibrates), and mis-allocates real commute exposure.
+    \item Capturing the policy needs \emph{both} directional cost and endogenous feedback.
+  \end{itemize}
+  \item \textbf{Tidal lanes: cost-effective and directional, not welfare-maximizing.}
+  \begin{itemize}\footnotesize
+    \item Short run they save time ($-1.63$ s, $\bar W$ $+0.94\%$); long run, sorting capitalizes the gain into market access, so commute nets to $\approx0$ ($+95$/day) and $\bar W$ turns \bad{$-0.85\%$} (loss via $\Pi$, robust across $\alpha,\beta$).
+    \item Versus pricing and matched expansion (Result~6): \good{zero net lane-km} and directional targeting; not the aggregate-welfare maximum.
+  \end{itemize}
+\end{enumerate}
+\end{frame}
+
+% =====================================================================
+\appendix
+\section{Appendix}
+% =====================================================================
+\begin{frame}[label=appdata]{Appendix: Data Construction}
+\begin{itemize}\small
+  \item \textbf{Links.}
+  \begin{itemize}\footnotesize
+    \item Raw road geometry to links between adjacent nodes; drop duplicate/unusable records.
+    \item Each physical road kept as symmetric infrastructure with two directed flows.
+  \end{itemize}
+  \item \textbf{Speeds.}
+  \begin{itemize}\footnotesize
+    \item $v_{klh}=\mathrm{dist}_{kl}/\mathrm{time}_{klh}$, inverse speed $m_{klh}=v_{klh}^{-1}$; AM peak selected.
+  \end{itemize}
+  \item \textbf{Grid and OD.}
+  \begin{itemize}\footnotesize
+    \item Locations aggregated to square cells; OD commuting linked to the network.
+    \item Restrict to the largest connected component, with a detour gate to drop implausible links.
+  \end{itemize}
+  \item \textbf{Lanes.}
+  \begin{itemize}\footnotesize
+    \item $n_{kl}$ from a corrected road-segment lane lookup; $1074$ unique values, $p50\approx3.4$.
+  \end{itemize}
+\end{itemize}
+\centering\back{data}
+\end{frame}
+
+\begin{frame}[label=appfund]{Appendix: Inverting Fundamentals}
+\begin{itemize}\small
+  \item Treat the observed allocation as an equilibrium; recover $(\bar u_i^\theta,\bar A_j^\theta)$ by alternating updates with geometric-mean normalization over identifying (positive-on-both-sides) nodes.
+  \item $\kappa$ rescaling enforces the spectral-radius condition $\rho(A)<1$; counterfactual ratios are invariant to $\kappa$ (held fixed across baseline / anchor / CF).
+  \item Fit: $\mathrm{corr}(\bar A_j,L_j^F)=0.67$, $\mathrm{corr}(\bar u_i,L_i^R)=0.30$; welfare geographically diffuse (top-5 nodes $=4.2\%$ of $\bar W$ weight).
+\end{itemize}
+\centering\back{data}
+\end{frame}
+
+\begin{frame}[label=appestim]{Appendix: Estimation / Solver}
+\begin{itemize}\small
+  \item \textbf{Calibration (external):} $(\theta,\alpha,\beta)$ from AA / literature; $\lambda_{\mathrm{phys}}=1.1$ from Barwick et al.\ (2024) mapping---\emph{not} structurally estimated on Beijing flows (no directed traffic panel yet).
+  \item Anchored implementation: $t_{kl}=\max\big(t_{kl}^{ff},\,t_{kl}^{\mathrm{obs}}[(\Xi_{kl}/\Xi_{kl}^{\mathrm{obs}})(n_{kl}^{\mathrm{obs}}/n_{kl})]^{\lambda}\big)$; median $t/t^{\mathrm{obs}}\approx 1.00$ (see free-flow floor note above).
+  \item Level-form solver: outer loop on $t_{kl}$, inner alternating solve of $(L^R,L^F)$ then market access $(\Pi,P)$; damped log-update.
+  \item Stability needs $\alpha\theta<1$ and $|\alpha\beta\theta^2|<1$ (satisfied on the grid); $\alpha>0$ uses $\mathrm{damping}=0.10$, $\mathrm{max\_outer}=500$, $\mathrm{tol}=10^{-4}$.
+  \item Full parameter map: \texttt{Documents/L2\_notes/TidalLanes\_estimation\_notes.pdf}.
+\end{itemize}
+\centering\back{data}
+\end{frame}
+
+\begin{frame}[label=appgrid]{Appendix: Full $\alpha$--$\beta$ Sensitivity (9 cells)}
+\scriptsize
+\begin{center}
+\begin{tabular}{ccccccc}
+\toprule
+$\alpha$ & $\beta$ & ST dir (s) & sort (s) & LT (s) & per-min/day & $\bar W$ LT \\
+\midrule
+$-0.12$ & $-0.10$ & $-1.63$ & $-3.63$ & $-4.37$ & $-6417$ & $-0.32\%$ \\
+$0.00$ & $-0.10$ & $-1.63$ & $-1.33$ & $-2.02$ & $-2960$ & $-0.60\%$ \\
+$0.02$ & $-0.10$ & $-1.63$ & $-0.65$ & $-1.32$ & $-1942$ & $-0.69\%$ \\
+$0.03$ & $-0.10$ & $-1.63$ & $-0.25$ & $-0.91$ & $-1343$ & $-0.73\%$ \\
+$\mathbf{0.05}$ & $\mathbf{-0.10}$ & $\mathbf{-1.63}$ & $\mathbf{+0.71}$ & $\mathbf{+0.06}$ & $\mathbf{+95}$ & $\mathbf{-0.85\%}$ \\
+$0.10$ & $-0.10$ & $-1.63$ & $+4.88$ & $+4.32$ & $+6340$ & $-1.34\%$ \\
+$0.05$ & $0.00$ & $-1.63$ & $-1.57$ & $-2.16$ & $-3173$ & $-1.11\%$ \\
+$0.05$ & $0.05$ & $-1.63$ & $-4.64$ & $-5.16$ & $-7579$ & $-1.49\%$ \\
+$0.05$ & $0.10$ & \multicolumn{5}{c}{\emph{not converged} (median $\tau/\tau^{\mathrm{obs}}\approx1.35$); diagnostic only} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\centering\back{data}
+\end{frame}
+
+\begin{frame}[label=appgridext]{Appendix: Extended $\alpha$--$\beta$ Grid (+9 cells)}
+\scriptsize
+\begin{itemize}\footnotesize
+  \item Adds targeted cells (negative $\alpha$, $\beta\in\{-0.12,-0.08,-0.05\}$, etc.) to search for $\bar W_{\mathrm{LT}}>0$; all converged cells remain \bad{negative}.
+  \item Best LT welfare in extended grid: $(\alpha,\beta)=(-0.12,-0.12)$ $\Rightarrow$ $\bar W_{\mathrm{LT}}=\bad{-0.32\%}$ (person-min/day $-6{,}197$).
+\end{itemize}
+\vspace{0.2em}
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+$(\alpha,\beta)$ & sort (s) & per-min/day & $\bar W$ LT & conv. \\
+\midrule
+$(-0.12,-0.12)$ & $-3.47$ & $-6{,}197$ & \textbf{$-0.32\%$} & yes \\
+$(-0.12,-0.10)$ & $-3.63$ & $-6{,}417$ & $-0.32\%$ & yes \\
+$(+0.05,-0.10)$ & $+0.71$ & $+95$ & $-0.85\%$ & yes (main) \\
+$(+0.05,+0.10)$ & --- & --- & --- & \emph{no} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\centering\back{data}
+\end{frame}
+
+\begin{frame}[label=apppolicy]{Appendix: Policy Comparison (P1--P7)}
+\scriptsize
+\begin{center}
+\begin{tabular}{lccccc}
+\toprule
+Policy & horizon & $\bar W$ chg & res.\ diss.\ (\%) & wp.\ diss.\ (\%) & lane-km \\
+\midrule
+P1 tidal top100 & ST & $+0.94\%$ & $\approx 0$ & $\approx 0$ & 0 \\
+P1 tidal top100 & LT & $-0.85\%$ & 0.86 & 1.79 & 0 \\
+P6 first-best pricing & ST & $+15.3\%$ & $\approx 0$ & $\approx 0$ & 0 \\
+P6 first-best pricing & LT & $-0.49\%$ & 5.87 & 10.33 & 0 \\
+P3 qdelay expansion & ST & $+1.65\%$ & $\approx 0$ & $\approx 0$ & 1{,}092 \\
+P3 qdelay expansion & LT & $-1.39\%$ & 1.10 & 1.92 & 1{,}092 \\
+P2 same-corridor exp. & LT & $-0.92\%$ & 0.94 & 1.70 & 1{,}092 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.2em}
+\begin{itemize}\footnotesize
+  \item Source: \texttt{policy\_comparison\_gate5\_bpr\_pos05\_v1/results\_by\_policy.csv}.
+  \item Mean ST/LT $\bar W$ ranking: pricing $\gg$ qdelay expansion $>$ tidal $\approx$ same-corridor expansion.
+\end{itemize}
+\centering\back{result6}
+\end{frame}
+
+\begin{frame}[label=appexog]{Appendix: Exogenous vs.\ Endogenous (full)}
+\scriptsize
+\begin{center}
+\begin{tabular}{llcc}
+\toprule
+Family & CF & exog $\tau$ ($\bar W$) & endog ($\bar W$) \\
+\midrule
+structural & CF1 symmetric & $-2.77\%$ & $\approx 0\%$ \\
+structural & CF3 uniform $\times1.10$ & $-0.40\%$ & $-0.12\%$ \\
+structural & CF3 uniform $\times1.25$ & $-1.38\%$ & $-0.43\%$ \\
+place-based & uniform speed $+10\%$ & $-0.46\%$ & $+0.03\%$ \\
+place-based & hub access $+15\%$ & $-2.68\%$ & $+0.01\%$ \\
+place-based & hub productivity $+10\%$ & $-1.45\%$ & $-1.27\%$ \\
+place-based & outer-ring amenity $+10\%$ & $+0.57\%$ & $+0.49\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\vspace{0.3em}
+\begin{itemize}\footnotesize
+  \item Transport ($\tau$) shocks damp out under endogenous congestion; fundamental (productivity/amenity) shocks pass through.
+\end{itemize}
+\centering\back{data}
+\end{frame}
+
+\begin{frame}{Appendix: Robustness Notes}
+\begin{itemize}\small
+  \item \textbf{Selection.}
+  \begin{itemize}\footnotesize
+    \item BPR congestion score is main; the asymmetry-ratio rule ($\tau_{\text{slow}}/\tau_{\text{fast}}$) is robustness (overlap $\sim$38/100).
+    \item Under the asymmetry-ratio rule, the main spec gives ST $-0.79$ s, $\bar W$ LT $-0.37\%$ (same signs, smaller magnitudes).
+  \end{itemize}
+  \item \textbf{Congestion band.}
+  \begin{itemize}\footnotesize
+    \item Main $\lambda=1.1$; robustness $\lambda=0.57$ (legacy AA slope band): top100 LT person-min $\approx -1{,}168$/day vs.\ $+95$ at $\lambda=1.1$.
+  \end{itemize}
+  \item \textbf{Convergence.}
+  \begin{itemize}\footnotesize
+    \item All main cells converge to $\mathrm{tol}=10^{-4}$; residual dominated by $\sim$8\% of edges with $\tau^{\mathrm{obs}}<\tau^{\mathrm{ff}}$ (free-flow floor), independent of policy.
+    \item $\beta\geq+0.10$ fails to converge under $\lambda=1.1$.
+  \end{itemize}
+\end{itemize}
+\centering\back{data}
+\end{frame}
+
+\end{document}

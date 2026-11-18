@@ -1,4 +1,4 @@
-# Writing Style Guide — Urban Economics / Spatial Economics
+# Writing Style Guide: Urban Economics / Spatial Economics
 
 This file is the single source of truth for written output in the TidalLanes project. It applies to any text a model produces in this repo: LaTeX prose in the paper, abstracts and slide text, referee responses, memos, and long-form documentation. Every agent (Claude and any subagent) must read this file before generating English prose for the project and must conform to it strictly.
 
@@ -16,9 +16,28 @@ If a project-level instruction (for example in `AGENTS.md` or `nextstep.md`) con
 
 ## 1. Core stylistic mandates
 
+### 1.0 Coauthor-facing writing: plain language first
+
+This is the highest-priority style rule for any document that will be shared with coauthors. Write for a busy reader, not for a model evaluator.
+
+- Lead with the conclusion. The first paragraph or first slide should say what we found and why it matters.
+- Use short, direct sentences and familiar words. If a simpler word is accurate, use it.
+- Explain the result before describing the workflow. Do not make the reader reconstruct the conclusion from methods, diagnostics, or file history.
+- Keep only the evidence needed to support the conclusion. Move implementation detail, specification inventories, and caveats that do not change the takeaway to an appendix or internal note.
+- State the main limitation in plain language. Do not bury it in technical qualifications.
+- Avoid inflated academic phrasing, generic scene-setting, symmetrical slogans, and prose that sounds polished without conveying new information.
+
+A coauthor summary should normally answer three questions in this order:
+
+1. What did we find?
+2. What evidence supports it?
+3. What remains uncertain or what should we do next?
+
+Technical precision still matters, but it does not justify unnecessary jargon. When a technical term is needed, define it in ordinary language on first use. This section overrides any vocabulary preference below when the preferred term would make the document harder to read.
+
 ### 1.1 Spatial and economic precision
 
-Avoid vague descriptions of growth, change, or activity. Name the economic object. Prefer the technical term to a paraphrase.
+Avoid vague descriptions of growth, change, or activity. Name the economic object, but use a technical term only when it adds precision. Explain unfamiliar terms in plain language on first use.
 
 Preferred vocabulary: *agglomeration economies, centripetal and centrifugal forces, spatial equilibrium, idiosyncratic preferences, comparative statics, general equilibrium, reduced form, structural estimand, market access, sorting, spillover, congestion externality, iceberg cost, exact-hat algebra*. See Section 5 for a fuller list.
 
@@ -61,24 +80,19 @@ The following are AI "fingerprints" and must not appear in prose:
 - "Tapestry of…"
 - "At the heart of…"
 
-### 2.1 Verb substitutions
+### 2.1 Word choice
 
-The left column is the prose default for AI text. Use the right column, except where the left-hand form is a fixed usage in a proof environment or a technical clause.
+Prefer the shortest accurate word. Do not replace a familiar verb with a formal synonym merely to sound academic.
 
-| Avoid | Prefer |
+| Avoid when a simpler word is accurate | Prefer |
 |---|---|
-| show / demonstrate (in prose) | establish, deliver, imply, evince |
-| improve | ameliorate, raise, reduce, tighten, sharpen |
-| big, large (in prose) | substantial, nontrivial, first-order, economically meaningful |
-| small (in prose) | modest, second-order, quantitatively limited |
-| a lot of | substantial, considerable |
-| use (where precise) | exploit, deploy, leverage (only if accurate) |
+| demonstrate, establish, evince | show, find |
+| ameliorate | improve, reduce |
+| utilise, leverage, deploy, exploit | use |
+| substantial, nontrivial, first-order | large, important, meaningful |
+| quantitatively limited, second-order | small, limited |
 
-Exceptions retained intact:
-
-- "prove" in a proof environment or in "Proposition / Lemma … proved in Appendix X".
-- "large" / "small" when describing a parameter or object where the adjective is a technical statement (for example "$\theta$ large", "the largest weakly connected component of $(\N,\E)$").
-- "show" in standard regression description ("Column (3) shows the IV estimate") is acceptable if used sparingly.
+Use the more technical form only when it carries a distinct meaning. For example, a proof may establish a proposition, an instrument may identify a parameter, and a policy may reduce congestion rather than generically improve an outcome.
 
 ---
 
@@ -184,11 +198,12 @@ Before returning prose, the agent runs the following checklist. Any item that fa
 
 1. Zero em-dashes (—) and zero LaTeX `---`.
 2. Zero forbidden AI fingerprints (Section 2).
-3. *show / prove / improve / big / large* replaced in prose, retained only in technical or proof-environment usage.
-4. Causal claims hedged to match the identification that supports them.
-5. No sandwich paragraphs. Each paragraph's last sentence advances the argument.
-6. Terminology matches Section 5.
-7. Active voice for theory; passive voice for data and procedure.
-8. For LaTeX files: compiles cleanly with zero undefined references, citations, or control sequences.
+3. For coauthor-facing documents, the conclusion appears before process details and can be understood without reading the appendix.
+4. Every sentence uses the simplest wording that preserves the economic meaning.
+5. Causal claims are hedged to match the identification that supports them.
+6. No sandwich paragraphs. Each paragraph's last sentence advances the argument.
+7. Technical terms from Section 5 are used only where they add precision and are explained on first use when needed.
+8. Active voice for theory; passive voice for data and procedure.
+9. For LaTeX files: compiles cleanly with zero undefined references, citations, or control sequences.
 
 Do not include conversational filler, acknowledgements, or meta-commentary about the task. Begin immediately with the requested text.

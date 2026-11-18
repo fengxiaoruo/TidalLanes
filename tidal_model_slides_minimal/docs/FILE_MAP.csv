@@ -1,0 +1,103 @@
+package_path,main_project_path,kind,origin_or_source
+tidal.tex,Documents/PreSlides/Tidal0715.tex,slide source,"Current seminar deck source (Tidal0715), copied as tidal.tex"
+references.bib,Documents/PreSlides/references.bib,bibliography,BibTeX database for the slide citations
+tidal.pdf,Documents/PreSlides/Tidal0718.pdf,compiled slide deck,"Compiled current seminar deck (Tidal0718.pdf), copied as tidal.pdf"
+tidal_speaker_script.md,Documents/PreSlides/tidal_speaker_script_Tidal0715_20260718.md,speaker script,Slide-by-slide speaker script aligned with the Tidal0715 deck
+figs/speed_eg.png,Documents/PreSlides/figs/speed_eg.png,figure,Baidu 2025 one-week speed example figure
+figs/cityBeijing_c.jpg,Documents/PreSlides/figs/cityBeijing_c.jpg,figure,"Opening photo, Beijing"
+figs/cityWuhan_c.jpg,Documents/PreSlides/figs/cityWuhan_c.jpg,figure,"Opening photo, Wuhan"
+figs/cityShenzhen2_c.jpg,Documents/PreSlides/figs/cityShenzhen2_c.jpg,figure,"Opening photo, Shenzhen"
+figs/cityKualaLumpur_c.jpg,Documents/PreSlides/figs/cityKualaLumpur_c.jpg,figure,"Opening photo, Kuala Lumpur"
+figs/pat_national_ratio_hist.png,Documents/PreSlides/figs/pat_national_ratio_hist.png,figure,National top-100 city speed asymmetry summary
+figs/pat_congestion_am_scatter.png,Documents/PreSlides/figs/pat_congestion_am_scatter.png,figure,National top-100 city congestion and asymmetry summary
+figs/pat_bj_centerline_map.png,Documents/PreSlides/figs/pat_bj_centerline_map.png,figure,Beijing centerline directional speed validation
+figs/pat_bj_centerline_hist.png,Documents/PreSlides/figs/pat_bj_centerline_hist.png,figure,Beijing centerline directional speed validation
+figs/pat_jobs_housing_top20_gap_lollipop.pdf,Documents/PreSlides/figs/pat_jobs_housing_top20_gap_lollipop.pdf,figure,Top-20 city center-bound minus reverse commuting share
+figs/pat_jobs_housing_balance.png,Documents/PreSlides/figs/pat_jobs_housing_balance.png,figure,Beijing jobs-residents balance map
+figs/link_time_construction_actual.pdf,Documents/PreSlides/figs/link_time_construction_actual.pdf,figure,Adjacent-grid physical-minute construction example
+figs/app_edgeproj_adjacent_m_obs_slide.pdf,Documents/PreSlides/figs/app_edgeproj_adjacent_m_obs_slide.pdf,figure,Observed directed grid-link minutes map
+figs/route_examples/route_example_01.png,Documents/PreSlides/figs/route_examples/route_example_01.png,figure,Selected shortest directed road path example
+figs/fund_ubar.png,Documents/PreSlides/figs/fund_ubar.png,figure,Inverted residential fundamental map
+figs/fund_abar.png,Documents/PreSlides/figs/fund_abar.png,figure,Inverted workplace/productivity fundamental map
+figs/symmetry_fundamental_relative_change.pdf,Documents/PreSlides/figs/symmetry_fundamental_relative_change.pdf,figure,Symmetric-minus-directed fundamental radial profile
+figs/map_treated_overlay.png,Documents/PreSlides/figs/map_treated_overlay.png,figure,Top-100 tidal candidate overlay
+figs/sort_lR.png,Documents/PreSlides/figs/sort_lR.png,figure,Long-run residential sorting map
+figs/sort_lF.png,Documents/PreSlides/figs/sort_lF.png,figure,Long-run workplace sorting map
+figs/app_duncan_cross_city.png,Documents/PreSlides/figs/app_duncan_cross_city.png,figure,Beijing jobs-housing Duncan benchmark appendix figure
+figs/map_link_welfare_elast.png,Documents/PreSlides/figs/map_link_welfare_elast.png,figure,Per-link welfare elasticity map
+figs/caitian_0709_pre_tracking.jpg,Documents/PreSlides/figs/caitian_0709_pre_tracking.jpg,figure,Caitian video pre-opening tracking frame
+figs/caitian_0709_late_post_tracking.jpg,Documents/PreSlides/figs/caitian_0709_late_post_tracking.jpg,figure,Caitian video post-opening tracking frame
+figs/figure_od_validation_structural_central99.pdf,data_work/outputs/od_validation_aa_style_gate5_bpr_pos05_v1/figures/figure_od_validation_structural_central99.pdf,figure,AA-style bilateral OD validation scatter (path rewritten to figs/ on sync)
+figs/TidalVedio/pic.jpg,Documents/PreSlides/figs/TidalVedio/pic.jpg,figure,Embedded tidal-lane field video preview image
+tidal_advisor_revision_round2_20260703.pdf,Documents/PreSlides/tidal_advisor_revision_round2_20260703.pdf,figure,Advisor-revision deck; page 23 is included as the tidal-lane schematic
+A6_XiaoruoFeng_DirectionalCongestion_video.mov,Documents/PreSlides/A6_XiaoruoFeng_DirectionalCongestion_video.mov,video,Run-linked field video on the motivation slide
+outputs/model_input_edgeproj_v2_lcc_gate5_v1/data/qsm_input_nodes_square.parquet,data_work/outputs/model_input_edgeproj_v2_lcc_gate5_v1/data/qsm_input_nodes_square.parquet,aggregate data,"Baidu 2022 commuting flow marginals plus grid nodes, aggregated for model input"
+outputs/model_input_edgeproj_v2_lcc_gate5_v1/data/qsm_input_edges_square.parquet,data_work/outputs/model_input_edgeproj_v2_lcc_gate5_v1/data/qsm_input_edges_square.parquet,aggregate data,Baidu 2025 AM and night speed data aggregated to directed grid links
+outputs/model_input_edgeproj_v2_lcc_gate5_v1/data/qsm_input_od_square.parquet,data_work/outputs/model_input_edgeproj_v2_lcc_gate5_v1/data/qsm_input_od_square.parquet,aggregate data,Baidu 2022 commuting flow data aggregated to model OD grid pairs
+outputs/model_input_edgeproj_v2_lcc_gate5_v1/data/data_quality_square_qsm.csv,data_work/outputs/model_input_edgeproj_v2_lcc_gate5_v1/data/data_quality_square_qsm.csv,aggregate data QA,Model input data-quality summary
+outputs/model_input_edgeproj_v2_lcc_gate5_v1/config_snapshot.travel_cost_bundle.json,data_work/outputs/model_input_edgeproj_v2_lcc_gate5_v1/config_snapshot.travel_cost_bundle.json,config,Travel-cost bundle config snapshot
+outputs/model_input_edgeproj_v2_lcc_gate5_v1/travel_cost_bundle_summary.json,data_work/outputs/model_input_edgeproj_v2_lcc_gate5_v1/metrics/travel_cost_bundle_summary.json,metadata,Travel-cost bundle summary
+outputs/model_input_edgeproj_v2_lcc_gate5_v1/model_input_qa.json,data_work/outputs/model_input_edgeproj_v2_lcc_gate5_v1/qa/model_input_qa.json,metadata,Model input QA summary
+outputs/reference_results/tidal_st_lt_compact.csv,data_work/outputs/tidal_lane_diagnostics_gate5_bpr_pos05_physical_time_v2/tidal_st_lt_compact.csv,reference result,Main tidal ST/LT decomposition (physical minutes)
+outputs/reference_results/tidal_st_lt_congestion_summary.csv,data_work/outputs/tidal_lane_diagnostics_gate5_bpr_pos05_physical_time_v2/tidal_st_lt_congestion_summary.csv,reference result,Main tidal congestion summary (physical minutes)
+outputs/reference_results/alpha_beta_sensitivity_grid.csv,data_work/outputs/alpha_beta_sensitivity_bpr_pos05_physical_time_v1/sensitivity_grid.csv,reference result,Alpha-beta sensitivity grid (physical minutes)
+outputs/reference_results/alpha_beta_sensitivity_grid_converged.csv,data_work/outputs/alpha_beta_sensitivity_bpr_pos05_physical_time_v1/sensitivity_grid_converged.csv,reference result,Converged alpha-beta sensitivity grid (physical minutes)
+outputs/reference_results/structural_cf_exogenous.csv,data_work/outputs/stage2_endogenous_edgeproj_v2_lcc_gate5_bpr_pos05_v1/counterfactuals/structural_cf_exogenous.csv,reference result,Exogenous structural counterfactuals
+outputs/reference_results/structural_cf_endogenous.csv,data_work/outputs/stage2_endogenous_edgeproj_v2_lcc_gate5_bpr_pos05_v1/counterfactuals/structural_cf_endogenous.csv,reference result,Endogenous structural counterfactuals
+outputs/reference_results/tidal_lane_exogenous_bpr_grid.csv,data_work/outputs/stage2_endogenous_edgeproj_v2_lcc_gate5_bpr_pos05_v1/counterfactuals/tidal_lane_exogenous_bpr_grid.csv,reference result,Fixed-Xi tidal BPR grid
+outputs/reference_results/policy_cf_all_modes.csv,data_work/outputs/stage2_endogenous_edgeproj_v2_lcc_gate5_bpr_pos05_v1/counterfactuals/policy_cf_all_modes.csv,reference result,Structural policy counterfactuals
+outputs/reference_results/policy_results_by_policy.csv,data_work/outputs/policy_comparison_gate5_bpr_pos05_auditfix_v1/results_by_policy.csv,reference result,Policy comparison table
+outputs/reference_results/policy_cost_effectiveness.csv,data_work/outputs/policy_comparison_gate5_bpr_pos05_auditfix_v1/cost_effectiveness.csv,reference result,Policy cost-effectiveness and lane-km table
+outputs/reference_results/policy_policies_manifest.json,data_work/outputs/policy_comparison_gate5_bpr_pos05_auditfix_v1/policies_manifest.json,reference result,Policy comparison manifest
+outputs/reference_results/symmetry_directionality_summary.csv,data_work/outputs/symmetry_directionality_suite_gate5_bpr_pos05_v1/summary_by_scenario.csv,reference result,Symmetry-to-directionality diagnostic suite
+outputs/reference_results/symmetry_directionality_meta.json,data_work/outputs/symmetry_directionality_suite_gate5_bpr_pos05_v1/suite_meta.json,reference result,Symmetry-to-directionality suite manifest
+outputs/reference_results/beijing_grid_population_clusters_square.csv,data_work/outputs/beijing_commuting_direction_evidence_v1/data/grid_population_clusters_square.csv,reference result,Beijing grid jobs-residents aggregate used for jobs-housing separation metrics
+outputs/reference_results/beijing_duncan_cross_city.csv,data_work/outputs/beijing_commuting_direction_evidence_v1/metrics/duncan_cross_city.csv,reference result,Top-100 city township-level jobs-housing Duncan benchmark
+outputs/reference_results/beijing_inbound_sector_summary.csv,data_work/outputs/beijing_commuting_direction_evidence_v1/metrics/inbound_sector_summary.csv,reference result,Beijing radial inbound-reverse AM sector summary
+outputs/reference_results/beijing_jobs_housing_mismatch_metrics.json,data_work/outputs/beijing_commuting_direction_evidence_v1/metrics/jobs_housing_mismatch_metrics.json,reference result,Beijing jobs-housing separation and radial direction metrics
+outputs/reference_results/national_pair_summary_baidu2025.csv,data_work/outputs/national_tidal_commuting_baidu2025_top100_congestion_v1/metrics/triple_crawl_20260514_15/pair_summary.csv,reference result,National top-100 city pair-level AM/PM directional asymmetry summary
+outputs/reference_results/national_city_summary_baidu2025.csv,data_work/outputs/national_tidal_commuting_baidu2025_top100_congestion_v1/metrics/triple_crawl_20260514_15/city_summary.csv,reference result,National top-100 city weighted directional asymmetry summary
+outputs/reference_results/national_congestion_asymmetry_correlation_baidu2025.csv,data_work/outputs/national_tidal_commuting_baidu2025_top100_congestion_v1/metrics/triple_crawl_20260514_15/congestion_asymmetry_correlation.csv,reference result,National Baidu commute-peak congestion index and AM asymmetry correlation
+outputs/reference_results/shenzhen_flow_weighted_asymmetry_summary.csv,data_work/outputs/shenzhen_gridlevel_spatial_asymmetry_v1/metrics/flow_weighted_asymmetry_summary.csv,reference result,Shenzhen grid-level flow-weighted directional asymmetry summary
+outputs/reference_results/beijing_centerline_asymmetry_table.csv,data_work/outputs/manual_centerline_rules_v11/data/centerline_asymmetry_table.csv,reference result,Beijing AM road-centerline directional speed asymmetry table
+src/model/full_estimation/__init__.py,data_work/src/model/full_estimation/__init__.py,model code,Minimal full-estimation module
+src/model/full_estimation/build_primitives.py,data_work/src/model/full_estimation/build_primitives.py,model code,Minimal full-estimation module
+src/model/full_estimation/parameters.py,data_work/src/model/full_estimation/parameters.py,model code,Minimal full-estimation module
+src/model/full_estimation/invert_fundamentals.py,data_work/src/model/full_estimation/invert_fundamentals.py,model code,Minimal full-estimation module
+src/model/full_estimation/equilibrium_solve.py,data_work/src/model/full_estimation/equilibrium_solve.py,model code,Minimal full-estimation module
+src/model/full_estimation/lambda_diagnostic.py,data_work/src/model/full_estimation/lambda_diagnostic.py,model code,Minimal full-estimation module
+src/model/full_estimation/stage2_counterfactuals.py,data_work/src/model/full_estimation/stage2_counterfactuals.py,model code,Minimal full-estimation module
+src/model/full_estimation/counterfactual_levels.py,data_work/src/model/full_estimation/counterfactual_levels.py,model code,Minimal full-estimation module
+src/model/full_estimation/phase_metrics_common.py,data_work/src/model/full_estimation/phase_metrics_common.py,model code,Minimal full-estimation module
+src/model/full_estimation/tidal_lane_diagnostics.py,data_work/src/model/full_estimation/tidal_lane_diagnostics.py,model code,Minimal full-estimation module
+src/model/full_estimation/run_stage2_gate5.py,data_work/src/model/full_estimation/run_stage2_gate5.py,model code,Minimal full-estimation module
+src/model/full_estimation/run_tidal_lane_diagnostics_gate5.py,data_work/src/model/full_estimation/run_tidal_lane_diagnostics_gate5.py,model code,Minimal full-estimation module
+src/model/full_estimation/run_policy_comparison_gate5.py,data_work/src/model/full_estimation/run_policy_comparison_gate5.py,model code,Minimal full-estimation module
+src/model/full_estimation/run_alpha_beta_sensitivity_bpr_gate5.py,data_work/src/model/full_estimation/run_alpha_beta_sensitivity_bpr_gate5.py,model code,Minimal full-estimation module
+src/model/full_estimation/run_symmetry_directionality_suite_gate5.py,data_work/src/model/full_estimation/run_symmetry_directionality_suite_gate5.py,model code,Minimal full-estimation module
+src/model/full_estimation/run_alpha_robustness_quick_gate5.py,data_work/src/model/full_estimation/run_alpha_robustness_quick_gate5.py,model code,Minimal full-estimation module
+src/model/directional_cost/__init__.py,data_work/src/model/directional_cost/__init__.py,model code,Minimal directional-cost module
+src/model/directional_cost/fixed_tau_model.py,data_work/src/model/directional_cost/fixed_tau_model.py,model code,Minimal directional-cost module
+src/model/directional_cost/policy_counterfactuals.py,data_work/src/model/directional_cost/policy_counterfactuals.py,model code,Minimal directional-cost module
+src/model/directional_cost/tidal_lane_counterfactuals.py,data_work/src/model/directional_cost/tidal_lane_counterfactuals.py,model code,Minimal directional-cost module
+src/model/__init__.py,data_work/src/model/__init__.py,model code,Python package marker
+MAIN_REPO,PACKAGE_LOCAL,package workflow,Relative path from this package to the main TidalLanes repo
+.gitignore,PACKAGE_LOCAL,package workflow,Package-local workflow file
+Makefile,PACKAGE_LOCAL,package workflow,Package-local workflow file
+README.md,PACKAGE_LOCAL,package workflow,Package-local documentation
+requirements.txt,PACKAGE_LOCAL,package workflow,Package-local dependency note
+scripts/check_package.py,PACKAGE_LOCAL,package workflow,Package-local validation script
+scripts/package_manifest.py,PACKAGE_LOCAL,package workflow,Package manifest and sync specs
+scripts/slide_metric_checks.py,PACKAGE_LOCAL,package workflow,Package-local validation script
+scripts/smoke_model.py,PACKAGE_LOCAL,package workflow,Package-local validation script
+scripts/repo_paths.py,PACKAGE_LOCAL,package workflow,Main-repo relative path resolver
+scripts/sync_from_main.py,PACKAGE_LOCAL,package workflow,Package-local sync script
+scripts/push_to_main.py,PACKAGE_LOCAL,package workflow,Package-local push-back script
+scripts/validate_full_model.py,PACKAGE_LOCAL,package workflow,Package-local full-validation script
+docs/MANIFEST.md,PACKAGE_LOCAL,package workflow,Minimal package scope note
+docs/SOURCE_NOTES.md,PACKAGE_LOCAL,package workflow,Package-local provenance note
+docs/SYNC_WORKFLOW.md,PACKAGE_LOCAL,package workflow,Package-local sync note
+docs/VALIDATION_20260702.md,PACKAGE_LOCAL,package workflow,Package-local validation record
+docs/VALIDATION_20260926.md,PACKAGE_LOCAL,package workflow,Package-local validation record (physical-time reference update)
+src/model/full_estimation/ESTIMATION_NOTES.md,PACKAGE_LOCAL,package workflow,Package-local estimation notes with 2026-09-26 status update
+src/__init__.py,PACKAGE_LOCAL,package workflow,Package-local Python package marker

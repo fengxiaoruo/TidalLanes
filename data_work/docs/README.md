@@ -1,33 +1,17 @@
-# Documentation Index
+# data_work/docs
 
-This directory stores project-level reference documents for the current refactor.
+Pipeline documentation, evidence memos, and the work log.
 
-Current documents:
+The catalogue of every document in the project, with its status and what supersedes it, lives in [`DOCUMENT_INDEX.md`](../../DOCUMENT_INDEX.md) at the repository root. That file is maintained; this one is not a second list.
 
-- `WORK_LOG.md`
-  Running log of completed work, locked parameters, and retained decisions. The live plan stays in `nextstep.md`.
-- `CODEX_HANDOFF_NOTE.md`
-  Compact handoff memo for a new Codex session on another machine.
-- `DATASET_SCHEMA_SNAPSHOT.md`
-  Intermediate dataset schema snapshot inferred from the existing pipeline.
-- `HOW_TO_RERUN_PARTIAL_RESULTS.md`
-  Practical guide for manually changing stage parameters and rerunning only the affected outputs or figures.
-- `MANUAL_MATCH_OVERRIDE_WORKFLOW.md`
-  Short workflow for fixing the remaining unmatched raw segments by hand and rerunning stage02 with a manual override CSV.
-- `NEW_MACHINE_SETUP_CHECKLIST.md`
-  Environment and verification checklist for moving the project to a new computer.
-- `QUICK_RERUN_CHEATSHEET.md`
-  Short command lookup table for common parameter edits and partial reruns.
-- `REPRODUCIBILITY_SNAPSHOT.md`
-  Current working pipeline, required inputs, final outputs, and workflow order.
-- `REFACTOR_BLUEPRINT.md`
-  Target structure for refactoring the project into stage-based scripts, versioned outputs, and comparison-friendly data products.
-- `TEMP_STAGE02_PROJECTION_DEBUG.md`
-  Temporary note for tuning only the stage02 projection fallback on the baseline unmatched subset.
+## The three that matter most
 
-Migration status:
+| File | Use |
+|---|---|
+| `WORK_LOG.md` | Completed work, locked parameters, retained decisions. Append here rather than editing history. |
+| `STAGE2_MAINLINE_GATE5.md` | The locked Stage 2 specification the mainline actually runs. |
+| `HOW_TO_RERUN_PARTIAL_RESULTS.md` | How to change a parameter and rerun only what depends on it. |
 
-- Documentation migration has started.
-- Core documentation is now centralized here.
-- A first stage-based production chain has been created under `src/stages/`.
-- Existing notebooks in `code/` remain important as the baseline source logic during migration.
+## `_superseded/`
+
+Documents from the March pipeline refactor and the prototype model line, moved aside on 2026-07-27. They record how the project reached its current structure and are kept for provenance. Nothing in that directory describes current behaviour; read it only to understand a historical decision.

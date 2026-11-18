@@ -1,0 +1,669 @@
+%====================================================================
+%  Stage 2: Endogenous Congestion Spatial Equilibrium (full specification)
+%  Beijing gate5 — builds on Stage 1; observed-anchored congestion (v2026-06-29)
+%====================================================================
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx,booktabs,tabularx,array,setspace,float,enumitem}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\setstretch{1.15}
+\setlength{\parindent}{1.5em}
+
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+
+\newcommand{\N}{\mathcal N}
+\newcommand{\E}{\mathcal E}
+\newcommand{\Lbar}{\bar L}
+\newcommand{\Wbar}{\bar W}
+\newcommand{\ubar}{\bar u}
+\newcommand{\Abar}{\bar A}
+\newcommand{\obs}{\mathrm{obs}}
+\newcommand{\ff}{\mathrm{ff}}
+\newcommand{\corr}{\mathrm{corr}}
+
+\title{Stage~2: Endogenous Congestion\\[0.4em]
+\large Beijing Morning Peak, \texttt{model\_input\_edgeproj\_v2\_lcc\_gate5\_v1}\\[0.2em]
+\normalsize Observed-anchored congestion, level-form solver, full CF suite}
+\author{Yige Duan \and Xiaoruo Feng \and Yizhen Gu}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent
+This note documents the \textbf{current} Stage~2 implementation: a level-form
+Allen--Arkolakis spatial equilibrium on the gate5 Beijing network with
+\textbf{link-level congestion feedback} activated.
+It extends Stage~1 (\path{FixedDirectedCost_Stage1_gate5.tex}), which held
+$\tau_{kl}=\tau^{\obs}_{kl}$ fixed.
+Stage~2 keeps the same input bundle, inversion of $(\ubar,\Abar)$ on observed
+marginals, and counterfactual taxonomy, but replaces the fixed-cost assumption
+with a nested fixed point in which model-implied directed traffic $\Xi_{kl}$
+and travel times $\tau_{kl}$ co-evolve.
+
+The \textbf{baseline congestion specification} adopted in the current code is
+the \emph{observed-anchored} (exact-hat) update: baseline travel times match
+$\tau^{\obs}$ by construction, and the Beijing literature elasticity
+$\lambda_{\mathrm{phys}}=1.1$ acts only on \emph{relative} deviations of
+$(\Xi,n)$ from the observed allocation.
+We document the full equation system, estimation status (external calibration
+only), nested algorithm, transmission paths, counterfactual suite, code map,
+model-validation diagnostics (implied $\Xi$, OD fit), and tidal-lane
+short-run vs.\ long-run congestion-cost decomposition.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+%====================================================================
+\section{Relation to Stage~1 and scope}\label{sec:scope}
+%====================================================================
+
+Stage~1 answered: \emph{under fixed $\tau^{\obs}$, how much do directed vs.\
+symmetric calibration worlds differ in implied OD, access, and post-calibration
+transport shocks?}
+Stage~2 adds the feedback loop missing in Stage~1:
+\begin{equation}\label{eq:feedback_loop}
+  \underbrace{(l^R,l^F,\Pi,P)}_{\text{sorting \& access}}
+  \;\Longrightarrow\;
+  \underbrace{\Xi_{kl}}_{\text{(E5) link traffic}}
+  \;\Longrightarrow\;
+  \underbrace{\tau_{kl}}_{\text{(E6) congestion}}
+  \;\Longrightarrow\;
+  \underbrace{T,\tau_{ij}}_{\text{route aggregation}}
+  \;\Longrightarrow\;
+  \text{back to sorting}.
+\end{equation}
+
+\paragraph{What carries over unchanged from Stage~1.}
+Same $N=1104$ nodes, $|\E|=2642$ directed edges, $\Lbar\approx 88{,}110$ road
+commuters, $\tau^{\obs}_{kl}$ from \texttt{edgeproj\_v2} + LCC + detour gate
+$G=5$.
+Same inversion step: recover $(\ubar_i^{\theta},\Abar_j^{\theta},\chi)$ that
+rationalise observed residence and workplace \emph{marginals} at $\tau^{\obs}$.
+Same policy taxonomy (uniform speed, hub access, hub productivity, outer amenity,
+fringe transport) and tidal-lane pair selection (top-$K$ asymmetric corridors,
+$\Delta n$ lane reallocation).
+
+\paragraph{What is new in Stage~2.}
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{(E5)--(E6)} endogenous $\Xi_{kl}$ and $\tau_{kl}$.
+  \item Two \textbf{congestion modes} for every CF: \emph{exogenous} $\tau$
+        (Stage~1 replica on the level-form stack) vs.\ \emph{endogenous} $\tau$.
+  \item \textbf{Observed-anchored} congestion as the preferred endogenous spec
+        (§\ref{sec:anchored}).
+  \item \textbf{Short-run / long-run} horizons for tidal lanes (pinned vs.\ free
+        sorting).
+  \item \textbf{Congestion-cost decomposition} beyond $\Wbar$
+        (§\ref{sec:tidal_diagnostics}).
+\end{enumerate}
+
+\paragraph{Headline estimands.}
+As in Stage~1, full bilateral OD replication is \emph{not} a success criterion
+(marginal fit only).
+Under anchored congestion, \textbf{baseline levels} of $\tau$ are pinned;
+\textbf{counterfactuals} should be read as \emph{relative changes}:
+$\Delta\Wbar$, OD-weighted route-cost changes, treated-edge $\Delta\tau$,
+and $(\Xi/\Xi^{\obs})$ responses.
+
+%====================================================================
+\section{Environment and notation}\label{sec:data}
+%====================================================================
+
+Directed edges $(k,l)\in\E$ carry length $\ell_{kl}$ (km), lane count $n_{kl}$,
+free-flow time $\tau^{\ff}_{kl}=\ell_{kl}/v^0_{kl}$, and observed peak time
+$\tau^{\obs}_{kl}$.
+Iceberg cost $t_{kl}=(\tau_{kl})^{\theta}$ with Frechet shape $\theta=6.83$.
+
+\begin{table}[htbp]
+  \centering
+  \caption{External parameters (AA Seattle placeholders, gate5)}
+  \begin{tabular}{llr}
+  \toprule
+  Symbol & Meaning & Value \\
+  \midrule
+  $\theta$ & Route dispersion / iceberg exponent & $6.83$ \\
+  $\alpha$ & Workplace spillover elasticity & $-0.12$ \\
+  $\beta$  & Residence spillover elasticity & $-0.10$ \\
+  $\lambda_{\mathrm{phys}}$ & Beijing inverse-speed elasticity (Barwick et al.) & $\approx 1.1$ \\
+  $\lambda_{\mathrm{AA}}$ & Iceberg congestion exponent $=\lambda_{\mathrm{phys}}/\theta$ & $\approx 0.161$ \\
+  $\delta_1$ (legacy) & AA Seattle BPR exponent in Stage~1 tidal BPR & $0.488$ \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+Input bundle:
+\texttt{data\_work/outputs/model\_input\_edgeproj\_v2\_lcc\_gate5\_v1/}.
+
+%====================================================================
+\section{Model}\label{sec:model}
+%====================================================================
+
+\subsection{Route aggregation and bilateral costs}
+
+Define the adjacency system with uniform rescaling $\kappa$ (spectral guard):
+\begin{equation}
+  A_{kl} = \frac{1}{\kappa\,\tau_{kl}},
+  \qquad
+  T = (I-A)^{-1},
+  \qquad
+  \tau_{ij}^{-\theta} = T_{ij}.
+  \label{eq:route_agg}
+\end{equation}
+On gate5, $\kappa=1$ under anchored baseline.
+
+\subsection{Sorting, market access, and welfare}
+
+Residence and workplace shares $(l_i^R,l_j^F)$ solve the level-form
+(E\_R)--(E\_F) system with inverted fundamentals and scale $\chi$ from Step~4:
+\begin{align}
+  (l_i^R)^{1-\beta\theta} &= \chi\,\ubar_i^{\theta}\sum_j \tau_{ij}^{-\theta}\,
+    \Abar_j^{\theta}\,(l_j^F)^{\alpha\theta}, \label{eq:ER}\\
+  (l_j^F)^{1-\alpha\theta} &= \chi\,\Abar_j^{\theta}\sum_i \tau_{ij}^{-\theta}\,
+    \ubar_i^{\theta}\,(l_i^R)^{\beta\theta}. \label{eq:EF}
+\end{align}
+Market access:
+\begin{align}
+  \Pi_i^{-\theta} &= \sum_j \tau_{ij}^{-\theta}\,L_j^F\,P_j^{\theta},
+    \label{eq:Pi}\\
+  P_j^{-\theta}   &= \sum_i \tau_{ij}^{-\theta}\,L_i^R\,\Pi_i^{\theta}.
+    \label{eq:P}
+\end{align}
+Aggregate welfare (reported, not headline):
+\begin{equation}
+  \Wbar = \Big[\sum_i \ubar_i^{\theta}\,(L_i^R)^{\beta\theta}\,
+    \Pi_i^{-\theta}\Big]^{1/\theta}.
+\end{equation}
+
+\subsection{Directed link traffic (E5)}
+
+\begin{equation}
+  \Xi_{kl} = t_{kl}^{-\theta}\,P_k^{-\theta}\,\Pi_l^{-\theta},
+  \qquad t_{kl} = \tau_{kl}^{1/\theta}.
+  \label{eq:E5}
+\end{equation}
+\emph{Interpretation.} $\Xi_{kl}$ is \textbf{model-assigned expected commuter
+mass} on directed link $(k,l)$ implied by Frechet routing and market access.
+It is \textbf{not} observed link counts nor vehicles/lane-km.
+It correlates with destination employment ($\corr(\ln\Xi,\ln L^F_j)\approx +0.46$)
+but \textbf{not} with observed congestion ($\corr(\ln\Xi,\ln(\tau^{\obs}/\tau^{\ff}))\approx +0.08$).
+
+\subsection{Congestion technology (E6): three implemented forms}\label{sec:anchored}
+
+\paragraph{Legacy level form (deprecated for baseline).}
+\begin{equation}
+  \tau_{kl} \leftarrow \max\Big\{\tau^{\ff}_{kl},\;
+    \tau^{\ff}_{kl}\Big(\frac{\Xi_{kl}}{n_{kl}}\Big)^{\lambda}\Big\}.
+  \label{eq:E6_legacy}
+\end{equation}
+Fails to reproduce $\tau^{\obs}$ when $\lambda$ is borrowed from Beijing
+literature: raw $\Xi/n$ has no physical density scale.
+
+\paragraph{Density-normalised level form (robustness).}
+\begin{equation}
+  \tau_{kl} \leftarrow \max\Big\{\tau^{\ff}_{kl},\;
+    \tau^{\ff}_{kl}\Big(\frac{\Xi_{kl}}{n_{kl}\ell_{kl}}\Big)^{\lambda_{\mathrm{phys}}}\Big\}.
+  \label{eq:E6_density}
+\end{equation}
+Aligns units with vehicles/lane-km but still does not pin baseline $\tau$.
+
+\paragraph{Observed-anchored form (\textbf{current baseline}).}
+Compute observation anchors at fixed $\tau^{\obs}$:
+\begin{equation}
+  \Xi^{\obs}_{kl} := \Xi_{kl}\big|_{\tau=\tau^{\obs},\,(l^R,l^F,\Pi,P)\,\text{at obs allocation}}.
+  \label{eq:Xi_obs}
+\end{equation}
+Then update:
+\begin{equation}
+  \boxed{
+  \tau_{kl} \leftarrow \max\left\{\tau^{\ff}_{kl},\;
+    \tau^{\obs}_{kl}\left(
+      \frac{\Xi_{kl}}{\Xi^{\obs}_{kl}}\cdot
+      \frac{n^{\obs}_{kl}}{n_{kl}}
+    \right)^{\lambda_{\mathrm{phys}}}
+  \right\}.
+  }
+  \label{eq:E6_anchored}
+\end{equation}
+At the observation point ($\Xi=\Xi^{\obs}$, $n=n^{\obs}$), $\tau=\tau^{\obs}$
+by construction.
+$\lambda_{\mathrm{phys}}=1.1$ (Barwick et al.\ Beijing) governs \emph{response
+to relative load/capacity changes} around that point---consistent with exact-hat
+counterfactual logic.
+
+\begin{remark}[What ``anchored'' does and does not fix]
+Anchoring fixes \textbf{level misalignment} of $\tau$ and the arbitrary scale of
+$\Xi$.
+It does \textbf{not} make $\Xi^{\obs}$ a validated traffic count; baseline OD
+matrix fit remains poor (§\ref{sec:validation}).
+CF credibility rests on \textbf{relative} cost changes, not on $\Xi$ levels
+matching road sensors.
+\end{remark}
+
+\subsection{Congestion modes in counterfactuals}
+
+\begin{itemize}[leftmargin=2em]
+  \item \textbf{Exogenous $\tau$} (\texttt{endogenous\_congestion=False}):
+        $\tau_{kl}$ fixed at policy-adjusted values; re-solve
+        \eqref{eq:ER}--\eqref{eq:P} only. Replicates Stage~1 shocks on the
+        level-form solver.
+  \item \textbf{Endogenous $\tau$}: outer loop on \eqref{eq:E6_anchored}
+        (or legacy/density variants); transport shocks scale $\tau^{\ff}$;
+        lane shocks change $n_{kl}$.
+  \item \textbf{Short-run tidal}: pin $(l^R,l^F)$ at baseline while $\tau$
+        updates (mechanical + partial GE on network).
+  \item \textbf{Long-run tidal}: free sorting after lane shock.
+\end{itemize}
+
+%====================================================================
+\section{Estimation and calibration}\label{sec:estimation}
+%====================================================================
+
+There is \textbf{no structural estimation} of $(\theta,\alpha,\beta,\lambda)$ in
+the current pipeline---all are external placeholders pending alignment with
+coauthors and Beijing-specific work.
+
+\subsection{Step 1: Primitives (\texttt{build\_primitives.py})}
+
+Load nodes, directed edges, OD flows from
+\texttt{model\_input\_edgeproj\_v2\_lcc\_gate5\_v1}.
+Export $\ell_{kl},v^0_{kl},v^{\obs}_{kl},\tau^{\ff}_{kl},\tau^{\obs}_{kl},
+n_{kl},L^{\obs}_{ij},L^{\obs,R}_i,L^{\obs,F}_j,\Lbar$.
+
+\subsection{Step 2: Parameters (\texttt{parameters.py})}
+
+Frozen dataclass \texttt{Parameters} with AA Seattle $(\theta,\alpha,\beta)$ and
+optional \texttt{with\_lambda()} override.
+Beijing mapping: use $\lambda_{\mathrm{phys}}=1.1$ in \eqref{eq:E6_anchored}
+via \texttt{congestion\_lambda=1.1} in the solver (not $\lambda_{\mathrm{AA}}=0.161$
+unless using iceberg-normalised power on $\Xi/n$ without anchoring).
+
+\subsection{Step 3: $\lambda$ diagnostic (\texttt{lambda\_diagnostic.py})}
+
+Cross-section regression (lane-bin FE), diagnostic only:
+\begin{equation}
+  \ln(\tau^{\obs}_{kl}/\tau^{\ff}_{kl})
+  = \lambda\,\ln(\hat\Xi_{kl}/n_{kl}) + \varepsilon_{kl}.
+\end{equation}
+At legacy placeholder $\lambda=0.071$, $\hat\lambda\approx 0.017$ on gate5---confirms
+model $\hat\Xi$ is a weak proxy for observed congestion.
+\textbf{Not} used to set $\lambda_{\mathrm{phys}}=1.1$ in anchored spec.
+
+\subsection{Step 4: Inversion (\texttt{invert\_fundamentals.py})}
+
+\begin{assumption}[Observed marginals are equilibrium moments]
+\label{ass:marginals}
+At $\tau=\tau^{\obs}$, observed shares $(l^{R,\obs},l^{F,\obs})$ equal the
+(E\_R)--(E\_F) system for some $(\ubar_i^{\theta},\Abar_j^{\theta},\chi)$.
+\end{assumption}
+Alternating updates on $(\ubar^{\theta},\Abar^{\theta})$ with geometric-mean
+normalisation; output held fixed in all CFs.
+Marginal fit: L1 $\lesssim 0.03\%$ on gate5.
+
+\subsection{Step 5: Equilibrium solve (\texttt{equilibrium\_solve.py})}
+
+See §\ref{sec:algorithm}.
+No exact-hat algebra: every scenario re-solves levels from $(\ubar,\Abar,\chi)$.
+
+%====================================================================
+\section{Nested algorithm}\label{sec:algorithm}
+%====================================================================
+
+\subsection{Outer loop (congestion)}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Initialise $\tau_{kl}\leftarrow\tau^{\obs}_{kl}$ (or CF-adjusted seed).
+  \item \textbf{Inner A}: build $A(\tau)$, $T$, solve \eqref{eq:ER}--\eqref{eq:EF}
+        for $(l^R,l^F)$ unless short-run pins apply.
+  \item \textbf{Inner B}: solve \eqref{eq:Pi}--\eqref{eq:P} for $(\Pi,P)$.
+  \item Compute $\Xi$ from \eqref{eq:E5}.
+  \item If exogenous mode: stop.
+  \item Else update $\tau$ via \eqref{eq:E6_anchored} (or legacy/density).
+  \item \textbf{Damping} in log space:
+        $\log\tau \leftarrow (1-d)\log\tau + d\log\tau_{\mathrm{new}}$.
+        For $\lambda_{\mathrm{phys}}=1.1$ anchored, use $d=0.25$ (smaller steps
+        prevent oscillation; $d=0.5$ may fail to converge).
+  \item Repeat until $\max|\log\tau^{(k+1)}-\log\tau^{(k)}|<10^{-5}$.
+\end{enumerate}
+
+\subsection{Observation anchors (\texttt{compute\_observation\_anchors})}
+
+One exogenous-$\tau$ pass at $\tau^{\obs}$ yields $(\Xi^{\obs},l^R,l^F,\Pi,P)$
+stored for \eqref{eq:E6_anchored}.
+Anchors recomputed when fundamentals or $\tau^{\obs}$ change.
+
+\subsection{Counterfactual execution order}
+
+\begin{enumerate}[leftmargin=2em]
+  \item Invert fundamentals (once).
+  \item Baselines: exogenous $\tau^{\obs}$ and endogenous anchored.
+  \item Policy CFs: each policy $\times$ (exog/endog) relative to \emph{own} baseline.
+  \item Structural CF1 (geometric symmetric $\tau$ init), CF2 (tidal lanes),
+        CF3 (uniform $n$ expansion) --- endogenous anchored.
+  \item Tidal grid: endogenous ST/LT; exogenous BPR grid (Stage~1 fixed-$\xi$
+        on treated edges only).
+\end{enumerate}
+
+%====================================================================
+\section{Transmission mechanisms}\label{sec:transmission}
+%====================================================================
+
+\subsection{Policy shocks}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Transmission map (endogenous anchored)}
+  \small
+  \begin{tabular}{p{3.2cm}p{4.2cm}p{5.5cm}}
+  \toprule
+  Shock & Direct primitive & GE chain \\
+  \midrule
+  Uniform $\tau^{\ff}\downarrow$ &
+    All edges faster free-flow &
+    $\tau\downarrow\to T\downarrow\to$ access $\uparrow\to\Xi\uparrow\to$
+    anchored $\tau$ partially rebounds; $L_{ij}$ shift \\
+  Hub access $\tau^{\ff}\downarrow$ on hub-touching edges &
+    Cheaper access to employment centres &
+    Load concentrates on hub edges; $\Xi/\Xi^{\obs}$ rises on hubs;
+    $\tau$ rebound can dominate local speed gain \\
+  Hub/outer $\ubar,\Abar$ shocks &
+    Local fundamentals &
+    Minimal $\Xi$ channel; exog/endog wedges small \\
+  Fringe transport &
+    Outer-ring $\tau^{\ff}\downarrow$ &
+    Similar to uniform but spatially localised \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Why exogenous vs.\ endogenous wedges differ.}
+Exogenous rows isolate the \emph{first} transport effect holding $\Xi$ fixed
+implicitly.
+Endogenous rows add steps $\Xi\uparrow$ and $\tau$ rebound through
+\eqref{eq:E6_anchored}, shrinking or reversing welfare gains when loads rise
+on already-congested corridors.
+
+\subsection{Tidal lanes}
+
+On each treated asymmetric pair $(\text{slow},\text{fast})$:
+$n_{\text{slow}}\mathrel{+}=\Delta n$, $n_{\text{fast}}\mathrel{-}=\Delta n$.
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Direct mechanical}: capacity ratio $n^{\obs}/n$ changes $\Rightarrow$
+        $\tau$ shifts via \eqref{eq:E6_anchored} even at fixed $\Xi$.
+  \item \textbf{Network spillover}: new $\tau$ $\Rightarrow$ new $T$, re-routing,
+        $\Xi$ shifts on \emph{untreated} edges too (unlike Stage~1 BPR grid).
+  \item \textbf{Short-run}: $(l^R,l^F)$ pinned $\Rightarrow$ only steps 1--2;
+        first-order route-cost change visible (§\ref{sec:tidal_diagnostics}).
+  \item \textbf{Long-run}: sorting adjusts; sorting wedge between ST and LT.
+\end{enumerate}
+
+Typical treated-edge pattern (long-run, top-50, $\Delta n=1$):
+slow direction $\Delta\tau\approx -16\%$, fast direction $\Delta\tau\approx +26\%$;
+network-average $\Delta\Wbar$ remains $\lesssim 0.1\%$ because fundamentals
+fixed and OD mass reweights toward hub corridors only slightly.
+
+%====================================================================
+\section{Code map}\label{sec:code}
+%====================================================================
+
+\begin{table}[htbp]
+  \centering
+  \caption{\texttt{data\_work/src/model/full\_estimation/} layout}
+  \small
+  \begin{tabular}{p{5.5cm}p{8.5cm}}
+  \toprule
+  Module & Role \\
+  \midrule
+  \texttt{build\_primitives.py} & Step~1: parquet $\to$ \texttt{Primitives} \\
+  \texttt{parameters.py} & Step~2: $(\theta,\alpha,\beta,\lambda)$ \\
+  \texttt{lambda\_diagnostic.py} & Step~3: cross-section $\hat\lambda$ (check only) \\
+  \texttt{invert\_fundamentals.py} & Step~4: $(\ubar,\Abar,\chi)$ \\
+  \texttt{equilibrium\_solve.py} & Step~5: nested loop; \texttt{congestion\_form} $\in$
+        \{\texttt{legacy}, \texttt{density}, \texttt{anchored}\} \\
+  \texttt{stage2\_counterfactuals.py} & Policy + tidal + structural CF orchestration \\
+  \texttt{counterfactual\_levels.py} & CF1 symmetric / CF2 tidal / CF3 uniform \\
+  \texttt{run\_stage2\_gate5.py} & Main driver (diagnostic-$\lambda$ or placeholder) \\
+  \texttt{run\_congestion\_lambda11\_comparison.py} & Legacy vs density vs anchored \\
+  \texttt{tidal\_lane\_diagnostics.py} & ST/LT congestion-cost decomposition \\
+  \texttt{run\_tidal\_lane\_diagnostics\_gate5.py} & Tidal diagnostics driver \\
+  \texttt{directional\_cost/} & Stage~1 static tools, \texttt{predicted\_od\_shares},
+        \texttt{comparison\_summary} \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+\paragraph{Main commands.}
+\begin{verbatim}
+# Full Stage 2 pipeline (default: diagnostic lambda two-phase)
+python3 data_work/src/model/full_estimation/run_stage2_gate5.py
+
+# Anchored lambda=1.1 tidal ST/LT diagnostics
+python3 data_work/src/model/full_estimation/run_tidal_lane_diagnostics_gate5.py
+
+# Congestion-spec comparison (legacy / density / anchored)
+python3 data_work/src/model/full_estimation/run_congestion_lambda11_comparison.py
+\end{verbatim}
+
+\paragraph{Output roots.}
+\begin{itemize}[leftmargin=2em]
+  \item \texttt{stage2\_endogenous\_edgeproj\_v2\_lcc\_gate5\_v1/}
+  \item \texttt{tidal\_lane\_diagnostics\_edgeproj\_v2\_lcc\_gate5\_v1/}
+  \item \texttt{congestion\_lambda11\_comparison\_edgeproj\_v2\_lcc\_gate5\_v1/}
+  \item \texttt{anchored\_model\_audit\_gate5\_v1/}
+\end{itemize}
+
+Handoff memos:
+\path{Documents/L2_notes/stage2_endogenous_congestion_handoff_20260628.md},
+\path{Documents/L2_notes/congestion_lambda11_density_vs_anchored_20260629.md},
+\path{Documents/L2_notes/tidal_lane_st_lt_congestion_diagnostics_20260629.md}.
+
+%====================================================================
+\section{Results: baselines and policy CFs}\label{sec:results}
+%====================================================================
+
+\subsection{Baselines (anchored $\lambda_{\mathrm{phys}}=1.1$, $d=0.25$)}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Baselines (gate5)}
+  \begin{tabular}{lrrrr}
+  \toprule
+  Mode & $\Wbar$ & Mean $\tau/\tau^{\obs}$ & Median & Outer iters \\
+  \midrule
+  Exogenous $\tau^{\obs}$ & 1.861 & 1.000 & 1.000 & 1 \\
+  Endogenous anchored     & 1.861 & 1.001 & 1.000 & 36 \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+Legacy unanchored + diagnostic $\lambda\approx 0.017$ (old default) pulled mean
+$\tau$ $\approx 20\%$ below $\tau^{\obs}$---superseded by anchored spec.
+
+\subsection{Policy counterfactuals (anchored endogenous vs.\ respective baseline)}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Policy CFs (\% change vs.\ own baseline, anchored $\lambda=1.1$)}
+  \label{tab:policy}
+  \small
+  \begin{tabular}{lrrrr}
+  \toprule
+  Policy & $\Delta\Wbar$ (exog) & $\Delta\Wbar$ (endog) & OD dissim.\ (endog) &
+    Mean $\Delta\Xi$ (endog) \\
+  \midrule
+  Uniform +10\% speed  & $+0.81$ & $+0.02$  & 0.05 & $+0.4$ \\
+  Hub access +15\%     & $+0.16$ & $+0.01$  & 0.05 & $+0.1$ \\
+  Hub productivity +10\% & $-0.68$ & $-0.59$ & 0.40 & $-1.4$ \\
+  Outer amenity +10\%  & $+0.35$ & $+0.30$  & 0.20 & $+0.8$ \\
+  Fringe transport +20\% & $+0.56$ & $+0.58$ & 0.54 & $+20$ \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+Under anchored baseline, transport-policy $\Delta\Wbar$ shrink toward zero
+relative to legacy unanchored runs; interpretation shifts to route-cost and
+$\Xi/\Xi^{\obs}$ objects.
+
+%====================================================================
+\section{Structural and tidal counterfactuals}\label{sec:structural}
+%====================================================================
+
+\paragraph{CF1.} Symmetric corridor cost: initialise $\tau$ from geometric mean
+of $(\tau^{\obs}_{kl},\tau^{\obs}_{lk})$ on reciprocal pairs; re-solve anchored
+equilibrium. $\Delta\Wbar\approx 0$ (symmetrisation negligible at gate5 scale).
+
+\paragraph{CF2--CF3.} Tidal top-$K$ and uniform lane expansion ($\times 1.10,1.25,1.50$).
+
+\paragraph{Tidal ST/LT (anchored, $\lambda=1.1$).}
+
+\begin{table}[htbp]
+  \centering
+  \caption{Tidal lanes: welfare and congestion cost}
+  \label{tab:tidal}
+  \small
+  \begin{tabular}{lrrrrr}
+  \toprule
+  Spec & $\Delta\Wbar$ ST & $\Delta\Wbar$ LT &
+    $\Delta$cost ST (s) & $\Delta$cost LT (s) & Pairs \\
+  \midrule
+  top-25, $\Delta n=1$  & $+0.04$ & $-0.03$ & $-0.12$ & $-0.44$ & 25 \\
+  top-50, $\Delta n=1$  & $+0.13$ & $-0.06$ & $-0.42$ & $-0.83$ & 50 \\
+  top-100, $\Delta n=1$ & $+0.28$ & $-0.12$ & $-0.72$ & $-1.24$ & 100 \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+$\Delta$cost = change in OD-weighted average bilateral route time holding
+baseline shares (ST) or with long-run shares (LT); see §\ref{sec:tidal_diagnostics}.
+
+Exogenous BPR grid (Stage~1 fixed-$\xi$, no spillover): 14 specs $\times$ ST/LT;
+$\Delta\Wbar\in[-0.04\%,+0.01\%]$.
+
+%====================================================================
+\section{Tidal diagnostics: ST/LT decomposition}\label{sec:tidal_diagnostics}
+%====================================================================
+
+Beyond $\Wbar$, \texttt{tidal\_lane\_diagnostics.py} reports:
+
+\begin{align}
+  \Delta C^{\mathrm{ST}} &= \sum_{ij} s^{0}_{ij}\,\big(T^{\mathrm{ST}}_{ij}-T^{0}_{ij}\big),
+    \label{eq:ST_cost}\\
+  \Delta C^{\mathrm{LT}} &= \sum_{ij} s^{\mathrm{LT}}_{ij}\,T^{\mathrm{LT}}_{ij}
+    - \sum_{ij} s^{0}_{ij}\,T^{0}_{ij},
+    \label{eq:LT_cost}
+\end{align}
+where $T_{ij}=\tau_{ij}$ (minutes), $s_{ij}$ model-implied OD shares.
+
+Decomposition:
+\begin{align*}
+  \Delta C^{\mathrm{LT}}
+  &= \underbrace{\sum_{ij}s^{0}_{ij}(T^{\mathrm{ST}}_{ij}-T^{0}_{ij})}_{\text{direct ST (pinned sorting)}}
+   + \underbrace{\sum_{ij}s^{0}_{ij}(T^{\mathrm{LT}}_{ij}-T^{\mathrm{ST}}_{ij})}_{\text{GE cost wedge}}
+   + \underbrace{\sum_{ij}(s^{\mathrm{LT}}_{ij}-s^{0}_{ij})T^{\mathrm{LT}}_{ij}}_{\text{sorting wedge}}.
+\end{align*}
+
+Treated-edge tables report slow/fast $\Delta\tau$ in minutes and percent.
+
+%====================================================================
+\section{Model validation and implied flows}\label{sec:validation}
+%====================================================================
+
+\subsection{Marginal vs.\ bilateral fit}
+
+\begin{table}[htbp]
+  \centering
+  \caption{OD fit (anchored baseline vs.\ observed $L_{ij}$)}
+  \begin{tabular}{lr}
+  \toprule
+  Metric & Value \\
+  \midrule
+  Global L1 (pred vs.\ obs) & $\approx 69\%$ \\
+  Off-diagonal L1 & $\approx 51\%$ \\
+  Intrazonal share: obs / pred & $8.0\%$ / $54.9\%$ \\
+  Weighted log correlation & $\approx 0.59$ \\
+  Residence marginal L1 & $\approx 0.02\%$ \\
+  Workplace marginal L1  & $\approx 0.03\%$ \\
+  \bottomrule
+  \end{tabular}
+\end{table}
+
+Anchoring $\tau$ does \textbf{not} improve OD fit (same as exogenous $\tau^{\obs}$).
+Primary miss: Leontief diagonal $T_{ii}$ inflates intrazonal $\widehat{L}_{ii}$.
+See \path{Documents/L2_notes/stage1_od_fit_diagnosis_and_handoff_20260628.md}.
+
+\subsection{Implied link traffic $\Xi$}
+
+At anchored baseline, $\Xi$ matches $\Xi^{\obs}$ (median deviation $0\%$,
+p95 $|\Delta|<2.4\%$).
+
+\paragraph{Spatial pattern (qualitative).}
+\begin{itemize}[leftmargin=2em]
+  \item Hub-touching edges: median $\Xi\approx 49$ vs.\ outer fringe $\approx 2.3$.
+  \item Top-loaded corridors cluster near high-$L^F$ grids (e.g.\ \texttt{sq\_22\_39}).
+  \item $\corr(\ln\Xi,\ln L^F_{\mathrm{dest}})\approx +0.46$; $\corr(\ln\Xi,\ln\Abar_{\mathrm{dest}})\approx +0.43$.
+\end{itemize}
+
+\paragraph{Not validated.}
+\begin{itemize}[leftmargin=2em]
+  \item $\corr(\ln\Xi,\ln(\tau^{\obs}/\tau^{\ff}))\approx +0.08$.
+  \item $\Xi$ should \textbf{not} be reported as ``traffic count'' in prose.
+\end{itemize}
+
+\subsection{Routine checks (checklist)}
+
+\begin{enumerate}[leftmargin=2em]
+  \item[\checkmark] Marginal inversion residuals.
+  \item[\checkmark] $\tau$ vs.\ $\tau^{\obs}$ under anchored baseline.
+  \item[\checkmark] $\Xi$ vs.\ $\Xi^{\obs}$ at baseline.
+  \item[\checkmark] OD fit decomposition (global / off-diag / intra).
+  \item[\checkmark] Exogenous vs.\ endogenous baseline comparison.
+  \item[\checkmark] Congestion-spec robustness (legacy / density / anchored).
+  \item[\checkmark] Tidal ST/LT cost decomposition.
+  \item[$\circ$] Intrazonal workplace-choice specs (\texttt{exclude\_diag\_plus\_proxy}).
+  \item[$\circ$] External validation (Shenzhen/Baidu corridor shocks).
+  \item[$\circ$] Structural $\lambda$ from panel link data.
+\end{enumerate}
+
+Audit CSV:
+\texttt{data\_work/outputs/anchored\_model\_audit\_gate5\_v1/}.
+
+%====================================================================
+\section{Interpretation for the paper}\label{sec:interpretation}
+%====================================================================
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{Stage~2 adds feedback} \eqref{eq:feedback_loop}; Stage~1 is the
+        exogenous-$\tau$ limit.
+  \item \textbf{Anchored congestion} is the operational spec: baseline travel
+        times match data; $\lambda=1.1$ applies to \emph{relative} capacity/load
+        changes---consistent with Barwick et al.\ and exact-hat CF logic.
+  \item \textbf{$\Wbar$ alone understates tidal policy}: report ST/LT route-cost
+        seconds and treated-edge $\Delta\tau\%$.
+  \item \textbf{Do not claim} full OD replication or that $\Xi$ matches road
+        sensors; do claim marginal calibration and relative counterfactual
+        transport costs.
+  \item \textbf{Next estimation}: panel/IV $\lambda$; optional SMM OD moments;
+        Shenzhen tidal experiment as external check on CF \emph{signs}.
+\end{enumerate}
+
+%====================================================================
+\section{Next steps}\label{sec:next}
+%====================================================================
+
+\begin{enumerate}[leftmargin=2em]
+  \item Wire \texttt{congestion\_form=anchored} as default in
+        \texttt{run\_stage2\_gate5.py} (replace diagnostic-$\lambda$ two-phase).
+  \item Figures: $\Xi$ heat map; tidal treated corridors; ST/LT cost bars.
+  \item Align $\theta,\alpha,\beta$ with coauthor calibration.
+  \item Directed vs.\ symmetric \emph{calibration world} under anchored congestion.
+  \item Manuscript merge: cross-ref Stage~1
+        \path{FixedDirectedCost_Stage1_gate5.tex} for data and Stage~1 CF baselines.
+\end{enumerate}
+
+\end{document}

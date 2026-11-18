@@ -1,0 +1,78 @@
+{
+  "version": "shenzhen_tidal_lane_operation_windows_v1",
+  "updated_on": "2026-06-28",
+  "source_note": "Shenzhen tidal-lane operation windows recorded from project-thread corrections and checked against Shenzhen public-security / traffic-police notices where available. Treat these as operation windows, not construction shocks.",
+  "default_urban_road_schedule": {
+    "days": "weekdays",
+    "note": "市区道路工作日实施"
+  },
+  "roads": [
+    {
+      "road_key": "caitian_road",
+      "road_name_cn": "彩田路",
+      "days": "weekdays",
+      "windows": [
+        {
+          "start": "16:30",
+          "end": "21:30"
+        }
+      ],
+      "analysis_note": "Main post-only Caitian Road active window."
+    },
+    {
+      "road_key": "xinzhou_road",
+      "road_name_cn": "新洲路",
+      "days": "weekdays",
+      "windows": [
+        {
+          "start": "17:30",
+          "end": "20:00"
+        }
+      ]
+    },
+    {
+      "road_key": "hongling_road",
+      "road_name_cn": "红岭路",
+      "days": "weekdays",
+      "windows": [
+        {
+          "start": "07:30",
+          "end": "09:30"
+        }
+      ]
+    },
+    {
+      "road_key": "wenjinbei_road",
+      "road_name_cn": "文锦北路",
+      "days": "weekdays",
+      "windows": [
+        {
+          "start": "07:00",
+          "end": "09:30"
+        },
+        {
+          "start": "18:00",
+          "end": "20:00"
+        }
+      ]
+    },
+    {
+      "road_key": "liuxian_avenue",
+      "road_name_cn": "留仙大道",
+      "days": "weekdays",
+      "windows": [
+        {
+          "start": "17:30",
+          "end": "20:00"
+        }
+      ]
+    },
+    {
+      "road_key": "huishen_yanhai_expressway",
+      "road_name_cn": "惠深沿海高速",
+      "days": "weekends_and_legal_holidays",
+      "windows": [],
+      "analysis_note": "Time is flexible; do not impose a fixed weekday active window."
+    }
+  ]
+}

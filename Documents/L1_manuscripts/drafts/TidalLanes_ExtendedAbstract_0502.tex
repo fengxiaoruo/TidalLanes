@@ -28,22 +28,30 @@ Yizhen Gu\thanks{Peking University HSBC Business School; \href{mailto:yizhengu@p
 
 \begin{abstract}
 Peak-period travel costs differ sharply between opposite directions of the same road. This paper measures that directional congestion margin and asks whether reallocating existing road capacity across directions can raise welfare. Using high-frequency Beijing road-speed data, granular grid-level commuting flows, and a national sample of heavily used township pairs, we estimate direction-specific speed and travel-time gaps on the same physical links. To interpret these patterns, we develop a quantitative spatial-equilibrium model with directed bilateral commuting costs, endogenous congestion, and Fréchet route choice. A tidal-lane counterfactual delivers a positive aggregate welfare gain, establishing that the directional margin of road capacity carries measurable welfare content.
+
+\vspace{0.5em}
+
+\noindent\textit{Keywords:} congestion; tidal lanes; commuting costs; transportation infrastructure; quantitative spatial equilibrium.
+
+\vspace{0.5em}
+
+\noindent\textit{JEL codes:} R41, R42, R48, R13.
 \end{abstract}
 
 %=====================================================================
 \section{Introduction}
 %=====================================================================
 
-Peak-hour congestion is directional. Morning traffic concentrates on roads that connect residential areas to employment centers, while evening traffic often reverses. On the same physical road, one direction may carry excess demand while the opposite direction has spare capacity. This wedge is the economic basis for tidal-lane reallocation, a policy that shifts lane capacity from the less congested direction to the more congested direction while holding road width fixed.
+Peak-hour congestion is directional. A substantial literature establishes that peak-period congestion can arise endogenously from the concentration of travel demand under fixed capacity, as commuters trade off travel time and schedule delay \citep{Vickrey1969,Arnott1993}. Morning traffic concentrates on roads that connect residential areas to employment centers, while evening traffic often reverses. On the same physical road, one direction may carry excess demand while the opposite direction has spare capacity. This wedge is the economic basis for tidal-lane reallocation, a policy that shifts lane capacity from the less congested direction to the more congested direction while holding road width fixed.
 
-The appeal of such capacity reallocation comes from the cost of expanding road supply in dense cities. Municipal governments devote substantial resources to expressways, ring roads, and other road infrastructure, yet peak-period congestion remains severe in major Chinese cities. Additional road construction faces high fiscal costs, long construction cycles, and binding land constraints in built-up urban areas. These constraints make better allocation of existing capacity a natural policy question. A tidal lane works within the existing road envelope. Its welfare value depends on a primitive that standard transport summaries often remove: the direction-specific capacity and cost of each corridor.
+The appeal of such capacity reallocation comes from the cost of expanding road supply in dense cities. Municipal governments devote substantial resources to expressways, ring roads, and other road infrastructure, yet peak-period congestion remains severe in major Chinese cities. Urban traffic congestion has been extensively studied in both theory and empirics, with a focus on its determinants, welfare costs, and policy responses \citep{Vickrey1969,Arnott1993,DurantonTurner2011,CoutureDurantonTurner2018}. Additional road construction faces high fiscal costs, long construction cycles, and binding land constraints in built-up urban areas. These constraints make better allocation of existing capacity a natural policy question. A tidal lane works within the existing road envelope. Its welfare value depends on a primitive that standard transport summaries often remove: the direction-specific capacity and cost of each corridor. Increases in road capacity are often offset by induced demand in the long run, limiting the effectiveness of expansion-based solutions \citep{DurantonTurner2011}.
 
 Measuring this primitive is not the same as measuring average travel time between two locations. Directional congestion must be observed on the same physical road, separated from permanent road-geometry differences, and then aggregated to the spatial unit used by the model. In Beijing, we combine high-frequency segment-level speed data with grid-level commuting flows. 
 
 
 The Beijing evidence indicates that directional asymmetry is not a rare local anomaly. Same-segment speed gaps are common during the morning peak: 11.0 percent of roads have one direction at least twice as fast as the other. The signal is also tied to the daily commuting pattern rather than only to fixed road geometry, since many corridors reverse their faster direction between the morning and evening peaks. After aggregation to the model grid system, the asymmetry remains economically meaningful, with an AM median directional ratio of 0.793 across adjacent square-grid pairs. The national evidence points in the same direction, with a morning-peak median slower-to-faster travel-time ratio of 0.856 and 67.5 percent of pairs below 0.90 in a sample of 1,000 heavily used township pairs across 20 congested Chinese cities.
 
-These empirical patterns matter for quantitative spatial models because commuting costs are a central input in the equilibrium system. Such models are widely used to study transportation infrastructure, location choice, market access, and the equilibrium welfare influence. Commuting costs shape bilateral commuting probabilities, determine the market access of residences and workplaces, affect the spatial allocation of workers and jobs, and enter welfare through the cost of reaching employment opportunities. Existing applications usually impose symmetry on this object. One approach starts from cross-sectional road or commuting flows and treats the two directions of a segment as sharing the same aggregate traffic condition. Another approach obtains travel times from routing APIs or map services but assigns an average across directions. These constructions are natural when the object is only about average accessibility, but they become restrictive when the policy reallocates capacity across directions.
+These empirical patterns matter for quantitative spatial models because commuting costs are a central input in the equilibrium system. Such models are widely used to study transportation infrastructure, location choice, market access, and welfare effects \citep{AllenArkolakis2014,Ahlfeldt2015,ReddingRossiHansberg2017}. Commuting costs shape bilateral commuting probabilities, determine the market access of residences and workplaces, affect the spatial allocation of workers and jobs, and enter welfare through the cost of reaching employment opportunities. Existing applications usually impose symmetry on this object. One approach starts from cross-sectional road or commuting flows and treats the two directions of a segment as sharing the same aggregate traffic condition. Another approach obtains travel times from routing APIs or map services but assigns an average across directions. These constructions are natural when the object is only about average accessibility, but they become restrictive when the policy reallocates capacity across directions.
 
 This paper relaxes that symmetry at both the measurement and modelling stages. First, it describes directional commuting patterns using within-city segment-level speed gaps, grid-level travel-time asymmetry, and national township-pair directional commuting cost differences. Second, it develops a quantitative spatial-equilibrium model with directed bilateral commuting costs, endogenous congestion, and Fr\'{e}chet route choice. Third, it applies the model to tidal-lane policy in Beijing. Because the model preserves the cost difference between the two directions of the same road, a counterfactual lane shift toward the more congested direction can affect route choice and, in turn, market access, location choices, and welfare. A preliminary counterfactual targeting the 100 most asymmetric adjacent pairs in the square-grid network yields a positive aggregate welfare gain, and a symmetric-versus-directional comparison will quantify the bias from imposing equal commuting costs in both directions.
 
@@ -90,7 +98,7 @@ is zero when the two directions have identical average speed and rises as direct
     \label{fig:asym-dist}
 \end{figure}
 
-The asymmetry pattern also varies over the day. Directional gaps appear in both morning and evening peaks, indicating that the signal is not only a fixed road-geometry difference; it also reflects peak-specific congestion pressure on one side of the road.
+The asymmetry pattern also varies over the day. Directional gaps appear in both morning and evening peaks, indicating that the signal reflects more than a fixed road-geometry difference; it also reflects peak-specific congestion pressure on one side of the road.
 
 \subsection{Grid-Level Directional Asymmetry}
 \label{ssec:grid-asym}
@@ -146,7 +154,7 @@ The figure establishes a national descriptive fact that motivates the model. In 
 \subsection{Setup}
 \label{ssec:setup}
 
-The city is partitioned into $N$ spatial cells $\mathcal{N} = \{1,\dots,N\}$. The road network is a directed graph $(\mathcal{N},\mathcal{E})$ with edge set $\mathcal{E} \subseteq \mathcal{N} \times \mathcal{N}$. Each directed edge $(k,l) \in \mathcal{E}$ carries physical length $\ell_{kl} > 0$, directed lane capacity $n_{kl} > 0$, free-flow speed $v^{0}_{kl} > 0$, realised speed $v_{kl} > 0$, directed traffic $\Xi_{kl}$, and iceberg link cost $t_{kl}$. Directionality is allowed in every primitive: $\ell_{kl}$, $n_{kl}$, $v^{0}_{kl}$, $v_{kl}$, and $t_{kl}$ may all differ from their reverse-direction counterparts.
+The city is partitioned into $N$ spatial cells $\mathcal{N} = \{1,\dots,N\}$, following the quantitative spatial equilibrium framework in \citet{AllenArkolakis2022}. The road network is a directed graph $(\mathcal{N},\mathcal{E})$ with edge set $\mathcal{E} \subseteq \mathcal{N} \times \mathcal{N}$. Each directed edge $(k,l) \in \mathcal{E}$ carries physical length $\ell_{kl} > 0$, directed lane capacity $n_{kl} > 0$, free-flow speed $v^{0}_{kl} > 0$, realised speed $v_{kl} > 0$, directed traffic $\Xi_{kl}$, and iceberg link cost $t_{kl}$. Directionality is allowed in every primitive: $\ell_{kl}$, $n_{kl}$, $v^{0}_{kl}$, $v_{kl}$, and $t_{kl}$ may all differ from their reverse-direction counterparts.
 
 A unit mass $\bar{L}$ of workers is allocated across residences $\{L_i^R\}$ and workplaces $\{L_j^F\}$ with $\sum_i L_i^R = \sum_j L_j^F = \bar{L}$. Each cell carries baseline residential amenity $\bar{u}_i$ and baseline workplace productivity $\bar{A}_j$. Endogenous amenity and productivity load the local scale of activity through
 \begin{equation}
@@ -236,7 +244,7 @@ The empirical implementation converts the speed and commuting data into the spat
 
 The model separates directly observed primitives from objects recovered or recomputed inside the equilibrium system. Directed edge length, free-flow speed, observed peak speed, lane count, bilateral commuting flows, residence marginals, workplace marginals, and total commuter mass are treated as data primitives. The parameters $(\theta,\alpha,\beta)$ are externally calibrated, while the congestion elasticity $\lambda$ is tied to directed speed-flow variation. Baseline residential amenities and workplace productivities are recovered so that the model matches the observed residence and workplace marginals. Commuting flows, bilateral cost indices, directed link traffic, market-access terms, link costs, and welfare are then recomputed in each counterfactual equilibrium.
 
-The baseline calibration follows the Allen--Arkolakis (2022) Seattle calibration, with $\theta = 6.83$, $\alpha = -0.12$, and $\beta = -0.10$. The congestion elasticity is the main internally targeted parameter. The corresponding speed-flow relationship is
+The baseline calibration follows the Seattle calibration in \citet{AllenArkolakis2022}, with $\theta = 6.83$, $\alpha = -0.12$, and $\beta = -0.10$. The congestion elasticity is the main internally targeted parameter. The corresponding speed-flow relationship is
 \begin{equation}
   \ln v_{et}
   =
@@ -285,8 +293,48 @@ The third experiment increases directed lane counts uniformly across grid edges.
 %=====================================================================
 
 This paper develops a directed measurement and modelling framework for evaluating tidal-lane policy. We first construct direction-specific commuting costs from road-segment speeds, grid-level travel times, and national township-pair routes, and document that directional asymmetry is present both within city and across heavily used commuting links in congested Chinese cities. We then embed directed link capacity and endogenous congestion into a quantitative spatial model, allowing capacity reallocation to affect route choice, market access and location choices. The preliminary counterfactual indicates that shifting lane capacity toward more congested directions raises aggregate welfare. These results suggest that existing road capacity can be a meaningful transportation policy in congested cities, and that models imposing symmetric commuting costs may miss the welfare consequences of directional congestion.
+\begin{thebibliography}{10}
 
+\bibitem[Ahlfeldt et al.(2015)]{Ahlfeldt2015}
+Ahlfeldt, Gabriel M., Stephen J. Redding, Daniel M. Sturm, and Nikolaus Wolf. 2015.
+\newblock The economics of density: Evidence from the Berlin Wall.
+\newblock \emph{Econometrica} 83(6): 2127--2189.
 
+\bibitem[Allen and Arkolakis(2014)]{AllenArkolakis2014}
+Allen, Treb, and Costas Arkolakis. 2014.
+\newblock Trade and the topography of the spatial economy.
+\newblock \emph{Quarterly Journal of Economics} 129(3): 1085--1140.
 
+\bibitem[Allen and Arkolakis(2022)]{AllenArkolakis2022}
+Allen, Treb, and Costas Arkolakis. 2022.
+\newblock The welfare effects of transportation infrastructure improvements.
+\newblock \emph{Review of Economic Studies} 89(6): 2911--2957.
+
+\bibitem[Arnott et al.(1993)]{Arnott1993}
+Arnott, Richard, Andre de Palma, and Robin Lindsey. 1993.
+\newblock A structural model of peak-period congestion: A traffic bottleneck with elastic demand.
+\newblock \emph{American Economic Review} 83(1): 161--179.
+
+\bibitem[Couture et al.(2018)]{CoutureDurantonTurner2018}
+Couture, Victor, Gilles Duranton, and Matthew A. Turner. 2018.
+\newblock Speed.
+\newblock \emph{Review of Economics and Statistics} 100(4): 725--739.
+
+\bibitem[Duranton and Turner(2011)]{DurantonTurner2011}
+Duranton, Gilles, and Matthew A. Turner. 2011.
+\newblock The fundamental law of road congestion: Evidence from US cities.
+\newblock \emph{American Economic Review} 101(6): 2616--2652.
+
+\bibitem[Redding and Rossi-Hansberg(2017)]{ReddingRossiHansberg2017}
+Redding, Stephen J., and Esteban Rossi-Hansberg. 2017.
+\newblock Quantitative spatial economics.
+\newblock \emph{Annual Review of Economics} 9: 21--58.
+
+\bibitem[Vickrey(1969)]{Vickrey1969}
+Vickrey, William S. 1969.
+\newblock Congestion theory and transport investment.
+\newblock \emph{The American Economic Review} 59(2): 251--260.
+
+\end{thebibliography}
 
 \end{document}

@@ -1,14 +1,13 @@
 \documentclass[12pt]{article}
 \usepackage[margin=1in]{geometry}
-% \usepackage[UTF8,fontset=fandol]{ctex}
-\usepackage{amsmath,amssymb,graphicx,booktabs,tabularx,array,setspace,float}
+\usepackage{amsmath,amssymb,booktabs,tabularx,array,setspace}
+\usepackage[authoryear,round]{natbib}
 \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
 \setstretch{1.1}
 \setlength{\parindent}{2em}
-\renewcommand{\figurename}{Figure}
 \renewcommand{\tablename}{Table}
 
-\title{Directional Congestion and Tidal Lanes}
+\title{Directional Congestion and Tidal-Lane Reallocation}
 \author{
 Yige Duan\thanks{Antai College of Economics and Management, Shanghai Jiao Tong University; \href{mailto:yige.duan@sjtu.edu.cn}{yige.duan@sjtu.edu.cn}.}
 \and
@@ -16,151 +15,147 @@ Xiaoruo Feng\thanks{Peking University HSBC Business School; \href{mailto:xiaoruo
 \and
 Yizhen Gu\thanks{Peking University HSBC Business School; \href{mailto:yizhengu@phbs.pku.edu.cn}{yizhengu@phbs.pku.edu.cn}.}
 }
-\date{March 29, 2026}
+\date{July 2026}
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-This paper studies directional congestion and the potential effects of tidal-lane policies in large cities. The analysis combines high-frequency road-speed data and fine-grid commuting flows for Beijing. The paper asks whether directional asymmetry is an important feature of urban congestion and how policies that reallocate road capacity across directions should be evaluated. The preliminary evidence shows substantial peak-hour directional imbalance in travel speeds together with a pronounced spatial mismatch between residences and jobs. To interpret these patterns, the paper develops a quantitative spatial-equilibrium model with directional commuting costs, route assignment, and endogenous congestion.
+Urban congestion is directional when peak traffic loads the two directions of the same corridor unequally. We combine national route queries, high-frequency road-segment speeds, and commuting flows to measure this asymmetry, then incorporate directed congestion into a quantitative spatial-equilibrium model. In the top 100 congested Chinese cities, the flow-weighted median directional ratio is 0.878. In Beijing, a tidal-lane counterfactual reallocates one lane from the faster to the slower morning direction on the 100 reciprocal corridors with the greatest flow-weighted excess-delay mass. Holding total corridor capacity fixed, the policy raises the model's short-run welfare index by 0.87 percent and its long-run index by 0.32 percent. Long-run congestion feedback and residence--workplace sorting absorb most of the average route-time saving. A reciprocal-symmetry diagnostic also changes welfare and spatial allocations before any policy shock. Directional costs therefore matter for both the measurement of urban congestion and the evaluation of capacity-reallocation policies.
 \end{abstract}
 
 \section{Introduction}
-Urban transportation infrastructure is costly to build and slow to expand, especially in dense central-city environments where land is scarce and construction is disruptive. Yet congestion on existing road networks is severe. In large Chinese cities, peak-hour traffic substantially reduces effective travel speeds, imposes large time losses on commuters, and lowers the efficiency with which existing infrastructure is used. Because these losses affect both accessibility and the allocation of economic activity across space, congestion is not only a transportation problem; it is also a problem of economic efficiency and urban welfare.
 
-Expanding road infrastructure is costly and slow, governments need policies that make more intensive use of the existing network. This paper focuses on one particularly relevant manifestation of urban congestion: directional scarcity. In large monocentric cities, morning inflows toward employment centers and evening outflows toward residential areas place unequal pressure on the two directions of the same physical corridor. The resulting asymmetry is directly relevant for policy because the scarcity at stake is not only how much road capacity the city has in total, but also how that capacity is allocated across directions and times of day.
+Peak commuting traffic often has a direction. Jobs cluster differently from residences, so the morning demand placed on one side of a corridor can exceed demand on the reverse side. This feature is central to reversible or tidal lanes, which reallocate capacity across directions without increasing the total lane supply. Existing work studies peak-period congestion and reversible-lane operations \citep{vickrey1969,arnott1993,wolshon2006}, while quantitative spatial models typically represent transport frictions through bilateral or network costs \citep{ahlfeldt2015,allenarkolakis2022}. The relevant spatial object is nevertheless directed: if traffic differs between $(k,l)$ and $(l,k)$, then the associated commuting costs and market-access terms differ as well.
 
-We study this issue through the lens of \emph{tidal lanes}, that is, policies that reallocate existing lane capacity toward the peak-flow direction. Relative to large-scale road expansion, tidal lanes are attractive because they can be implemented more quickly, at lower fiscal cost, and in a more targeted way on corridors with strong directional imbalance. But evaluating such policies requires more than measuring local changes in speed. A directional capacity change can alter route substitution, bilateral commuting costs, home-workplace matching, and the spatial allocation of residents and jobs. In other words, the relevant policy question is not only whether tidal lanes reduce congestion on treated segments in the short run, but also whether they improve system-wide efficiency and welfare once network spillovers and spatial adjustment are taken into account.
+This paper develops a measurement and modelling framework for this problem. First, it measures directional congestion at national trip, within-city commuter, and road-segment levels. Second, it embeds directed link capacity, route traffic, and endogenous congestion in a quantitative spatial equilibrium. Third, it evaluates a tidal-lane reallocation in Beijing and compares that policy with capacity expansion. The counterfactuals hold baseline fundamentals fixed and resolve the traffic and location-choice equilibrium. They are therefore model-based policy calculations rather than reduced-form estimates of an operating tidal-lane program.
 
-Against this background, the paper asks three related questions. First, how important is directional asymmetry in urban road congestion once we measure travel conditions on a directed network? Second, which corridors appear to be plausible candidates for capacity reallocation policies such as tidal lanes? Third, how should such policies be evaluated when commuting costs are directional and congestion feeds back into route choice and spatial allocation?
+\section{Data and Directional Congestion}
 
-The paper makes two related contributions. On the measurement side, it constructs a directed road network that recovers direction-specific travel conditions on the same centerline corridor and combines those conditions with grid-level commuting flows. On the modeling side, it embeds the resulting ordered commuting costs in a quantitative spatial framework with directional commuting frictions and endogenous congestion. Together, these pieces provide a framework for studying whether road-capacity reallocation improves urban traffic performance and welfare.
+The empirical inputs combine three objects. National trip-level routes cover township pairs in the top 100 congested Chinese cities in 2025. The within-city speed panel records directed road-segment speeds at ten-minute frequency over May 19--25, 2025. The Beijing implementation further deploys Baidu 2022 home--work commuting flows, road geometry, functional class, and lane records. The model is constructed on a directed adjacent-grid network over $3\times3$ km Beijing cells; each physical road supplies two directed links.
 
-\section{Data and Variables}
-\subsection{Data Sources and Constructed Objects}
-The empirical analysis uses two high-resolution data sources for Beijing. The first is a road-speed dataset with segment-level observations at high temporal frequency, including geometry, road class, and direction information. The second is a fine-grid origin-destination commuting dataset that records home-workplace flows across small spatial cells.
+For any reciprocal pair, define the directional ratio as
+\begin{equation}
+  \mathrm{SAR}_{ij}=\frac{\min\{x_{ij},x_{ji}\}}{\max\{x_{ij},x_{ji}\}},
+  \label{eq:sar}
+\end{equation}
+where $x_{ij}$ is the direction-specific route time or road-segment speed, according to the data source. A ratio of one denotes equality across directions, and lower values denote stronger directional asymmetry. In the national trip-level sample, the flow-weighted median $\mathrm{SAR}$ is 0.878 and 58 percent of pair-flow has $\mathrm{SAR}\leq0.90$ during the morning peak. Higher city-level Baidu congestion is associated with stronger morning asymmetry.
 
-These data are combined in three steps. First, raw road geometry is regularized into an undirected centerline network and then duplicated into two directed links, AB and BA. Second, raw speed records are matched to directed centerlines and aggregated into direction-specific speed panels by hour and peak period. Third, commuting flows are aggregated to a square-grid system and mapped to the directed road graph so that each origin-destination pair can be assigned a direction-sensitive travel cost.
+The same pattern appears within cities. In Shenzhen, the median ratio is 0.819 when grid pairs are weighted by commuter exposure; 71.6 percent of 4.4 million commuters travel on pairs with $\mathrm{SAR}\leq0.90$. In Beijing, the median morning ratio across 3,670 two-way centerlines is 0.884, and 54.7 percent of centerlines have $\mathrm{SAR}\leq0.90$. A more stringent screen, $\mathrm{SAR}\leq1/3$, identifies 179 centerlines, 4.9 percent of the sample and about 213 km, as candidate corridors for a directional capacity policy.
 
-The resulting empirical objects are: an undirected centerline network, a directed AB/BA network, a centerline-level directional speed panel, grid-level resident and employment distributions, and an ordered commuting-cost matrix defined over the grid system.
+Jobs--housing separation supplies an economic source of this directional load. On the Beijing square grid, the Duncan dissimilarity index between jobs and residences is 0.26, relative to a random-allocation floor of 0.004. Morning road commuting is radial inward: 74.5 percent of trips head toward the job-weighted center, and the inbound-to-reverse ratio is 2.9. These facts motivate a model in which directional travel costs reshape both bilateral commuting and the spatial allocation of residents and workplaces.
 
-\subsection{Spatial Distribution of Residents and Jobs}
-The spatial distribution of residents and jobs is the first descriptive motivation for directional congestion. Employment is more concentrated than residence, implying systematic morning inflows toward central employment clusters and reverse flows later in the day. In the figure, each grid is shaded by the percentile rank of residents or jobs so that the map emphasizes relative spatial concentration rather than absolute population levels.
+\section{Directed Spatial Equilibrium}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.92\textwidth]{../../L4_pipeline_outputs/todo_outputs/figs/figure1_spatial_distribution_residents_jobs.pdf}
-    \caption{Spatial distribution of residents and jobs in the Beijing square-grid system. Each grid is colored by the percentile rank of residents or jobs, with no grid borders.}
-    \label{fig:spatial-rj}
-\end{figure}
+Let $(\mathcal{N},\mathcal{E})$ denote the directed road network. A physical road contains the two directed links $(k,l)$ and $(l,k)$, with free-flow traversal time $t_{kl}^{ff}$, lane capacity $n_{kl}$, traffic $\Xi_{kl}$, and realised traversal time $t_{kl}$. A worker choosing residence $i$, workplace $j$, and route $r\in\mathcal{R}_{ij}$ receives
+\begin{equation}
+  V_{ij,r}(\omega)=\frac{u_iw_j}{C_{ij,r}}\varepsilon_{ij,r}(\omega),
+  \qquad
+  C_{ij,r}=\prod_{\ell=1}^{K_r}t_{r_{\ell-1},r_\ell},
+  \label{eq:utility}
+\end{equation}
+where the idiosyncratic term is independently Fr\'echet distributed with shape parameter $\theta$. Integrating over route choices yields the bilateral commuting-cost index
+\begin{equation}
+  \tau_{ij}^{-\theta}=\sum_{r\in\mathcal{R}_{ij}}C_{ij,r}^{-\theta}.
+  \label{eq:tau}
+\end{equation}
+Directional congestion generally implies $\tau_{ij}\neq\tau_{ji}$.
 
-\subsection{Road Speeds and Directional Asymmetry}
-The directed speed panel contains more than 24 million matched observations after preprocessing and aggregation. The central empirical object is the difference in peak-period travel conditions across directions on the same physical corridor.
+With residence and workplace marginals, bilateral flows take the doubly constrained gravity form
+\begin{equation}
+  L_{ij}=\tau_{ij}^{-\theta}
+  \left(\frac{L_i^R}{\Pi_i}\right)
+  \left(\frac{L_j^F}{P_j}\right),
+  \qquad
+  L_i^R=\sum_jL_{ij},\quad L_j^F=\sum_iL_{ij},
+  \label{eq:gravity}
+\end{equation}
+where $\Pi_i$ and $P_j$ are residence-side and workplace-side market-access terms. Residential amenity and workplace productivity depend on local activity:
+\begin{equation}
+  u_i=\bar u_i(L_i^R)^\beta,
+  \qquad
+  w_j=\bar A_j(L_j^F)^\alpha.
+  \label{eq:fundamentals}
+\end{equation}
+The aggregate welfare index is the Fr\'echet inclusive-value scale,
+\begin{equation}
+  \bar W=\left[\sum_{i,j}\tau_{ij}^{-\theta}u_i^\theta w_j^\theta\right]^{1/\theta}.
+  \label{eq:welfare}
+\end{equation}
 
-Directional asymmetry is measured by comparing AB and BA speeds on the same centerline within a given time interval. Let $\bar v_{c,d,\tau}$ denote the mean observed speed on centerline $c$ in direction $d \in \{AB,BA\}$ during interval $\tau$, where the mean is taken over all speed records assigned to that centerline, direction, and interval. We define the asymmetry ratio as
-\[
-a_{c,\tau} = 1 - \frac{\min(\bar v_{c,AB,\tau},\bar v_{c,BA,\tau})}{\max(\bar v_{c,AB,\tau},\bar v_{c,BA,\tau})}.
-\]
-This measure is zero when the two directions have the same average speed over the interval and rises as directional imbalance becomes stronger. Figure~\ref{fig:asym-dist} shows the distribution of this statistic in the AM and PM peaks. The distributions are shifted well above zero, especially in the morning peak, indicating that directional congestion is a first-order feature rather than incidental noise.
+Traffic and traversal costs are jointly determined. The implementation anchors counterfactual travel times to observed directed peak speeds:
+\begin{equation}
+  t_{kl}=\max\!\left\{t_{kl}^{ff},\;
+  t_{kl}^{obs}\left[
+  \left(\frac{\Xi_{kl}}{\Xi_{kl}^{obs}}\right)
+  \left(\frac{n_{kl}^{obs}}{n_{kl}}\right)
+  \right]^\lambda\right\}.
+  \label{eq:anchor}
+\end{equation}
+Baseline amenities and productivities are inverted to make observed residence and workplace shares an equilibrium at observed directed travel times. Counterfactuals then hold $(\bar u_i,\bar A_j)$ fixed and jointly resolve edge times, route traffic, bilateral costs, commuting flows, location shares, market access, and welfare.
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.82\textwidth]{../../data_work/outputs/match_projection_complete_v7_latest/figures/hist_speed_ratio_am_pm.png}
-    \caption{Distribution of directional asymmetry in the AM and PM peaks.}
-    \label{fig:asym-dist}
-\end{figure}
+The main calibration sets $\theta=6.83$, $\alpha=0.05$, $\beta=-0.10$, and $\lambda=1.1$. The first parameter governs the response to commuting costs, $\alpha$ captures workplace agglomeration, $\beta$ captures residential crowding, and $\lambda$ maps traffic per lane into directed traversal time. The cost elasticity follows the spatial-equilibrium calibration in \citet{ahlfeldt2015} and \citet{allenarkolakis2022}; the congestion elasticity follows \citet{barwick2024}.
 
-The asymmetries documented above are not merely local curiosities. In the sample, directional imbalance is sufficiently strong and persistent to make capacity reallocation a plausible policy margin. This is precisely the environment in which tidal-lane interventions may matter: when demand is directionally unbalanced and bilateral commuting costs differ meaningfully by direction.
+\section{What a Symmetric Cost Surface Misses}
 
-\subsection{Summary Statistics}
-Table~\ref{tab:summary} reports the main descriptive statistics used in the draft. At the grid level, the average cell contains 2,372 residents and 2,372 workers, but the medians are much smaller, reflecting substantial spatial concentration. At the segment level, the average centerline length is about 1.47 km, the mean estimated lane count is slightly above 3, and the average asymmetry ratio is about 0.195.
+The initial diagnostic compares the directed baseline with a reciprocal cost surface. It holds the network, lane counts, inverted fundamentals, parameters, solver, and welfare formula fixed, then replaces each reciprocal pair of observed and free-flow times with its geometric mean. This comparison isolates the consequence of imposing reciprocal symmetry on the cost surface.
 
-\input{../L4_pipeline_outputs/todo_outputs/tables/table1_summary_statistics.tex}
+The symmetric specification raises $\bar W$ by 1.10 percent relative to the directed baseline, changes the mean origin--destination route cost by 0.10 percent, and produces residence and workplace dissimilarities of 3.36 and 6.15 percent, respectively. Under a hub-productivity shock, the symmetric anchored model also attenuates the route-cost response from 1.93 to 1.81 percent. Symmetry thus changes the baseline spatial allocation before a transport-policy shock is introduced.
 
-\section{Model}
-\subsection{Directed Commuting Costs}
-The model partitions the city into grid cells indexed by $i,j = 1,\dots,N$. Let $L_i$ denote residents in grid $i$, $H_j$ jobs in grid $j$, and $M_{ij}$ the commuting flow from residence $i$ to workplace $j$. Let $t_{kl}$ denote travel time on directed edge $(k,l)$ of the road graph, and let $\tau_{ij}$ denote the bilateral commuting cost from $i$ to $j$.
+\section{Tidal-Lane Counterfactuals}
 
-The key object is an ordered commuting-cost matrix:
-\[
-\tau_{ij} = \min_{p \in \mathcal{P}_{ij}} \sum_{(k,l)\in p} t_{kl},
-\]
-where $\mathcal{P}_{ij}$ is the set of feasible directed paths from $i$ to $j$. Because travel times are directional, in general $\tau_{ij} \neq \tau_{ji}$. This is the central departure from standard symmetric commuting-cost formulations.
+For each two-way corridor, let $s$ denote the slower morning direction and $f$ the faster direction. A tidal-lane policy transfers one lane to the slower direction:
+\begin{equation}
+  n_s'=n_s+1,
+  \qquad
+  n_f'=n_f-1,
+  \qquad
+  n_s+n_f=n_s'+n_f'.
+  \label{eq:tidal}
+\end{equation}
+The primary policy ranks reciprocal corridors by the slow-minus-fast congestion-delay mass,
+\begin{equation}
+  \mathrm{TCS}=
+  \Xi_s(t_s^{obs}-t_s^{ff})-
+  \Xi_f(t_f^{obs}-t_f^{ff}),
+  \label{eq:tcs}
+\end{equation}
+and treats the top 100 pairs. A positive score assigns a lane toward the direction with greater baseline flow times excess travel time. The policy leaves total corridor capacity and net lane-kilometres unchanged.
 
-\subsection{Commuting Flows and Spatial Allocation}
-The model follows a quantitative spatial structure with residential amenity and workplace productivity fundamentals. Define
-\[
-U_i^\theta = \bar u_i^\theta (L_i/\bar L)^{\beta\theta},
-\qquad
-A_j^\theta = \bar a_j^\theta (H_j/\bar L)^{\alpha\theta},
-\]
-where $\bar L = \sum_i L_i$ is total population, $\bar u_i^\theta$ is a residential fundamental, and $\bar a_j^\theta$ is an employment fundamental. Commuting mass between $i$ and $j$ is
-\[
-m_{ij} = \tau_{ij}^{-\theta} U_i^\theta A_j^\theta,
-\]
-and the associated commuting flow is
-\[
-M_{ij} = \bar L \cdot \frac{m_{ij}}{\sum_{r,s} m_{rs}}.
-\]
-Equilibrium residents and jobs satisfy
-\[
-L_i = \sum_j M_{ij},
-\qquad
-H_j = \sum_i M_{ij}.
-\]
+Table~\ref{tab:tidal} reports the main equilibrium results. In the short run, residence and workplace shares remain at their baseline values. The policy reduces the route cost by 1.63 seconds per baseline road commuter, or 2,400 person-minutes per day, and raises $\bar W$ by 0.87 percent. The treated corridors are economically exposed: 56.4 percent of baseline origin--destination commuter mass has shortest paths that pass through them. The slow-direction links save 20.3 percent in the short run.
 
-This structure makes the economic role of directional commuting costs transparent. Any change in the ordered matrix $\tau_{ij}$ shifts bilateral commuting masses, which in turn changes residence-workplace matching and the implied spatial distribution of population and employment. In that sense, the model links directional road performance to both short-run traffic outcomes and longer-run spatial allocation.
+\begin{table}[htbp]
+\centering
+\caption{Top-100 tidal-lane reallocation: main results}
+\label{tab:tidal}
+\begin{tabular}{lcc}
+\toprule
+Outcome & Short run & Long run \\
+\midrule
+Welfare index, $\bar W$ & $+0.87\%$ & $+0.32\%$ \\
+Route cost, seconds per commuter & $-1.63$ & $+0.06$ \\
+Route cost, person-minutes per day & $-2{,}400$ & $+95$ \\
+Slow-direction link time change & $-20.3\%$ & $-13.6\%$ \\
+\bottomrule
+\end{tabular}
+\begin{flushleft}\footnotesize
+\emph{Notes:} The long-run route-cost change decomposes into the short-run direct effect ($-1.63$ seconds), a congestion-feedback wedge ($+0.99$ seconds), and a sorting wedge ($+0.71$ seconds). Negative route-cost entries denote time savings.
+\end{flushleft}
+\end{table}
 
-\subsection{Baseline Inversion of Fundamentals}
-The model takes observed residents $L_i^{obs}$, jobs $H_j^{obs}$, and measured commuting costs $\tau_{ij}$ as inputs and inverts the residential and employment fundamentals so that the baseline equilibrium is consistent with the observed spatial distribution. Let
-\[
-\ell_i^{L,obs} = \frac{L_i^{obs}}{\bar L},
-\qquad
-\ell_j^{H,obs} = \frac{H_j^{obs}}{\bar L}.
-\]
-Then the inverted fundamentals satisfy the system
-\[
-\bar u_i^\theta
-=
-\frac{(\ell_i^{L,obs})^{1-\beta\theta}}
-{\sum_j \tau_{ij}^{-\theta}\bar a_j^\theta(\ell_j^{H,obs})^{\alpha\theta}},
-\]
-\[
-\bar a_j^\theta
-=
-\frac{(\ell_j^{H,obs})^{1-\alpha\theta}}
-{\sum_i \tau_{ij}^{-\theta}\bar u_i^\theta(\ell_i^{L,obs})^{\beta\theta}}.
-\]
-This inversion step is important because it allows the baseline model to start from an empirically disciplined city rather than from arbitrary fundamentals.
+Allowing residence--workplace sorting changes the interpretation of the short-run time gain. Network congestion feedback adds 0.99 seconds per commuter and sorting adds 0.71 seconds, leaving a long-run route-cost change of $+0.06$ seconds per commuter. The welfare index nevertheless remains 0.32 percent above its baseline level because workers value access to the full set of residence--workplace opportunities. Residential shares increase near treated endpoints, whereas employment gains concentrate in fewer locations. Mean log residential shares increase by 0.017 at treated endpoints and fall by 0.012 elsewhere; the corresponding workplace changes are $-0.006$ and $-0.016$.
 
-\subsection{Route Assignment and Congestion}
-Given commuting flows, route assignment is all-or-nothing along shortest paths. If $p_{ij}^*$ denotes one shortest path between $i$ and $j$, then edge flow on directed edge $(k,l)$ is
-\[
-\phi_{kl} = \sum_{i,j} M_{ij}\mathbf{1}\{(k,l)\in p_{ij}^*\}.
-\]
+The policy comparison separates reallocating capacity from adding capacity. A targeted road-expansion policy adds one lane in each direction on the 100 corridors with the highest baseline flow times excess travel time. It raises short-run and long-run welfare by 1.26 and 0.44 percent, respectively, but requires 1,140 additional lane-kilometres. A uniform expansion with a matched 1,092 lane-kilometre budget raises long-run welfare by 0.10 percent. The tidal policy yields its 0.32 percent long-run welfare gain with zero net lane-kilometres.
 
-Let $n_{kl}$ denote lane capacity on edge $(k,l)$ and let $t_{kl}^{ff}$ denote free-flow travel time. Congested travel time is given by
-\[
-t_{kl} = t_{kl}^{ff} \left(\frac{\phi_{kl}}{n_{kl}}\right)^\lambda,
-\]
-where $\lambda$ is the congestion elasticity. This is the margin through which tidal-lane policies enter the model: reallocating lane capacity changes $n_{kl}$ for treated directions, which changes edge travel times, shortest-path commuting costs, and finally the equilibrium allocation of commuting flows, residents, and jobs.
+Targeting criteria also matter. Selecting the top 100 links with a local welfare-elasticity score raises long-run welfare by 0.35 percent, compared with 0.32 percent under the flow-weighted excess-delay score and 0.13 percent under a speed-only rule. The welfare-elasticity score combines the local edge gain with upstream residence access and downstream workplace opportunity. Its rank correlation with the speed-only score is 0.08, whereas the correlation with the flow-times-delay score is 0.65.
 
-\subsection{Model Results}
-\textbf{Baseline fit.} TBD.
+\section{Scope and Conclusion}
 
-\textbf{Directional versus symmetric commuting costs.} TBD.
+The main results use the stated calibration and an anchored endogenous-congestion equilibrium. Across the reported $\theta$ grid from 3 to 10, long-run welfare gains remain positive, declining from 0.75 to 0.21 percent. Across the converged $\alpha$--$\beta$ combinations reported in the sensitivity analysis, long-run gains range from 0.28 to 0.37 percent. A retained lower-slope congestion check with $\lambda=0.57$ instead yields a long-run welfare change of $-0.078$ percent. The policy calculation also does not endogenize mode switching, so benefits for travellers who would move from another mode to driving are outside the welfare accounting.
 
-\textbf{Congestion and route-assignment implications.} TBD.
+Directional congestion is pervasive in the measurement exercises and materially changes the model's spatial equilibrium. The Beijing counterfactual indicates that a targeted tidal-lane reallocation can raise the welfare index without expanding the road network, although congestion feedback and sorting substantially alter the accompanying route-time effect. Capacity policies should therefore be evaluated on a directed network and with spatial adjustment, rather than through a reciprocal commuting-cost surface or a treated-segment speed change alone.
 
-\subsection{Counterfactual Design}
-The quantitative framework is used for several policy and benchmarking exercises.
-
-\textbf{Counterfactual 1: symmetric versus directional commuting costs.} TBD.
-
-\textbf{Counterfactual 2: adding tidal lanes to the most asymmetric corridors.} TBD.
-
-\textbf{Counterfactual 3: adding road capacity and the implications for the fundamental law of congestion.} TBD.
-
-\textbf{Counterfactual 4: welfare and distributional comparisons across scenarios.} TBD.
+\bibliographystyle{apalike}
+\bibliography{../../PreSlides/references}
 
 \end{document}

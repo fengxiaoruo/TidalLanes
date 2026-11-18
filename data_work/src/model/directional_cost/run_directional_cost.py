@@ -17,6 +17,8 @@ from src.model.full_estimation import build_primitives as bp  # noqa: E402
 from src.model.full_estimation import parameters as pm  # noqa: E402
 from src.model.full_estimation import invert_fundamentals as inv  # noqa: E402
 from src.model.directional_cost import fixed_tau_model as ft  # noqa: E402
+from src.model.directional_cost import od_fit_estimation as odf  # noqa: E402
+from src.model.directional_cost.plot_model_mechanics import plot_workplace_choice_from_od  # noqa: E402
 
 
 def _parse_grid(text: str) -> list[float]:
@@ -62,6 +64,8 @@ def main(argv=None) -> None:
     p.add_argument("--intensity-grid", default="0,0.25,0.5,0.75,1")
     p.add_argument("--threshold-grid", default="1,1.05,1.10,1.25,1.50,2.00")
     p.add_argument("--top-od", type=int, default=500)
+    p.add_argument("--skip-od-calibration", action="store_true",
+                   help="Skip P2 theta/SMM diagnostics (saves ~15s)")
     args = p.parse_args(argv)
 
     repo = Path(args.repo_root).resolve()
@@ -144,6 +148,45 @@ def main(argv=None) -> None:
     }
     _write_json(diag / "equilibrium_fit_to_observed.json", fit)
     _write_json(diag / "directed_fit_to_observed.json", fit)
+
+    od_dir = ft.predicted_od_shares(directed, fund_dir.abar_theta, params)
+    od_sym = ft.predicted_od_shares(symmetric, fund_sym.abar_theta, params)
+    od_fit = ft.od_fit_to_observed_summary(prim, od_dir, od_pred_sym=od_sym)
+    _write_json(diag / "od_fit_to_observed.json", od_fit)
+    log.info(
+        "OD fit: global L1=%.1f%% off-diag=%.1f%% intra share obs/pred=%.1f/%.1f%%",
+        od_fit["global_l1_pct"],
+        od_fit["off_diagonal_l1_pct"],
+        od_fit["intrazonal_share_obs_pct"],
+        od_fit["intrazonal_share_pred_pct"],
+    )
+
+    intra_cmp = ft.compare_od_intra_specs(prim, directed, fund_dir.abar_theta, params)
+    _write_json(diag / "od_fit_intra_specs.json", intra_cmp)
+    best = min(intra_cmp["specs"], key=lambda r: r["global_l1_pct"])
+    log.info(
+        "P1 intra specs: best global L1=%.1f%% (%s); baseline=%.1f%%",
+        best["global_l1_pct"], best["spec"], intra_cmp["specs"][0]["global_l1_pct"],
+    )
+
+    fig_dir = out / "figures"
+    fig_dir.mkdir(parents=True, exist_ok=True)
+    import matplotlib.pyplot as plt  # noqa: E402
+    plt.style.use("seaborn-v0_8-whitegrid")
+    plot_workplace_choice_from_od(prim, od_dir, fig_dir)
+
+    if not args.skip_od_calibration:
+        theta_smm = odf.run_theta_and_smm_calibration(
+            prim, kappa, params, intra_spec="exclude_diag_plus_proxy_calibrated",
+        )
+        odf.write_json(diag / "od_fit_theta_and_smm.json", theta_smm)
+        log.info(
+            "P2 theta: PO hat=%.2f SMM best=%.2f (global L1 %.1f%% -> %.1f%%)",
+            theta_smm["po_primary_theta_hat"],
+            theta_smm["smm_best_theta"],
+            theta_smm["comparison"]["baseline_placeholder"]["global_l1_pct"],
+            theta_smm["comparison"]["smm_best"]["global_l1_pct"],
+        )
 
     reciprocal = edge_df[edge_df["has_reverse"]]
     _write_json(diag / "asymmetry_summary.json", {

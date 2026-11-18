@@ -1,0 +1,5 @@
+SELECT `date`, slot30, grid_o, grid_d, od_basis, purpose, dictionary_mode_group,
+       rail_detected, sample_id, n_trip, n_people, n_trip_from_day5_people, sum_time_s, sum_distance_m
+FROM {{APPROVED_OWN_AGGREGATE_TABLE}}
+WHERE `date`={{PART_DATE}} AND part_hash>={{HASH_LOWER}} AND part_hash<{{HASH_UPPER}}
+  AND n_people>={{APPROVED_MIN_PEOPLE}};

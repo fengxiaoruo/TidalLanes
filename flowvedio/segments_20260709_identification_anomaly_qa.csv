@@ -1,0 +1,3 @@
+video,start,end,label,regime,analysis_sample,event_window,keep,note
+进城方向1623开始.MOV,10:00,15:00,inbound_post,post,1,anomaly,1,south_to_north偏低窗口QA
+出城方向1621开始.MOV,08:30,13:30,outbound_post,post,1,anomaly,1,south_to_north偏低窗口QA

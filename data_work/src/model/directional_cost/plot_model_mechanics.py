@@ -174,22 +174,24 @@ def plot_one_hop_weights(prim, params, kappa: float, fig_dir: Path) -> None:
     plt.close(fig)
 
 
-def plot_workplace_choice(prim, params, kappa: float, fig_dir: Path) -> None:
-    fund = inv.invert_fundamentals(prim, params, kappa=kappa, max_iter=800, tol=1.5e-4)
-    eq = ft.solve_static_equilibrium(
-        prim, prim.tau_obs_min, fund.ubar_theta, fund.abar_theta, fund.chi, params,
-        kappa=kappa, label="directed",
-    )
-    od = ft.predicted_od_shares(eq, fund.abar_theta, params)
+def plot_workplace_choice_from_od(
+    prim,
+    od_shares: np.ndarray,
+    fig_dir: Path,
+    n_origins: int = 3,
+) -> None:
+    """Bar chart of top-destination shares for largest-residence origins."""
     l_R = prim.L_R_obs / prim.L_R_obs.sum()
-
-    fig, axes = plt.subplots(1, 3, figsize=(12.5, 4.2))
-    for ax, origin in zip(axes, np.argsort(-l_R)[:3]):
+    n_origins = min(n_origins, int((l_R > 0).sum()))
+    fig, axes = plt.subplots(1, n_origins, figsize=(4.2 * n_origins, 4.2))
+    if n_origins == 1:
+        axes = [axes]
+    for ax, origin in zip(axes, np.argsort(-l_R)[:n_origins]):
         origin = int(origin)
         obs_j = np.argsort(-prim.L_ij_obs[origin])[:8]
         obs_j = [int(j) for j in obs_j if prim.L_ij_obs[origin, j] > 0]
         obs_share = prim.L_ij_obs[origin, obs_j] / prim.L_ij_obs[origin].sum()
-        model_share = od[origin, obs_j] / np.clip(od[origin].sum(), EPS, None)
+        model_share = od_shares[origin, obs_j] / np.clip(od_shares[origin].sum(), EPS, None)
         x = np.arange(len(obs_j))
         w = 0.35
         ax.bar(x - w / 2, obs_share, width=w, label="obs OD share", color="#64748b")
@@ -201,8 +203,19 @@ def plot_workplace_choice(prim, params, kappa: float, fig_dir: Path) -> None:
     axes[0].legend(fontsize=8)
     fig.suptitle("Workplace choice: observed OD vs model (same residence margin)", y=1.02)
     fig.tight_layout()
+    fig_dir.mkdir(parents=True, exist_ok=True)
     fig.savefig(fig_dir / "workplace_choice_obs_vs_model.png", dpi=220, bbox_inches="tight")
     plt.close(fig)
+
+
+def plot_workplace_choice(prim, params, kappa: float, fig_dir: Path) -> None:
+    fund = inv.invert_fundamentals(prim, params, kappa=kappa, max_iter=800, tol=1.5e-4)
+    eq = ft.solve_static_equilibrium(
+        prim, prim.tau_obs_min, fund.ubar_theta, fund.abar_theta, fund.chi, params,
+        kappa=kappa, label="directed",
+    )
+    od = ft.predicted_od_shares(eq, fund.abar_theta, params)
+    plot_workplace_choice_from_od(prim, od, fig_dir)
 
 
 def plot_inversion_convergence(prim, params, kappa: float, fig_dir: Path) -> None:

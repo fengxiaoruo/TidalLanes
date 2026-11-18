@@ -1,0 +1,16 @@
+{
+  "_note": "Same as manual_centerline_plan1.json (v11 corridor rules), but stage01 reads the raw_connected_v3 road layer built by src/network/build_centerline_v3_input.py (2026-11-06). stage03 reads a 4-column copy of raw_data/speed_Beijing_all_wgs84.csv (roadseg_id, speed, day, hour; same 24,336,848 rows) because the full file (geometry on every row) runs out of memory.",
+  "stage01": {
+    "raw_path": "/Users/fxr/Library/CloudStorage/Dropbox/Projects/TidalLanes/data_work/outputs/centerline_v3_input_v1/data/beijing_roads_v3.gpkg",
+    "manual_exclude_from_skeleton_input": true,
+    "manual_replace_default_centerline": false,
+    "manual_replace_buffer_m": 80.0,
+    "manual_replace_overlap_share": 0.6
+  },
+  "stage02": {
+    "baseline_exclude_manual_centerlines": false
+  },
+  "stage03": {
+    "raw_speed_path": "/Users/fxr/Library/CloudStorage/Dropbox/Projects/TidalLanes/data_work/outputs/centerline_v3_input_v1/data/speed_Beijing_all_slim.csv"
+  }
+}

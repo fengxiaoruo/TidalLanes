@@ -1,0 +1,84 @@
+{
+  "project": "TidalLanes",
+  "batch": "202505_v01",
+  "city": "V0110000",
+  "month_key": 20250501,
+  "platform_table_prefix": "tl25m05_v01_",
+  "query_prefix": "TL25M05_V01",
+  "ordinary_weekdays": [
+    20250506,
+    20250507,
+    20250508,
+    20250509,
+    20250512,
+    20250513,
+    20250514,
+    20250515,
+    20250516,
+    20250519,
+    20250520,
+    20250521,
+    20250522,
+    20250523,
+    20250526,
+    20250527,
+    20250528,
+    20250529,
+    20250530
+  ],
+  "validation_passage_dates": [
+    20250519,
+    20250520,
+    20250521,
+    20250522,
+    20250523
+  ],
+  "raw_source_date_audit_range": [
+    20250517,
+    20250527
+  ],
+  "source_date_for_rn": "determine_from_passage_date_coverage_audit_not_equal_by_assumption",
+  "departure_windows": {
+    "AM": {
+      "start": "07:00:00",
+      "end_exclusive": "09:00:00"
+    },
+    "PM": {
+      "start": "17:00:00",
+      "end_exclusive": "19:00:00"
+    }
+  },
+  "base_time_resolution_minutes": 10,
+  "primary_export_resolution_minutes": 30,
+  "coarser_rollups": [
+    60,
+    120
+  ],
+  "time_zone": "Asia/Shanghai",
+  "timestamp_rule": "native move_month.stime string; RN conversion per audited Speed contract; no arbitrary hour shift",
+  "main_population": "R19_59_core_home_work_valid_joint",
+  "reference_population": "all_clean_mode1_trips_explicitly_separate",
+  "purpose_categories": [
+    "HW",
+    "WH",
+    "home_other",
+    "work_other",
+    "other",
+    "unknown"
+  ],
+  "purpose_rule": "ptype pair; no inference from time of day",
+  "ground_mode_rule": "mode1_candidate_not_verified_pure_car",
+  "weighting": "unweighted main; no gw for traffic expansion",
+  "short_commute_rule": "retain same cell and distance<1000; flag rather than impose NG103 cutoff",
+  "export_min_distinct_people": 5,
+  "export_target_bytes_per_part": 10000000,
+  "export_planning_ceiling_bytes_per_part": 15000000,
+  "privacy_limit_status": "planning_from_previous_batches_subject_to_current_platform_review",
+  "formal_part_rule": "date and stable audited RN-pair/OD-key hash ranges; no LIMIT OFFSET",
+  "model_grid": "reference_inputs/model_grid_wgs84_v01.csv",
+  "mask": "gate5_1104_nodes_for_comparison; retain full-grid and out-of-mask QC",
+  "production_readiness": "not_run; schema, geo fixture, source contracts and pilot QC must pass first",
+  "platform_submission_performed": false,
+  "shared_library_writes": false,
+  "pilot_source_date": 20250519
+}

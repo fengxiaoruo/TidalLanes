@@ -18,7 +18,31 @@
 
 **行数检查**：`top_commuting_pairs.csv` 在满样本、当前主线逻辑下为 **2500 行**（无表头）。若明显偏少，核对是否跑错 `version_id` 或建样本是否中断。旧试验目录里曾出现约 800 多行，与主线无关。
 
-若改用百度官方 2024 百城通勤高峰拥堵指数版本，使用：
+**当前推荐（2025 榜单）**：使用项目内 OCR 转录的 2025 百城通勤高峰拥堵榜 xlsx 作为城市排序与横轴指数来源：
+
+- config: `data_work/config/national_tidal_commuting_baidu2025_top100_congestion_v1.json`
+- output: `data_work/outputs/national_tidal_commuting_baidu2025_top100_congestion_v1/`
+- source xlsx: `data_work/raw_data/baidu_2025_commuting_peak_congestion_ranking.xlsx`（工作表 `百城通勤拥堵榜2025`；仅用列 `城市`、`通勤高峰拥堵指数`）
+- city ranking rule: 按 `通勤高峰拥堵指数` 降序取前 100 城，与 DTA `origin_city_name` 去后缀匹配（`大理` 等可在 config `city_aliases` 中显式映射）
+- 建样本命令：
+
+```bash
+cd data_work
+python src/national_tidal_commuting/build_top_pairs.py --config config/national_tidal_commuting_baidu2025_top100_congestion_v1.json
+```
+
+- 速度爬取时务必显式传入同一 config，例如：
+
+```bash
+cd data_work
+python -m src.national_tidal_commuting.run_full_crawl --config config/national_tidal_commuting_baidu2025_top100_congestion_v1.json
+```
+
+爬取完成后，城市层面散点图的 x 轴使用 `metrics/top_commuting_pairs_city_summary.csv` 中的 `source_congestion_index`（与 xlsx 中「通勤高峰拥堵指数」一致）。
+
+---
+
+若需对照或复现百度官方 **2024** 百城通勤高峰拥堵指数版本，使用：
 
 - config: `data_work/config/national_tidal_commuting_baidu2024_top100_congestion_v1.json`
 - output: `data_work/outputs/national_tidal_commuting_baidu2024_top100_congestion_v1/`
@@ -72,6 +96,13 @@ python src/national_tidal_commuting/extract_baidu_2024_city_base.py
 python src/national_tidal_commuting/build_top_pairs.py --config config/national_tidal_commuting_baidu2024_top100_congestion_v1.json
 ```
 
+百度 2025 前 100 拥堵城市版本（榜单 xlsx，见 §0）：
+
+```bash
+cd data_work
+python src/national_tidal_commuting/build_top_pairs.py --config config/national_tidal_commuting_baidu2025_top100_congestion_v1.json
+```
+
 **主要产出**：
 
 - `outputs/.../data/top_commuting_pairs.csv`：约 2500 对，含 `home_lon/lat, work_lon/lat` 及 **`home_coord_source` / `work_coord_source` / `pair_uses_centroid_fallback`**（乡镇点来源）。  
@@ -107,6 +138,8 @@ python src/national_tidal_commuting/build_top_pairs.py --config config/national_
 
 ### 2.2 一键全量爬三档（推荐：进度 + 每批落盘）
 
+**定时 / 指定北京时间再开跑**：见 [`NATIONAL_CRAWL_SCHEDULING.md`](./NATIONAL_CRAWL_SCHEDULING.md)（`cron`、`launchd`、`wait_until_shanghai_hhmm_then_exec.py`，以及无严格窗的**三轮**脚本 `run_scheduled_triple_crawl.sh`）。
+
 对当前 `top_commuting_pairs.csv` 里**全部** OD，顺序跑你指定的 panel；**每发一条 OD 请求就追加**写入，终端打印总进度。一轮输出在：
 
 `outputs/.../api/crawl_sessions/<crawl_run_id>/`
@@ -123,6 +156,8 @@ python -m src.national_tidal_commuting.run_full_crawl
 `--label` 会写入每行，便于和别的轮次在表里区分。
 
 **汇总** `summarize_results.py` 会同时识别旧文件 `baidu_matrix_results_*.csv` 与 `crawl_sessions/*/session_matrix_flat.csv`（多轮/多源时同 key 取**最新**一条）。
+
+若你只想针对**指定的三轮**（例如调度产出的 FREE/AM/PM 各一次）生成独立 `metrics/` + `figures/` + 中文说明，而不混入其它历史 session，请用：`python3.11 -m src.national_tidal_commuting.report_triple_crawl_campaign --config ... --report-id <子目录名> --session-ids <run1>,<run2>,<run3>`。
 
 ### 2.3 分步跑（仍支持）
 
