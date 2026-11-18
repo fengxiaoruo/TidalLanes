@@ -28,6 +28,7 @@ Python environment: `/Users/fxr/miniconda3/envs/research/bin/python`, run from `
 - Every run writes a new folder under `outputs/`. Never overwrite an existing folder; bump the `_vN` suffix instead.
 - A folder that ends with only a failed `run.log` is recorded as void in `docs/WORK_LOG.md`.
 - A run that becomes part of the mainline is added to [`docs/MAINLINE_MANIFEST.md`](docs/MAINLINE_MANIFEST.md), which lists what must be backed up.
+- [`docs/OUTPUTS_REGISTRY.md`](docs/OUTPUTS_REGISTRY.md) sorts every output folder by category; rerun `python src/diagnostics/build_outputs_registry.py --repo-root .` after adding outputs.
 - Give each retained result folder a `README.md` with the conclusion, the numbers, and the exact command.
 
 ## Recording work

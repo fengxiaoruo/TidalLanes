@@ -36,6 +36,15 @@ The `.tex` snapshots are retained in full because they are small and carry the a
 | `tidal_advisor_revision_segmentonly_20260703.tex` | Segment-only variant of the same pass |
 | `tidal_speaker_script_*_backup_*.md` | Speaker-script states matching the deck snapshots above |
 
+Moved here from `PreSlides/` on 2026-11-18 because nothing in the project refers to them:
+
+| File | Origin |
+|---|---|
+| `tidal0702updated.pdf` | Compiled `tidal.tex` as of 2026-07-02 |
+| `tidal_advisor_revision_20260703.pdf`, `tidal_advisor_revision_segmentonly_20260703.pdf` | Compiled advisor-revision variants (the round-2 PDF stays in `PreSlides/` because scripts cite it) |
+| `tidal_speaker_script_20260702.md`, `_20260703.md`, `_final_20260703.md`, `_round2_20260703.md` | Speaker scripts for the early-July `tidal.tex` deck |
+| `tidal_speaker_script_Tidal0715_20260716.md`, `_20260717.md` | Earlier drafts of the `Tidal0715` script; the current one is `tidal_speaker_script_Tidal0715_20260718.md` |
+
 ## Going forward
 
 Snapshots of this kind duplicate what version control already does, and the filename carries only a short phrase where a commit message would carry the reasoning. Commit the deck instead; if a snapshot is genuinely needed, place it here rather than in the working directory.

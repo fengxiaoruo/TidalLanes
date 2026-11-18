@@ -9,6 +9,13 @@ This file holds 2026-10-01 onward. Earlier entries, also newest first:
 
 Search by date (`## 2026-MM-DD`) or by output folder name; do not read the files in full.
 
+## 2026-11-18 输出目录登记表；整理 Documents 杂项
+
+- 新增 `data_work/docs/OUTPUTS_REGISTRY.md`，由 `src/diagnostics/build_outputs_registry.py` 生成：`outputs/` 下 475 个目录按名称和内容分八类（主线 25、现口径试验 152、gate5 上的 2025 OD 70、旧 gate5 主线及试验 163、pipeline 与百度验证 23、深圳／彩田／全国 21、smoke 与命名失败 14、只有 run.log 的失败 7），并标出 README 有无、被旧主线文档或 deck／论文／复现包引用的目录。分类按规则自动做，是初筛；主线以 `MAINLINE_MANIFEST.md` 为准。新增输出后重跑脚本。
+- 清理（移到废纸篓 `~/.Trash/TidalLanes_cleanup_20261118/`，可恢复）：`Documents/L2_notes` 10 个 LaTeX 编译中间文件、`L1_manuscripts/drafts` 4 个 `_副本`／`synctex(busy)` 文件、根目录 `tmp/`（8 月审阅 PDF 的截图）。`brad_202611/build/`、`platform_20261104/build/` 是有意的编译目录，保留。
+- `Documents/PreSlides/` 中 9 个无任何引用的旧文件（7 月初 `tidal.tex` 的 PDF 与讲稿、`Tidal0715` 讲稿 0716／0717 稿）移入 `_snapshots/`，`SNAPSHOT_MANIFEST.md` 已记录。被脚本引用的 round2 PDF、`tidal_speaker_script_detailed.md`、`tidal_speaker_script_main.docx`、`tidalraw` 留在原处。
+- 未做，等另一会话（Tsivanidis 双层选择试验）结束后再做：把 `full_estimation/` 里一次性的 `run_*` 脚本移入 `experiments/`、修 B1–B5。按计划不移动旧 gate5 输出目录、`flowvedio/`、`Replication_apply/` 和复现包，以登记表的分类代替。
+
 ## 2026-11-18 WORK_LOG 按季度拆分；nextstep 按依赖重写
 
 - WORK_LOG 原 5,404 行、两种排序混在一起（前 1,286 行新到旧，其后旧到新）。全部条目按日期改为新到旧，拆成三份：`WORK_LOG.md`（2026-10 起，约 870 行）、`WORK_LOG_2026Q3.md`（7–9 月）、`WORK_LOG_2026Q2.md`（4–6 月）。内容逐行核对无丢失；只删了与根 `AGENTS.md` 重复的 “Workflow rule” 一节。原来嵌在 11-13 节下的 11-13 至 11-15 子条目升为独立条目。新条目写在本文件最上面。
