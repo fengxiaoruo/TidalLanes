@@ -21,6 +21,21 @@ Algorithms). v1 is a **scaffold**, agreed at the 2026-05-02 meeting:
 The exact-hat replication path is unchanged in
 `Replication_apply/python_commuting/`. This package lives alongside it.
 
+## Which files matter (2026-11-18)
+
+The folder holds about 80 files side by side. They are not moved into subfolders because the
+`run_*` scripts import the core modules by package path and their paths are written into output
+READMEs and the work log.
+
+- **Core modules** (the model itself): `parameters.py`, `build_primitives.py`, `invert_fundamentals.py`,
+  `equilibrium_solve.py`, `stage2_counterfactuals.py`, `counterfactual_levels.py`, `tidal_lane_diagnostics.py`,
+  `corridor_exposure.py`, `lambda_diagnostic.py`, `phase_metrics_common.py`, `score_tidal_corridor_candidates.py`.
+- **Current-mainline entry scripts**: `run_tidal_lane_diagnostics_gate5.py`, `run_policy_comparison_alldaytt0709.py`,
+  `run_beta_c_rerun_checks.py`, `run_policy_multistart_b035.py`, `run_theta_first_second_order_osm1b.py`,
+  `run_stage2_gate5.py` (parameter folder). Commands: `data_work/outputs/beta_c_rerun_b035_summary_v1/README.md`.
+- **Everything else** (the other `run_*`, `plot_*`, dated `*_2026MMDD.py`, `build_*_gate5.py`): one-off experiments,
+  figures, or old-mainline drivers. Find what each produced by searching its name in `data_work/docs/WORK_LOG*.md`.
+
 ## Layout
 
 ```

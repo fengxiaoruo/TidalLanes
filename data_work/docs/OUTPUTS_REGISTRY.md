@@ -1,6 +1,6 @@
 # Outputs registry
 
-Generated 2026-11-18 by `data_work/src/diagnostics/build_outputs_registry.py`; rerun it after adding outputs. 475 folders in `data_work/outputs/`.
+Generated 2026-11-18 by `data_work/src/diagnostics/build_outputs_registry.py`; rerun it after adding outputs. 456 folders in `data_work/outputs/`.
 
 Classification is by folder name and contents, so treat it as a first sort. The current mainline is defined by `MAINLINE_MANIFEST.md` and the "Current mainline" table in `DOCUMENT_INDEX.md`, not by this file. "Cited by" marks folders named in old-mainline documents or in the deck, paper, and replication packages; keep those even when the category says history. A folder missing here is newer than the last run.
 
@@ -11,9 +11,9 @@ Classification is by folder name and contents, so treat it as a first sort. The 
 | 2025 OD on the gate5 network | 70 | Transition runs (Sept to early Nov 2026) that put 2025 OD on the old gate5 network. Superseded by 1B. |
 | Old gate5 mainline and its experiments | 163 | 2022 OD, anchored lambda = 1.1, BPR trials, Stage 1 and Stage 2. Keep the ones marked as cited; the rest are history. |
 | Pipeline baselines and Baidu validation | 23 | Stage pipeline, centreline match, Baidu route validation. |
-| Shenzhen, Caitian, national evidence | 21 | Reduced-form evidence lines, currently paused. |
-| Smoke tests and named failures | 14 | Safe to delete after a check. |
-| Failed runs (only run.log) | 7 | Recorded as void in the work log. Safe to delete. |
+| Shenzhen, Caitian, national evidence | 23 | Reduced-form evidence lines, currently paused. |
+| Smoke tests and named failures | 0 | Safe to delete after a check. |
+| Failed runs (only run.log) | 0 | Recorded as void in the work log. Safe to delete. |
 
 ## Current mainline (26)
 
@@ -473,7 +473,7 @@ Classification is by folder name and contents, so treat it as a first sort. The 
 | `rn_baidu_match_layers_v1` |  |  |
 | `rn_baidu_match_network_v1` |  |  |
 
-## Shenzhen, Caitian, national evidence (21)
+## Shenzhen, Caitian, national evidence (23)
 
 | Folder | README | Cited by |
 |---|---|---|
@@ -498,34 +498,15 @@ Classification is by folder name and contents, so treat it as a first sort. The 
 | `shenzhen_multi_tidal_pooled_psm_did_v1` | yes |  |
 | `shenzhen_multi_tidal_post_only_v1` |  |  |
 | `shenzhen_multi_tidal_refinement_v1` |  |  |
-
-## Smoke tests and named failures (14)
-
-| Folder | README | Cited by |
-|---|---|---|
-| `centerline_crossgrid_robustness_tiers_v1_failed_20260804_01` |  |  |
-| `centerline_rawpath_topology_candidates_v1_failed_20260804_01` |  |  |
-| `congestion_almagro_spec_test_noboot` |  |  |
-| `national_center_periphery_commuting_smoke_v1` |  |  |
-| `national_center_periphery_group_diagnostics_smoke_v1` |  |  |
-| `national_tidal_commuting_baidu2025_top1_city_smoke_v1` |  |  |
-| `national_tidal_commuting_baidu2025_top1city_smoke_v1` |  |  |
-| `national_tidal_commuting_top2cities_2021_test` |  |  |
-| `raw_connected_v1_grid_travel_time_edgeproj_v1_smoke` |  |  |
-| `raw_connected_v2_grid_travel_time_edgeproj_v1_smoke` |  |  |
-| `route_kernel_exp_trial_20260928_v1_failed_20260928_01` |  |  |
 | `shenzhen_smallgrid_v1_run1` |  |  |
 | `shenzhen_test_line_v1_run1` |  |  |
-| `symmetric_input_policy_grid_gate5_bpr_pos05_smoke_v1` |  |  |
 
-## Failed runs (only run.log) (7)
+## Smoke tests and named failures (0)
 
 | Folder | README | Cited by |
 |---|---|---|
-| `tidal_lane_diagnostics_osm1b_ce_floor_b025_fl001_ks_od2025_alldaytt0610_v1` |  |  |
-| `tidal_lane_diagnostics_osm1b_ce_floor_b025_fl001_ks_od2025_alldaytt0709_v2` |  |  |
-| `tidal_lane_diagnostics_osm1b_ce_floor_b025_fl001_ks_od2025_ctl0709_v1` |  |  |
-| `tidal_lane_diagnostics_osm1b_ce_floor_b025_fl001_ks_od2025_dep0610tt0610_v1` |  |  |
-| `tidal_lane_diagnostics_osm1b_ce_floor_b025_fl001_ks_od2025_dep0610tt0709_v1` |  |  |
-| `tidal_lane_diagnostics_osm1b_ce_floor_b025_fl001_ks_od2025_onroad0610tt0610_v1` |  |  |
-| `tidal_lane_diagnostics_osm1b_ce_floor_b025_fl001_ks_od2025_win0709tt0610_v1` |  |  |
+
+## Failed runs (only run.log) (0)
+
+| Folder | README | Cited by |
+|---|---|---|

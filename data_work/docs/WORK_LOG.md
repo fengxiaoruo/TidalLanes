@@ -9,6 +9,13 @@ This file holds 2026-10-01 onward. Earlier entries, also newest first:
 
 Search by date (`## 2026-MM-DD`) or by output folder name; do not read the files in full.
 
+## 2026-11-18 清理失败与 smoke 输出；备份缺口按 Dropbox 同步处理
+
+- 用户确认执行清理。`data_work/outputs/` 下 19 个目录移入废纸篓 `~/.Trash/TidalLanes_cleanup_20261118/data_work_outputs/`（可恢复）：7 个只有 `run.log` 的失败运行（`tidal_lane_diagnostics_osm1b_…_b025_…_{alldaytt0610,alldaytt0709_v2,ctl0709,dep0610tt0610,dep0610tt0709,onroad0610tt0610,win0709tt0610}`）、5 个命名为 failed 或 test 的目录、7 个 smoke 运行。移动前逐个查过，项目文档、代码和复现包都不引用它们。登记表曾把 `shenzhen_smallgrid_v1_run1`、`shenzhen_test_line_v1_run1`（各约 1.2 GB，被深圳文档引用）误归为 smoke，已改规则，二者保留。登记表重跑后为 474 个目录，失败与 smoke 两类为 0。
+- `full_estimation/` 的脚本不搬进子目录（`run_*` 按包路径导入核心模块，路径也写在输出 README 和本日志里），改在该目录 README 加一节，列出核心模块、现主线入口脚本和其余一次性脚本的查找方式。
+- 用户决定：`grid_pair_baidu_validation_v3` 与 `Platform/runs/202505_v01/query-results/` 不加入硬盘备份，靠 Dropbox 共享项目文件夹同步保护。`BACKUP_WORKFLOW.md`、根 `AGENTS.md`、`MAINLINE_MANIFEST.md` 已按此改写。
+- Tsivanidis 双层选择试验属于另一任务，其备忘、脚本、本日志条目和 `nextstep.md` 改动未随本任务提交。
+
 ## 2026-11-18 旧标签修正与规则文档一致性审计
 
 - `parameters.json` 的 `lambda_phys`：核实没有任何求解器读它（弹性一律由运行脚本的 `congestion_lambda` 传入），所以只是标签。`parameters.py` 新增 `Parameters.with_congestion()`，`run_stage2_gate5.py`、`run_tidal_lane_diagnostics_gate5.py`、`run_theta_first_second_order_osm1b.py` 写 `parameters.json` 前记下实际传入的形式与弹性；默认的 `lambda_phys_source` 和 notes 改为说明这是占位标签。其他脚本仍写 1.1 加新说明。旧输出未改。

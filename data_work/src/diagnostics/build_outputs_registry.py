@@ -50,9 +50,11 @@ def classify(name: str, files: list[str], manifest: str) -> str:
         return "mainline"
     if not [f for f in files if f not in ("run.log", ".DS_Store")]:
         return "failed_or_empty"
-    if re.search(r"(^|_)(smoke|test)(_|$)|_smoke|_failed_\d|_run1$", name):
+    if re.search(r"shenzhen|caitian", name):
+        return "evidence_other_city"
+    if re.search(r"(^|_)(smoke|test)(_|$)|_smoke|_failed_\d", name):
         return "smoke_or_failed"
-    if re.search(r"shenzhen|national_|caitian", name):
+    if re.search(r"national_", name):
         return "evidence_other_city"
     if re.search(r"centerline|raw_baidu|grid_pair_baidu|rn_baidu|raw_rebuild|raw_topology|match_projection|manual_centerline", name):
         return "pipeline_and_validation"
