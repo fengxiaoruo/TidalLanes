@@ -32,6 +32,6 @@ Python environment: `/Users/fxr/miniconda3/envs/research/bin/python`, run from `
 
 ## Recording work
 
-- Completed work, locked decisions, and new output folders go in `docs/WORK_LOG.md`.
+- Completed work, locked decisions, and new output folders go in `docs/WORK_LOG.md`, newest entry at the top. Entries before October 2026 are in `docs/WORK_LOG_2026Q3.md` and `docs/WORK_LOG_2026Q2.md`.
 - `nextstep.md` at the root holds only current status and next actions.
 - Do not modify `raw_data/`.

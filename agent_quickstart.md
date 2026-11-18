@@ -7,7 +7,7 @@
 1. `AGENTS.md`：跨任务规则与目录
 2. `DOCUMENT_INDEX.md` 只读 “Current mainline” 一节：当前口径、输入包、运行命令、数字能怎么引用。**这是当前口径的唯一出处**，其他 README、脚本默认值、目录名都可能是旧主线
 3. `nextstep.md`：当前状态与下一步
-4. `data_work/docs/WORK_LOG.md` **不要通读**（5,000 多行）。只按任务搜对应日期或关键词的条目
+4. `data_work/docs/WORK_LOG.md` 只含 2026-10 以后，新条目在最上面；更早的在 `WORK_LOG_2026Q3.md`、`WORK_LOG_2026Q2.md`。**不要通读**，只按任务搜日期（`## 2026-MM-DD`）或输出目录名
 5. `data_work/AGENTS.md` 仅在要改 pipeline / 跑模型时再读
 6. `writing.md` 仅在要写英文正文 / memo / slides / appendix prose 时再读
 

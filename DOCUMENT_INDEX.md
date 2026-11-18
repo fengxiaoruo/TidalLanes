@@ -16,7 +16,7 @@ Status labels used below:
 |---|---|
 | `agent_quickstart.md` | Minimum-token onboarding path for a new session |
 | `nextstep.md` | Live plan: current status, next actions, open questions |
-| `data_work/docs/WORK_LOG.md` | Completed work, locked parameters, retained decisions |
+| `data_work/docs/WORK_LOG.md` | Completed work, locked parameters, retained decisions, from 2026-10 onward, newest first. Earlier entries are in `WORK_LOG_2026Q3.md` (July to September) and `WORK_LOG_2026Q2.md` (April to June) |
 | `AGENTS.md` | Cross-task rules, repository layout, writing-rule mandate |
 | `writing.md` | Style rules governing all English prose in the project |
 
